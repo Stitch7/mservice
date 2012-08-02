@@ -58,9 +58,9 @@ var cleanManiacStuff = function(text) {
 
 
 /**
- * boards action, fetches man!ac board list
+ * index action, fetches man!ac board list
  */
-var boards = function () {
+var index = function () {
 	var url = 'http://maniac-forum.de/forum/pxmboard.php';
 	
 	fetchManiacHtml(url, function (html) {
@@ -86,7 +86,7 @@ var boards = function () {
 /**
  * threads action, fetches a man!ac thread list
  */
-var threads = function () {
+var threadlist = function () {
 	var url = 'http://maniac-forum.de/forum/pxmboard.php?mode=threadlist&brdid=6'; // &sort=last&x=13&y=3
 	
 	fetchManiacHtml(url, function (html) {
@@ -148,5 +148,53 @@ var threads = function () {
 	});
 };
 
-threads();
-boards();
+var thread = function () {
+	var url = 'http://maniac-forum.de/forum/pxmboard.php?mode=thread&brdid=6&thrdid=140342';
+	
+	fetchManiacHtml(url, function (html) {
+		var postList = [];
+		var posts = $(html).find('body ul');
+
+		for(var i in posts) {
+			var $post = posts[i];
+			
+			console.log($post);	
+
+			var id = '';
+			var author = '';
+			var subject = '';
+		 	var date = '';
+
+			// adding post to list
+			postList.push({
+				id: id,
+				author: author,
+				subject: subject,
+				date: date				
+			});		
+		}
+
+		console.log(postList);
+	});
+};
+
+var message = function () {
+	var url = 'http://maniac-forum.de/forum/pxmboard.php?mode=message&brdid=6&msgid=3047055';
+	
+	fetchManiacHtml(url, function (html) {
+		var post = {
+			id: '3047668',
+			author: $($(html).find('body table tr.bg1 td').get(5)).find('a').html(),
+			subject: $($(html).find('body table tr.bg1 td').get(2)).find('b').html(),
+			date: $($(html).find('body table tr.bg1 td').get(7)).html(),
+			text: cleanManiacStuff($(html).find('body table tr.bg2 td font').html())
+		};
+
+		console.log(post);
+	});
+};
+
+//index();
+//threadlist();
+//thread();
+message();
