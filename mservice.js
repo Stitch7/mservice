@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * mService
  * net service for mClient, iPad client for famous man!ac forum
@@ -152,21 +153,31 @@ var thread = function () {
 	var url = 'http://maniac-forum.de/forum/pxmboard.php?mode=thread&brdid=6&thrdid=140342';
 	
 	fetchManiacHtml(url, function (html) {
-		var postList = [];
-		var posts = $(html).find('body ul');
+		var thread = [];
+		var messages = $(html).find('body ul li');
 
-		for(var i in posts) {
-			var $post = posts[i];
-			
-			console.log($post);	
+		for(var i in messages) {
+			var $message = $(messages[i]);
+						
+			if ($($message).html() === null) {
+				continue;
+			}
 
-			var id = '';
-			var author = '';
-			var subject = '';
-		 	var date = '';
+			var id = $message.find('span a').attr('href').substring(40);
 
-			// adding post to list
-			postList.push({
+			var author = cleanManiacStuff($message.find('span font b span').html());
+				
+			var subject = $message.find('span a font').html();
+
+			console.info('-----------###############-----------###############-----------###############');
+			console.info(subject);
+			console.info($($message.parent('ul').get(0)).html());
+
+			var date = $($message.find('span font').get(1)).html();
+			date = date.substring(date.length - 14);
+		 	
+			// adding message to thread
+			thread.push({
 				id: id,
 				author: author,
 				subject: subject,
@@ -174,20 +185,23 @@ var thread = function () {
 			});		
 		}
 
-		console.log(postList);
+		//console.log(thread);
 	});
 };
 
 var message = function () {
-	var url = 'http://maniac-forum.de/forum/pxmboard.php?mode=message&brdid=6&msgid=3047055';
+	var id = '3047668'; // TODO must be param
+	var url = 'http://maniac-forum.de/forum/pxmboard.php?mode=message&brdid=6&msgid=' + id;
 	
 	fetchManiacHtml(url, function (html) {
+		var $html = $(html);
+
 		var post = {
-			id: '3047668',
-			author: $($(html).find('body table tr.bg1 td').get(5)).find('a').html(),
-			subject: $($(html).find('body table tr.bg1 td').get(2)).find('b').html(),
-			date: $($(html).find('body table tr.bg1 td').get(7)).html(),
-			text: cleanManiacStuff($(html).find('body table tr.bg2 td font').html())
+			id: id,
+			author: $($html.find('body table tr.bg1 td').get(5)).find('a').html(),
+			subject: $($html.find('body table tr.bg1 td').get(2)).find('b').html(),
+			date: $($html.find('body table tr.bg1 td').get(7)).html(),
+			text: cleanManiacStuff($html.find('body table tr.bg2 td font').html())
 		};
 
 		console.log(post);
