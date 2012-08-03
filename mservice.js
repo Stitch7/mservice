@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * mService
  * net service for mClient, iPad client for famous man!ac forum
@@ -53,6 +54,10 @@ var fetchManiacHtml = function(url, fn) {
 
 };
 
+
+/**
+ * cleans parsed stuff from ugly characters
+ */
 var cleanManiacStuff = function(text) {
 	return text.replace(/[\t\r\n]/g, '').replace(/^\s+|\s+$/g, '');
 };
@@ -149,6 +154,7 @@ var threadlist = function () {
 	});
 };
 
+
 var thread = function () {
 	var url = 'http://maniac-forum.de/forum/pxmboard.php?mode=thread&brdid=6&thrdid=140342';
 	
@@ -169,9 +175,9 @@ var thread = function () {
 				
 			var subject = $message.find('span a font').html();
 
-			console.info('-----------###############-----------###############-----------###############');
-			console.info(subject);
-			console.info($($message.parent('ul').get(0)).html());
+			// console.info('-----------###############-----------###############-----------###############');
+			// console.info(subject);
+			// console.info($($message.parent('ul').get(0)).html());
 
 			var date = $($message.find('span font').get(1)).html();
 			date = date.substring(date.length - 14);
@@ -185,6 +191,94 @@ var thread = function () {
 			});		
 		}
 
+		console.log(thread);
+	});
+};
+
+
+var thread2 = function () {
+	var url = 'http://maniac-forum.de/forum/pxmboard.php?mode=thread&brdid=6&thrdid=140342';
+	
+	fetchManiacHtml(url, function (html) {
+		var thread = [];
+		var parent = null;
+
+		$(html).find('body ul li').each(function () {
+			var message = {};
+			var $message = $(this);
+
+			//console.log($message.html());
+
+			message.id = $message.find('span a').attr('href').substring(40);
+
+			message.parent = parent !== null ? parent.id : ''; 
+
+			message.author = cleanManiacStuff($message.find('span font b span').html());
+				
+			message.subject = $message.find('span a font').html();
+
+			// if (parent !== null) {
+			// 	message.parent_subject = parent.subject;
+			// }
+
+			var date = $($message.find('span font').get(1)).html();
+			message.date = date.substring(date.length - 14);
+		 	
+			// adding message to thread
+			thread.push(message);
+
+			// assign message as parent for next message
+			parent = message;
+
+
+			//console.info('------------------------------------------------------------------');
+			//console.info($li.html());
+		});
+
+		
+		console.log(thread);
+	});
+};
+
+var thread3 = function () {
+	var url = 'http://maniac-forum.de/forum/pxmboard.php?mode=thread&brdid=6&thrdid=140342';
+	
+	fetchManiacHtml(url, function (html) {
+		var thread = [];
+		var parent = null;
+
+		$(html).find('body ul').each(function () {
+			var message = {};
+			var $message = $(this);
+
+			console.log("------------------------------------------------------------------------------------");
+			console.log($message.html());
+
+			//console.log($message.html());
+
+			message.id = $message.find('span a').attr('href').substring(40);
+
+			message.parent = parent !== null ? parent.id : ''; 
+
+			message.author = cleanManiacStuff($message.find('span font b span').html());
+				
+			message.subject = $message.find('span a font').html();
+
+			// if (parent !== null) {
+			// 	message.parent_subject = parent.subject;
+			// }
+
+			var date = $($message.find('span font').get(1)).html();
+			message.date = date.substring(date.length - 14);
+		 	
+			// adding message to thread
+			thread.push(message);
+
+			// assign message as parent for next message
+			parent = message;
+		});
+
+		
 		//console.log(thread);
 	});
 };
@@ -210,5 +304,5 @@ var message = function () {
 
 //index();
 //threadlist();
-//thread();
-message();
+thread3();
+//message();
