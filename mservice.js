@@ -35,7 +35,7 @@ var $ = require('cheerio');
 var maniacUrl = 'http://maniac-forum.de/forum/pxmboard.php';
 
 /**
- * gets man!ac ressorce with given action
+ * gets man!ac ressource with given action
  */
 var fetchManiacHtml = function(url, fn) {
 	http.get(url, function(response) {
@@ -63,6 +63,7 @@ var fetchManiacHtml = function(url, fn) {
  */
 var cleanManiacStuff = function(text) {
 	return text.replace(/[\t\r\n]/g, '').replace(/^\s+|\s+$/g, '');
+	//return text;
 };
 
 
