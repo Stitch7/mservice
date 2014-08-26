@@ -3,25 +3,25 @@
 /**
  * mService
  * net service for mClient, iPad client for famous man!ac forum
- * 
+ *
  * Copyright (c) 2012 Christopher Reitz
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in 
- * the Software without restriction, including without limitation the rights to 
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
  * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
- * of the Software, and to permit persons to whom the Software is furnished to do 
+ * of the Software, and to permit persons to whom the Software is furnished to do
  * so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all 
+ *
+ * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
 
@@ -39,7 +39,7 @@ var maniacUrl = 'http://maniac-forum.de/forum/pxmboard.php';
  */
 var fetchManiacHtml = function(url, fn) {
 	http.get(url, function(response) {
-		//console.log(response);
+		// console.log(response);
 		var html = [];
 
 		response.on('data', function (chunk) {
@@ -47,23 +47,21 @@ var fetchManiacHtml = function(url, fn) {
 			//console.log("" + chunk);
 		});
 
-		// when respond ends execute action 
+		// when respond ends execute action
 		response.on('end', function () {
-			fn(html.join());
+			fn(html.join(""));
 		});
 	}).on('error', function(e) {
 		console.log("Got error: " + e.message);
-	});  	
-
+	});
 };
 
 
 /**
  * cleans parsed stuff from ugly characters
  */
-var cleanManiacStuff = function(text) {
+var clean = function(text) {
 	return text.replace(/[\t\r\n]/g, '').replace(/^\s+|\s+$/g, '');
-	//return text;
 };
 
 
@@ -83,18 +81,18 @@ var actions = {
 				var href = $a.attr('href');
 				var hrefSearch = '?mode=board&brdid=';
 				if (href.indexOf(hrefSearch) != -1) {
-					var board = {};			
+					var board = {};
 					board.id = href.substring(href.indexOf(hrefSearch) + hrefSearch.length);
-					board.text = $a.html();
+					board.text = $a.text();
 
-					boardList.push(board);			
+					boardList.push(board);
 				}
 			});
 
 			//console.log(boardList);
 
 			res.contentType = 'application/json';
-			res.send(boardList);				
+			res.send(boardList);
 		});
 	},
 
@@ -107,7 +105,7 @@ var actions = {
 
 		fetchManiacHtml(url, function (html) {
 			var threadList = [];
-			var threads = $(html).find('body p').html().split('<br/>');
+			var threads = $(html).find('body p').html().split('<br>');
 
 			for(var i in threads) {
 				// Ignore empty lines TODO
@@ -116,39 +114,19 @@ var actions = {
 				}
 
 				var $thread = $(threads[i]);
-				var $threadData = $thread.text().split("\n\r")
 
-				// threads id
-				var id = '';
-				var url = $($thread.find('a').get(1)).attr('href');
-				if (url !== undefined) {
-				  	id = url.substring(41)
-				}
-				
-				// threads subject
-				var subject = cleanManiacStuff($threadData[0]);
-				subject = subject.substring(0, subject.length - 2);
-				
-				// threads subject
-				var author = '';
-				if ($threadData[1] !== undefined) {
-					author = cleanManiacStuff($threadData[1]);
-				}
-				
-				// threads date
-				var date = ''; 
-				
-				// threads answer count 
-				var answerCount = ''; 
+				// fishing thread id
+			  	/ld\((\w.+),(\w.+)\)/.exec($($thread.find('a').get(1)).attr('onclick'));
+			  	var id = RegExp.$1;
 
-				// threads date of last answer
-				var answerDate  = '';
-
-				if ($threadData[2] !== undefined) {
-					date        = cleanManiacStuff($threadData[2]).substring(3, 17);
-					answerCount = cleanManiacStuff($threadData[2]).substring(30, 35).replace(/\D/g, '');
-					answerDate  = cleanManiacStuff($threadData[2]).substring(42, 60);
-				}
+				// fishing other thread data
+				///\n\t\n\s(\w.+)\s-\s\n\n(\w.+)\n\n\sam\s(\w.+)\n\t\(\sAntworten:\s(\w.+)\s\|\sLetzte: (\w.+)\s\)/.exec($thread.text());
+				/\n\t\n\s(.+)\s-\s\n\n(.+)\n\n\sam\s(.+)\n\t\(\sAntworten:\s(.+)\s\|\sLetzte: (.+)\s\)/.exec($thread.text());
+				var subject 	= RegExp.$1;
+				var author  	= RegExp.$2;
+				var date 	    = RegExp.$3;
+				var answerCount = RegExp.$4;
+				var answerDate  = RegExp.$5;
 
 				// adding thread to list
 				threadList.push({
@@ -158,13 +136,11 @@ var actions = {
 					date: date,
 					answerCount: answerCount,
 					answerDate: answerDate
-				});		
+				});
 			}
 
-			//console.log(threadList);
-
 			res.contentType = 'application/json';
-			res.send(threadList);				
+			res.send(threadList);
 		});
 	},
 
@@ -175,25 +151,14 @@ var actions = {
 	 '/thread/:thrdid': function (req, res, next) {
 		var thrdid = req.params.thrdid;
 		var url = maniacUrl + '?mode=thread&brdid=6&thrdid=' + thrdid;
-		
+
 		fetchManiacHtml(url, function (html) {
 			var thread = [];
-			var parent = null;
-
-			var c = 0;
 
 			$(html).find('body > ul').each(function () {
-				var myDing = [];
-				var $message = $(this);
+				var $thread = $(this);
 
-				
-				//console.log($(this).html());
-
-				// $message.find('li, ul').each(function () {
-				// 	console.log("############");
-				// 	console.log(this.name);
-				// })
-
+				/*
 				var intend = function (level) {
 					var spaces = '';
 					for (var i = 0; i <= level; i++) {
@@ -201,90 +166,48 @@ var actions = {
 					}
 					return spaces;
 				};
+				*/
 
 				var createMessage = function ($li, level) {
+					if ($li.find('span a').attr('href') === undefined) {
+						console.log($li.html());
+					}
+
 					return message = {
 						id: $li.find('span a').attr('href').substring(40),
-						parent: parent !== null ? parent.id : '',
 						level: level,
-						author: cleanManiacStuff($li.find('span font b span').html()),
-						subject: $li.find('span a font').html()
+						author: clean($li.find('span font b span').html()),
+						subject: $li.find('span a font').text(),
+						date: clean($li.find('span > font').html()).replace(/<(\w+)[^>]*>.*<\/\1> - /gi, '')
 					};
 				};
-
-				var prev = [];
 
 				var parse = function($ul, level) {
 					level = level || 0;
 
 					$ul.children().each(function () {
-						
-						//console.log($(this).html());
-						//console.log("-----------------------------------------------------------------------------------  " + c + "  -");
-
-						var myItem = null;
-
-						//console.log(this.name);
 						switch (this.name) {
 							case 'li':
-								
-								console.log(intend(level) + '(' + level + ')  ' + $(this).find('span a font').html() + ' - ' + cleanManiacStuff($(this).find('span font b span').html()));
-						
-								prev.push(createMessage($message, level));
-
-								thread.push(createMessage($message, level));
-
+								//console.log(intend(level) + '(' + level + ')  ' + $(this).find('span a font').html() + ' - ' + clean($(this).find('span font b span').html()));
+								thread.push(createMessage($(this), level));
 								break;
 
 							case 'ul':
-
-								var newLevel = level + 1;							
-								parse($(this), newLevel);
-
-								prev = [];
-
+								parse($(this), level + 1);
 								break;
 						}
-
-						myDing.push(prev);
 					});
-					
 				};
 
-				parse($message);
-
-				//console.log(myDing);
-
-/*
-				message.id = $message.find('span a').attr('href').substring(40);
-
-				message.parent = parent !== null ? parent.id : ''; 
-
-				message.author = cleanManiacStuff($message.find('span font b span').html());
-					
-				message.subject = $message.find('span a font').html();
-
-				// if (parent !== null) {
-				// 	message.parent_subject = parent.subject;
-				// }
-
-				var date = $($message.find('span font').get(1)).html();
-				message.date = date.substring(date.length - 14);
-*/			 	
-				// adding message to thread
-				//thread.push(message);
-
-				// assign message as parent for next message
-				//parent = message;
+				parse($thread);
 			});
 
-			
-			console.log(thread);
+			// console.log(thread);
 
-			res.contentType = 'application/json';				
+			res.contentType = 'application/json';
 			res.send(thread);
-			
-		});	
+
+		});
 	},
 
 	/**
@@ -293,7 +216,7 @@ var actions = {
 	'/message/:msgid': function (req, res, next) {
 		var id = req.params.msgid;
 		var url = maniacUrl + '?mode=message&brdid=6&msgid=' + id;
-		
+
 		fetchManiacHtml(url, function (html) {
 			var $html = $(html);
 			var message = {
@@ -301,7 +224,7 @@ var actions = {
 				author: $($html.find('body table tr.bg1 td').get(5)).find('a').html(),
 				subject: $($html.find('body table tr.bg1 td').get(2)).find('b').html(),
 				date: $($html.find('body table tr.bg1 td').get(7)).html(),
-				text: cleanManiacStuff($html.find('body table tr.bg2 td font').html())
+				text: clean($html.find('body table tr.bg2 td font').html())
 			};
 
 			res.contentType = 'application/json';
@@ -317,8 +240,8 @@ var actions = {
 var server = restify.createServer();
 
 var dispatcher = function(server, actions) {
-	for (var route in actions) {		
-		server.get(route, actions[route]);	
+	for (var route in actions) {
+		server.get(route, actions[route]);
 	}
 };
 
@@ -327,4 +250,5 @@ dispatcher(server, actions);
 server.listen(8000);
 /**/
 
-//actions['/thread/:thrdid']({params: {thrdid: 140342}})
+// actions['/thread/:thrdid']({params: {thrdid: 149506}})
+actions['/threadlist/:brdid']({params: {brdid: 6}})
