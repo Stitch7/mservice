@@ -106,32 +106,48 @@ var actions = {
 		fetchManiacHtml(url, function (html) {
 			var threadList = [];
 			var threads = $(html).find('body p').html().split('<br>');
+			threads.pop(); // Remove last (empty) entry
 
 			for(var i in threads) {
-				// Ignore empty lines TODO
-				if (threads[i].length < 500)  {
-					continue;
-				}
-
-				var $thread = $(threads[i]);
-
-				// fishing thread id
-			  	/ld\((\w.+),(\w.+)\)/.exec($($thread.find('a').get(1)).attr('onclick'));
+				// fishing thread id from ld function call in onclick attribute of first
+			  	/ld\((\w.+),0\)/.exec($('a', threads[i]).first().attr('onclick'));
 			  	var id = RegExp.$1;
 
-				// fishing other thread data
-				///\n\t\n\s(\w.+)\s-\s\n\n(\w.+)\n\n\sam\s(\w.+)\n\t\(\sAntworten:\s(\w.+)\s\|\sLetzte: (\w.+)\s\)/.exec($thread.text());
-				/\n\t\n\s(.+)\s-\s\n\n(.+)\n\n\sam\s(.+)\n\t\(\sAntworten:\s(.+)\s\|\sLetzte: (.+)\s\)/.exec($thread.text());
-				var subject 	= RegExp.$1;
-				var author  	= RegExp.$2;
-				var date 	    = RegExp.$3;
-				var answerCount = RegExp.$4;
-				var answerDate  = RegExp.$5;
+			  	var image = $('img', threads[i]).attr('src').split('/').reverse()[0];
+
+			  	// Sticky threads have pin image
+			  	var sticky = image === 'fixed.gif';
+
+				// Closed threads have lock image
+			  	var closed = image === 'closed.gif';
+
+			  	// Mods have are marked with the highlight css class
+			  	var mod = $('span', threads[i]).hasClass('highlight');
+
+				// fishing other thread data via easy regexp from line freed of html
+				var subject, author, date, answerCount, answerDate = '';
+
+				var regExpResult = /\n\t\n\s(.+)\s-\s\n\n(.+)\n\n\sam\s(.+)\n\t\(\sAntworten:\s(.+)\s\|\sLetzte: (.+)\s\)/.exec($(threads[i]).text());
+				if (regExpResult !== null) {
+					subject 	= regExpResult[1];
+					author  	= regExpResult[2];
+					date 	    = regExpResult[3];
+					answerCount = regExpResult[4];
+					answerDate  = regExpResult[5];
+				} else { // 0 answers
+					regExpResult = /\n\t\n\s(.+)\s-\s\n\n(.+)\n\n\sam\s(.+)\n\t\(\sAntworten:\s0\s\)\n/.exec($(threads[i]).text());
+					subject 	= regExpResult[1];
+					author  	= regExpResult[2];
+					date 	    = regExpResult[3];
+				}
 
 				// adding thread to list
 				threadList.push({
 					id: id,
+					sticky: sticky,
+					closed: closed,
 					author: author,
+					mod: mod,
 					subject: subject,
 					date: date,
 					answerCount: answerCount,
@@ -251,4 +267,4 @@ server.listen(8000);
 /**/
 
 // actions['/thread/:thrdid']({params: {thrdid: 149506}})
-actions['/threadlist/:brdid']({params: {brdid: 6}})
+// actions['/threadlist/:brdid']({params: {brdid: 6}})
