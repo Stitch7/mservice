@@ -109,15 +109,14 @@ var actions = {
 			threads.pop(); // Remove last (empty) entry
 
 			for(var i in threads) {
-				// fishing thread id from ld function call in onclick attribute of first
-			  	/ld\((\w.+),0\)/.exec($('a', threads[i]).first().attr('onclick'));
-			  	var id = RegExp.$1;
+				// fishing threadId from ld function call in onclick attribute
+			  	var $messageHref = $('a', threads[i]).first();
+			  	var id = parseInt(/ld\((\w.+),0\)/.exec($messageHref.attr('onclick'))[1], 10);
+			  	var messageId = parseInt(/(.+)msgid=(.+)/.exec($messageHref.attr('href'))[2], 10);
 
 			  	var image = $('img', threads[i]).attr('src').split('/').reverse()[0];
-
 			  	// Sticky threads have pin image
 			  	var sticky = image === 'fixed.gif';
-
 				// Closed threads have lock image
 			  	var closed = image === 'closed.gif';
 
@@ -125,25 +124,28 @@ var actions = {
 			  	var mod = $('span', threads[i]).hasClass('highlight');
 
 				// fishing other thread data via easy regexp from line freed of html
-				var subject, author, date, answerCount, answerDate = '';
+				var subject, author, date, answerCount, answerDate;
 
 				var regExpResult = /\n\t\n\s(.+)\s-\s\n\n(.+)\n\n\sam\s(.+)\n\t\(\sAntworten:\s(.+)\s\|\sLetzte: (.+)\s\)/.exec($(threads[i]).text());
 				if (regExpResult !== null) {
 					subject 	= regExpResult[1];
 					author  	= regExpResult[2];
 					date 	    = regExpResult[3];
-					answerCount = regExpResult[4];
+					answerCount = parseInt(regExpResult[4], 10);
 					answerDate  = regExpResult[5];
 				} else { // 0 answers
 					regExpResult = /\n\t\n\s(.+)\s-\s\n\n(.+)\n\n\sam\s(.+)\n\t\(\sAntworten:\s0\s\)\n/.exec($(threads[i]).text());
 					subject 	= regExpResult[1];
 					author  	= regExpResult[2];
 					date 	    = regExpResult[3];
+					answerCount = 0;
+					answerDate  = "";
 				}
 
 				// adding thread to list
 				threadList.push({
 					id: id,
+					messageId: messageId,
 					sticky: sticky,
 					closed: closed,
 					author: author,
@@ -190,7 +192,7 @@ var actions = {
 					}
 
 					return message = {
-						id: $li.find('span a').attr('href').substring(40),
+						id: parseInt($li.find('span a').attr('href').substring(40), 10),
 						level: level,
 						author: clean($li.find('span font b span').html()),
 						subject: $li.find('span a font').text(),
@@ -235,21 +237,55 @@ var actions = {
 
 		fetchManiacHtml(url, function (html) {
 			var $html = $(html);
+
+			var text = $html.find('body table tr.bg2 td > font').html();
+
+
+			// var imageRegExp = /(http(s?):)|([/|.|\w|\s])*\.(?:jpg|gif|png)/.exec(text);
+
+			// console.log(text);
+			// console.log(imageRegExp);
+
 			var message = {
 				id: id,
 				author: $($html.find('body table tr.bg1 td').get(5)).find('a').html(),
 				subject: $($html.find('body table tr.bg1 td').get(2)).find('b').html(),
 				date: $($html.find('body table tr.bg1 td').get(7)).html(),
-				text: clean($html.find('body table tr.bg2 td font').html())
+				text: text
+				// text: clean($html.find('body table tr.bg2 td > font').text()),
+				// text: $html.find('body table tr.bg2 td > font').text(),
+				// text: $html.find('body table tr.bg2 td > font').html(),
+				// text: clean($html.find('body table tr.bg2 td > font').html()),
 			};
+
+			console.log(message);
 
 			res.contentType = 'application/json';
 			res.send(message);
 		});
 
-		return next();
+		// return next();
 	}
 }
+
+var testLogin = function () {
+	http.post(url, function(response) {
+		// console.log(response);
+		var html = [];
+
+		response.on('data', function (chunk) {
+			html.push(chunk);
+			//console.log("" + chunk);
+		});
+
+		// when respond ends execute action
+		response.on('end', function () {
+			fn(html.join(""));
+		});
+	}).on('error', function(e) {
+		console.log("Got error: " + e.message);
+	});
+};
 
 /**/
 // start restify server
@@ -268,3 +304,4 @@ server.listen(8000);
 
 // actions['/thread/:thrdid']({params: {thrdid: 149506}})
 // actions['/threadlist/:brdid']({params: {brdid: 6}})
+// actions['/message/:msgid']({params: {msgid: 3558887}})
