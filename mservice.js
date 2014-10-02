@@ -33,7 +33,7 @@ var restify = require('restify');
 var request = require('request');
 var $ = require('cheerio');
 
-var port = 8000;
+var port = 8080;
 var maniacUrl = 'http://maniac-forum.de/forum/pxmboard.php';
 
 
@@ -352,7 +352,6 @@ var actions = {
 
 				res.contentType = 'application/json';
 				res.send(boardList);
-
 				// setTimeout(function() {
 				//   res.send(boardList);
 				// }, 3000);
@@ -413,6 +412,9 @@ var actions = {
 
 				res.contentType = 'application/json';
 				res.send(clientResponse);
+				// setTimeout(function() {
+				//   res.send(clientResponse);
+				// }, 3000);
 			});
 		},
 
@@ -522,7 +524,6 @@ var actions = {
 
 				res.contentType = 'application/json';
 				res.send(message);
-
 				// setTimeout(function() {
 				//   res.send(message);
 				// }, 5000);
@@ -592,9 +593,6 @@ var actions = {
 				body: req.params.text,
 				notification: req.params.notification
 			};
-
-			console.log(form);
-			return;
 
 			var onResponse = function(error, response, body) {
 				var $body = $(body);
