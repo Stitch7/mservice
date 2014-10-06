@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 /**
- * mService
- * Net service for M!Client, iOS client for famous man!ac forum
+ * M!service
+ * RESTful JSON API for famous Man!ac Forum
  *
- * Copyright (c) 2012 Christopher Reitz
+ * Copyright (c) 2014 Christopher Reitz
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -25,889 +25,834 @@
  * SOFTWARE.
  */
 
-// libraries
+/**
+ * Includes
+ */
 var sys = require('sys');
+var fs = require('fs');
 var http = require('http');
-
 var restify = require('restify');
 var request = require('request');
 var $ = require('cheerio');
 
-var port = 8080;
-var maniacUrl = 'http://maniac-forum.de/forum/pxmboard.php';
-
-
 /**
- * gets man!ac ressource with given action
+ * M!service server
  */
-var fetchManiacHtml = function(url, fn) {
-	http.get(url, function(response) {
-		// console.log(response);
-		var html = [];
+var mservice = {
+	/**
+	 * TCP Port
+	 */
+	port: 8080,
+	/**
+	 * URL to maniac forum
+	 */
+	maniacUrl: 'http://maniac-forum.de/forum/pxmboard.php',
+	/**
+	 * Start server
+	 */
+	start: function () {
+		var server = restify.createServer();
+		server.use(restify.bodyParser());
 
-		response.on('data', function (chunk) {
-			html.push(chunk);
-			//console.log("" + chunk);
-		});
-
-		// when respond ends execute action
-		response.on('end', function () {
-			fn(html.join(""));
-		});
-	}).on('error', function(e) {
-		console.log("Got error: " + e.message);
-	});
-};
-
-
-/**
- * cleans parsed stuff from ugly characters
- */
-var clean = function(text) {
-	return text.replace(/[\t\r\n]/g, '').replace(/^\s+|\s+$/g, '');
-};
-
-var utils = {
-	datetimeStringToISO8601: function (datetimeString) {
-		if ( ! datetimeString) {
-			return '';
+		// Dispatch routes
+		var routes = this.routes;
+		for (var httpMethod in routes) {
+			for (var route in routes[httpMethod]) {
+				server[httpMethod]('mservice' + route, routes[httpMethod][route]);
+			}
 		}
 
-	    var dateArr = datetimeString.match(/(\d{2}).(\d{2}).(\d{2,4})\s(\d{2}):(\d{2})/);
-	    var year = dateArr[3].length === 2 ? '20' + dateArr[3] : dateArr[3];
-	    var month = dateArr[2] - 1;
-	    var day = dateArr[1];
-	    var hours = dateArr[4];
-	    var minutes = dateArr[5];
-	    var date = new Date(year, month, day, hours, minutes);
-	    var tzo = - date.getTimezoneOffset();
-	    var dif = tzo >= 0 ? '+' : '-';
-	    var pad = function(num) {
-	        norm = Math.abs(Math.floor(num));
-	        return (norm < 10 ? '0' : '') + norm;
-	    };
-
-	    return date.getFullYear()
-	        + '-' + pad(date.getMonth() + 1)
-	        + '-' + pad(date.getDate())
-	        + 'T' + pad(date.getHours())
-	        + ':' + pad(date.getMinutes())
-	        + ':' + pad(date.getSeconds())
-	        + dif + pad(tzo / 60)
-	        + ':' + pad(tzo % 60)
-	    ;
+		server.listen(this.port);
 	},
-	toInt: function (string) {
-		return parseInt(string, 10);
-	}
+	/**
+	 * Parser methods
+	 */
+	parse: {
+		boards: function (html) {
+			var boards = [];
 
-}
+			$(html).find('div table tr.bg2 td#norm:nth-child(2) a').each(function () {
+				var $a = $(this);
+				var href = $a.attr('href');
+				var hrefSearch = '?mode=board&brdid=';
+				if (href.indexOf(hrefSearch) != -1) {
+					var board = {};
+					board.id = mservice.utils.toInt(href.substring(href.indexOf(hrefSearch) + hrefSearch.length));
+					board.text = $a.text();
 
+					boards.push(board);
+				}
+			});
 
-var parse = {
+			return boards;
+		},
 
-	threadList: function(threads) {
-		var threadList = [];
-		// Compile Regexp outside loop to save perfomance
-		var mainRegExp = /(.+)\s-\s(.+)\sam\s(.+)\(\s.+\s(\d+)\s(?:\|\s[A-Za-z:]+\s(.+)\s|)\)/;
+		threads: function(threadEntries) {
+			var threads = [];
+			// Compile Regexp outside loop to save perfomance
+			var mainRegExp = /(.+)\s-\s(.+)\sam\s(.+)\(\s.+\s(\d+)\s(?:\|\s[A-Za-z:]+\s(.+)\s|)\)/;
 
-		for (var i in threads) {
-			// fishing threadId from ld function call in onclick attribute
-		  	var $messageHref = $('a', threads[i]).first();
-		  	var id = utils.toInt(/ld\((\w.+),0\)/.exec($messageHref.attr('onclick'))[1]);
-		  	var messageId = utils.toInt(/(.+)msgid=(.+)/.exec($messageHref.attr('href'))[2]);
+			for (var i in threadEntries) {
+				// fishing threadId from ld function call in onclick attribute
+			  	var $messageHref = $('a', threadEntries[i]).first();
+			  	var id = mservice.utils.toInt(/ld\((\w.+),0\)/.exec($messageHref.attr('onclick'))[1]);
+			  	var messageId = mservice.utils.toInt(/(.+)msgid=(.+)/.exec($messageHref.attr('href'))[2]);
 
-		  	var image = $('img', threads[i]).attr('src').split('/').reverse()[0];
-		  	// Sticky threads have pin image
-		  	var sticky = image === 'fixed.gif';
-			// Closed threads have lock image
-		  	var closed = image === 'closed.gif';
+			  	var image = $('img', threadEntries[i]).attr('src').split('/').reverse()[0];
+			  	// Sticky threads have pin image
+			  	var sticky = image === 'fixed.gif';
+				// Closed threads have lock image
+			  	var closed = image === 'closed.gif';
 
-		  	// Mods have are marked with the highlight css class
-		  	var mod = $('span', threads[i]).hasClass('highlight');
+			  	// Mods have are marked with the highlight css class
+			  	var mod = $('span', threadEntries[i]).hasClass('highlight');
 
-			// Fishing other thread data via easy regexp from line freed of html
-			var subject, author, date, answerCount, answerDate;
-	     	var regExpResult = mainRegExp.exec($(threads[i]).text().trim().replace(/(\n|\t)/g, ''));
+				// Fishing other thread data via easy regexp from line freed of html
+				var subject, author, date, answerCount, answerDate;
+		     	var regExpResult = mainRegExp.exec($(threadEntries[i]).text().trim().replace(/(\n|\t)/g, ''));
 
-			if (regExpResult !== null) {
-				subject 	= regExpResult[1];
-				author  	= regExpResult[2];
-				date 	    = utils.datetimeStringToISO8601(regExpResult[3]);
-				answerCount = utils.toInt(regExpResult[4]);
-				answerDate  = utils.datetimeStringToISO8601(regExpResult[5]);
+				if (regExpResult !== null) {
+					subject 	= regExpResult[1];
+					author  	= regExpResult[2];
+					date 	    = mservice.utils.datetimeStringToISO8601(regExpResult[3]);
+					answerCount = mservice.utils.toInt(regExpResult[4]);
+					answerDate  = mservice.utils.datetimeStringToISO8601(regExpResult[5]);
+				}
+
+				// Add thread to list
+				threads.push({
+					id: id,
+					messageId: messageId,
+					sticky: sticky,
+					closed: closed,
+					author: author,
+					mod: mod,
+					subject: subject,
+					date: date,
+					answerCount: answerCount,
+					answerDate: answerDate
+				});
 			}
 
-			// Add thread to list
-			threadList.push({
-				id: id,
+			return threads;
+		},
+
+		thread: function(html) {
+			var thread = [];
+			var $htmlEntityDecodeHelper = $('<div/>');
+			var parseThreadMessage = function ($li, level, $htmlEntityDecodeHelper) {
+				var messageId = mservice.utils.toInt(/pxmboard.php\?mode=message&brdid=\d+&msgid=(\d+)/.exec($li.find('span a').attr('href'))[1]);
+				var subject = $li.find('span a font').text();
+
+				var userAndDateHtml = $li.find('span > font').html();
+				var userAndDateRegExp = /<b>\n<span class="(.*)">\n(.+)\n<\/span>\n<\/b>\s-\s(.+)/;
+				var userAndDateRegExpResult = userAndDateRegExp.exec(userAndDateHtml);
+				var mod = userAndDateRegExpResult[1] === 'highlight';
+				var username = $htmlEntityDecodeHelper.empty().append(userAndDateRegExpResult[2]).text();
+				var date = mservice.utils.datetimeStringToISO8601(userAndDateRegExpResult[3]);
+
+				return {
+					messageId: messageId,
+					level: level,
+					subject: subject,
+					mod: mod,
+					username: username,
+					date: date
+				};
+			}
+
+			$(html).find('body > ul').each(function () {
+				(function walkthrough($ul, level) {
+					level = level || 0;
+					$ul.children().each(function () {
+						switch (this.name) {
+							case 'li':
+								thread.push(parseThreadMessage($(this), level, $htmlEntityDecodeHelper));
+								break;
+							case 'ul':
+								walkthrough($(this), level + 1);
+								break;
+						}
+					});
+				})($(this));
+			});
+
+			return thread;
+		},
+
+		message: function(messageId, html) {
+			var $html = $(html);
+
+			var $bg1TRs  = $html.find('body table tr.bg1 td');
+			var $userA   = $($bg1TRs.get(5)).find('a');
+
+			var userId   = mservice.utils.toInt(/pxmboard.php\?mode=userprofile&brdid=\d+&usrid=(\d+)/.exec($userA.attr('href'))[1]);
+			var username = $userA.html();
+			var subject  = $($bg1TRs.get(2)).find('b').html();
+			var date     = mservice.utils.datetimeStringToISO8601($($bg1TRs.get(7)).html());
+
+			var removeLinkBracesRegExp = /\[(<a.+>.+<\/a>)\]/g;
+
+			var $text = $html.find('body table tr.bg2 td > font');
+			var text = $text.text().trim();
+			var textHtml = $text.html().replace(removeLinkBracesRegExp, '$1').trim();
+
+			// TODO maybe try with regexp...
+			// (?<!&gt;)\[<a.+>(.+\.(jpg|jpeg|gif|png).*)<\/a>\]
+			$text.find('font[face="Courier New"] > a').replaceWith(function () {
+				var replacement;
+				var $a = $(this);
+				var href = $a.attr('href');
+
+				if (href.match(/.+\.(jpg|jpeg|gif|png)$/) !== null) {
+					replacement = '<a href="' + href + '"><img src="' + href + '"/></a>';
+				} else {
+					replacement = '<a href="' + href + '">' + href + '</a>';
+				}
+
+				return replacement;
+			});
+			var textHtmlWithEmbeddedImages = $text.html().replace(removeLinkBracesRegExp, '$1').trim();
+
+			return {
 				messageId: messageId,
-				sticky: sticky,
-				closed: closed,
-				author: author,
-				mod: mod,
+				userId: userId,
+				username: username,
 				subject: subject,
 				date: date,
-				answerCount: answerCount,
-				answerDate: answerDate
-			});
-		}
-
-		return threadList;
-	},
-
-
-	messageList: function(html) {
-		var messageList = [];
-		var $htmlEntityDecodeHelper = $('<div/>');
-
-		$(html).find('body > ul').each(function () {
-			(function walkthrough($ul, level) {
-				level = level || 0;
-				$ul.children().each(function () {
-					switch (this.name) {
-						case 'li':
-							messageList.push(parse.messageListEntry($(this), level, $htmlEntityDecodeHelper));
-							break;
-						case 'ul':
-							walkthrough($(this), level + 1);
-							break;
-					}
-				});
-			})($(this));
-		});
-
-		return messageList;
-	},
-
-	messageListEntry: function ($li, level, $htmlEntityDecodeHelper) {
-		var messageId = utils.toInt(/pxmboard.php\?mode=message&brdid=\d+&msgid=(\d+)/.exec($li.find('span a').attr('href'))[1]);
-		var subject = $li.find('span a font').text();
-
-		var userAndDateHtml = $li.find('span > font').html();
-		var userAndDateRegExp = /<b>\n<span class="(.*)">\n(.+)\n<\/span>\n<\/b>\s-\s(.+)/;
-		var userAndDateRegExpResult = userAndDateRegExp.exec(userAndDateHtml);
-		var mod = userAndDateRegExpResult[1] === 'highlight';
-		var username = $htmlEntityDecodeHelper.empty().append(userAndDateRegExpResult[2]).text();
-		var date = utils.datetimeStringToISO8601(userAndDateRegExpResult[3]);
-
-		return {
-			messageId: messageId,
-			level: level,
-			subject: subject,
-			mod: mod,
-			username: username,
-			date: date
-		};
-	},
-
-	message: function(messageId, html) {
-		var $html = $(html);
-
-		var $bg1TRs  = $html.find('body table tr.bg1 td');
-		var $userA   = $($bg1TRs.get(5)).find('a');
-
-		var userId   = utils.toInt(/pxmboard.php\?mode=userprofile&brdid=\d+&usrid=(\d+)/.exec($userA.attr('href'))[1]);
-		var username = $userA.html();
-		var subject  = $($bg1TRs.get(2)).find('b').html();
-		var date     = utils.datetimeStringToISO8601($($bg1TRs.get(7)).html());
-
-		var removeLinkBracesRegExp = /\[(<a.+>.+<\/a>)\]/g;
-
-		var $text = $html.find('body table tr.bg2 td > font');
-		var text = $text.text().trim();
-		var textHtml = $text.html().replace(removeLinkBracesRegExp, '$1').trim();
-
-		// TODO maybe try with regexp...
-		// (?<!&gt;)\[<a.+>(.+\.(jpg|jpeg|gif|png).*)<\/a>\]
-		$text.find('font[face="Courier New"] > a').replaceWith(function () {
-			var replacement;
-			var $a = $(this);
-			var href = $a.attr('href');
-
-			if (href.match(/.+\.(jpg|jpeg|gif|png)$/) !== null) {
-				replacement = '<a href="' + href + '"><img src="' + href + '"/></a>';
-			} else {
-				replacement = '<a href="' + href + '">' + href + '</a>';
-			}
-
-			return replacement;
-		});
-		var textHtmlWithEmbeddedImages = $text.html().replace(removeLinkBracesRegExp, '$1').trim();
-
-		return {
-			messageId: messageId,
-			userId: userId,
-			username: username,
-			subject: subject,
-			date: date,
-			text: text,
-			textHtml: textHtml,
-			textHtmlWithImages: textHtmlWithEmbeddedImages
-		};
-	},
-
-	preview: function(html) {
-		var $html = $(html);
-
-		var removeLinkBracesRegExp = /\[(<a.+>.+<\/a>)\]/g;
-
-		var $text = $html.find('body table tr.bg2 td > font');
-		var text = $text.text().trim();
-		var textHtml = $text.html().replace(removeLinkBracesRegExp, '$1').trim();
-
-		// TODO maybe try with regexp...
-		// (?<!&gt;)\[<a.+>(.+\.(jpg|jpeg|gif|png).*)<\/a>\]
-		$text.find('font[face="Courier New"] > a').replaceWith(function () {
-			var replacement;
-			var $a = $(this);
-			var href = $a.attr('href');
-
-			if (href.match(/.+\.(jpg|jpeg|gif|png)$/) !== null) {
-				replacement = '<a href="' + href + '"><img src="' + href + '"/></a>';
-			} else {
-				replacement = '<a href="' + href + '">' + href + '</a>';
-			}
-
-			return replacement;
-		});
-		var textHtmlWithEmbeddedImages = $text.html().replace(removeLinkBracesRegExp, '$1').trim();
-
-		return {
-			text: text,
-			textHtml: textHtml,
-			textHtmlWithImages: textHtmlWithEmbeddedImages
-		};
-	}
-};
-
-
-
-var errors = {
-	codes: {
-		'unknown': 0,
-		'connection': 1,
-		'permission': 2,
-		'login': 3,
-		'boardId': 4,
-		'messageId': 5,
-		'subject': 6,
-		'answerExists': 7
-	},
-	messages: {
-		'unknown': 'An unknown error is occured',
-		'connection': 'Could not connect to maniac server',
-		'permission': 'Permission denied',
-		'login': 'Authentication failed',
-		'boardId': 'boardId is missing',
-		'messageId': 'messageId is missing',
-		'subject': 'Subject not filled',
-		'answerExists': 'This message was already answered'
-	},
-	maniacMessages: {
-		'Bitte geben sie ihren Nickname ein': 'login',
-		'Passwort ungültig': 'login',
-		'Sie sind nicht dazu berechtigt': 'permission',
-		'konnte Daten nicht einfügen': 'unchanged',
-		'Board id fehlt': 'boardId',
-		'message id ungültig': 'messageId',
-		'Thema fehlt': 'subject',
-		'Auf diese Nachricht wurde bereits geantwortet': 'answerExists',
-	},
-	maniacBoardTitles: {
-		'confirm': '-= board: confirm =-',
-		'error': '-= board: error =-',
-		'edit': '-= board: edit =-'
-	}
-};
-
-
-/**
- * Response actions
- */
-var actions = {
-	/**
-	 * Actions callable by HTTP GET method
-	 */
-	'GET': {
-		/**
-		 * index action
-		 */
-		'/': function (req, res, next) {
-			fetchManiacHtml(maniacUrl, function (html) {
-				var boardList = [];
-
-				$(html).find('div table tr.bg2 td#norm:nth-child(2) a').each(function () {
-					var $a = $(this);
-					var href = $a.attr('href');
-					var hrefSearch = '?mode=board&brdid=';
-					if (href.indexOf(hrefSearch) != -1) {
-						var board = {};
-						board.id = utils.toInt(href.substring(href.indexOf(hrefSearch) + hrefSearch.length));
-						board.text = $a.text();
-
-						boardList.push(board);
-					}
-				});
-
-				res.contentType = 'application/json';
-				res.send(boardList);
-				// setTimeout(function() {
-				//   res.send(boardList);
-				// }, 3000);
-			});
+				text: text,
+				textHtml: textHtml,
+				textHtmlWithImages: textHtmlWithEmbeddedImages
+			};
 		},
 
-		/**
-		 * threadlist action
-		 */
-		'/board/:boardId/threadlist': function (req, res, next) {
-			var boardId  = req.params.boardId;
-			var url = maniacUrl + '?mode=threadlist&brdid=' + boardId;
+		preview: function(html) {
+			var $html = $(html);
 
-			fetchManiacHtml(url, function (html) {
-				var threads = $(html).find('body p').html().split('<br>');
-				threads.pop(); // Remove last (empty) entry
+			var removeLinkBracesRegExp = /\[(<a.+>.+<\/a>)\]/g;
 
-				var clientResponse = parse.threadList(threads)
+			var $text = $html.find('body table tr.bg2 td > font');
+			var text = $text.text().trim();
+			var textHtml = $text.html().replace(removeLinkBracesRegExp, '$1').trim();
 
-				res.contentType = 'application/json';
-				res.send(clientResponse);
-			});
-		},
+			// TODO maybe try with regexp...
+			// (?<!&gt;)\[<a.+>(.+\.(jpg|jpeg|gif|png).*)<\/a>\]
+			$text.find('font[face="Courier New"] > a').replaceWith(function () {
+				var replacement;
+				var $a = $(this);
+				var href = $a.attr('href');
 
-		/**
-		 * messagelist action
-		 */
-		 '/board/:boardId/messagelist/:threadId': function (req, res, next) {
-		 	var boardId  = req.params.boardId;
-			var threadId = req.params.threadId;
-
-			var url = maniacUrl + '?mode=thread&brdid=' + boardId + '&thrdid=' + threadId;
-
-			fetchManiacHtml(url, function (html) {
-				var clientResponse = parse.messageList(html);
-
-				res.contentType = 'application/json';
-				res.send(clientResponse);
-				// setTimeout(function() {
-				//   res.send(clientResponse);
-				// }, 3000);
-			});
-		},
-
-		/**
-		 * message action
-		 */
-		'/board/:boardId/message/:messageId': function (req, res, next) {
-			var boardId   = req.params.boardId;
-			var messageId = req.params.messageId;
-
-			var url = maniacUrl + '?mode=message&brdid=' + boardId + '&msgid=' + messageId;
-
-			fetchManiacHtml(url, function (html) {
-				var clientResponse = parse.message(messageId, html);
-
-				// console.log(clientResponse);
-
-				res.contentType = 'application/json';
-				res.send(clientResponse);
-				// setTimeout(function() {
-				//   res.send(clientResponse);
-				// }, 3000);
-			});
-		},
-
-		/**
-		 * quote action, fetches quoted text of a man!ac message
-		 */
-		'/board/:boardId/quote/:messageId': function (req, res, next) {
-			var boardId   = req.params.boardId;
-			var messageId = req.params.messageId;
-
-			var url = maniacUrl + '?mode=messageform&brdid=' + boardId + '&msgid=' + messageId;
-
-			fetchManiacHtml(url, function (html) {
-				var $html = $(html);
-
-				var quote = $html.find('textarea').text().trim();
-
-				var message = {
-					quote: quote
-				};
-
-				// console.log(message);
-
-				res.contentType = 'application/json';
-				res.send(message);
-			});
-
-			// return next();
-		},
-
-		/**
-		 * Profile action, fetches data of a of a man!ac user profile
-		 */
-		'/profile/:userId': function (req, res, next) {
-			var userId   = req.params.userId;
-
-			var url = maniacUrl + '?mode=userprofile&usrid=' + userId;
-
-			fetchManiacHtml(url, function (html) {
-				var message = {
-					image: undefined,
-					firstname: undefined,
-					lastname: undefined,
-					domicile: undefined,
-					accountNo: undefined,
-					registrationDate: undefined,
-					email: undefined,
-					icq: undefined,
-					homepage: undefined,
-					firstGame: undefined,
-					allTimeClassics: undefined,
-					favoriteGenres: undefined,
-					currentSystems: undefined,
-					hobbies: undefined,
-					xboxLiveGamertag: undefined,
-					psnId: undefined,
-					nintendoFriendcode: undefined,
-					lastUpdate: undefined
-				};
-
-				var $html = $(html);
-				var data = [];
-
-				var image = $html.find('tr.bg2 td img').first().attr('src');
-				if (image != 'images/empty.gif') {
-					data.push(maniacUrl.replace(/pxmboard.php/, '') + image);
+				if (href.match(/.+\.(jpg|jpeg|gif|png)$/) !== null) {
+					replacement = '<a href="' + href + '"><img src="' + href + '"/></a>';
+				} else {
+					replacement = '<a href="' + href + '">' + href + '</a>';
 				}
 
-				$html.find('tr.bg2').each(function (key, value) {
-					data.push($($(this).find('td').get(1)).text().trim());
-				});
+				return replacement;
+			});
+			var textHtmlWithEmbeddedImages = $text.html().replace(removeLinkBracesRegExp, '$1').trim();
 
-				var i = 0;
-				for (var key in message) {
-					message[key] = data[i++];
-				}
+			return {
+				previewText: text,
+				previewTextHtml: textHtml,
+				previewTextHtmlWithImages: textHtmlWithEmbeddedImages
+			};
+		},
 
-				// console.log(message);
+		quote: function (html) {
+			var quote = $(html).find('textarea').text().trim();
 
-				res.contentType = 'application/json';
-				res.send(message);
+			return {
+				quote: quote
+			}
+		},
+
+		user: function (html) {
+			var profile = {
+				image: undefined,
+				firstname: undefined,
+				lastname: undefined,
+				domicile: undefined,
+				accountNo: undefined,
+				registrationDate: undefined,
+				email: undefined,
+				icq: undefined,
+				homepage: undefined,
+				firstGame: undefined,
+				allTimeClassics: undefined,
+				favoriteGenres: undefined,
+				currentSystems: undefined,
+				hobbies: undefined,
+				xboxLiveGamertag: undefined,
+				psnId: undefined,
+				nintendoFriendcode: undefined,
+				lastUpdate: undefined
+			};
+
+			var $html = $(html);
+			var data = [];
+
+			var image = $html.find('tr.bg2 td img').first().attr('src');
+			if (image != 'images/empty.gif') {
+				data.push(mservice.maniacUrl.replace(/pxmboard.php/, '') + image);
+			} else {
+				data.push(null);
+			}
+
+			$html.find('tr.bg2').each(function (key, value) {
+				data.push($($(this).find('td').get(1)).text().trim());
 			});
 
-			// return next();
+			var i = 0;
+			for (var key in profile) {
+				profile[key] = data[i++];
+			}
+
+			return profile;
 		}
 	},
-
 	/**
-	 * Actions callable by HTTP POST method
+	 * Response actions
 	 */
-	'POST': {
+	routes: {
 		/**
-		 * test-login action, checks if given username and password combination is accepted by the forum
+		 * Actions callable by HTTP GET method
 		 */
-		'/test-login': function (req, res, next) {
-			var username = req.params.username;
-			var password = req.params.password;
+		get: {
+			/**
+			 * index action
+			 */
+			'/': function (req, res, next) {
+				fs.readFile('doc/index.html', 'utf8', function (error, data) {
+					if (error) {
+				    	return console.log(error);
+				  	}
 
-			var onResponse = function(error, response, body) {
-				var message = {
-					success: false
+				  	mservice.response.html(res, data);
+				});
+			},
+			/**
+			 * boards action
+			 */
+			'/boards': function (req, res, next) {
+				var url = mservice.maniacUrl;
+				mservice.request.get(res, url, function (html) {
+					var boards = mservice.parse.boards(html);
+					mservice.response.json(res, boards);
+				});
+			},
+			/**
+			 * threads action
+			 */
+			'/board/:boardId/threads': function (req, res, next) {
+				var boardId  = req.params.boardId;
+				var url = mservice.maniacUrl + '?mode=threadlist&brdid=' + boardId;
+
+				mservice.request.get(res, url, function (html) {
+					var threadEntries = $(html).find('body p').html().split('<br>');
+					threadEntries.pop(); // Remove last (empty) entry
+
+					var threads = mservice.parse.threads(threadEntries);
+					mservice.response.json(res, threads);
+				});
+			},
+			/**
+			 * thread action
+			 */
+			 '/board/:boardId/thread/:threadId': function (req, res, next) {
+			 	var boardId  = req.params.boardId;
+				var threadId = req.params.threadId;
+				var url = mservice.maniacUrl + '?mode=thread&brdid=' + boardId + '&thrdid=' + threadId;
+
+				mservice.request.get(res, url, function (html) {
+					var thread = mservice.parse.thread(html);
+					mservice.response.json(res, thread);
+				});
+			},
+			/**
+			 * message action
+			 */
+			'/board/:boardId/message/:messageId': function (req, res, next) {
+				var boardId   = req.params.boardId;
+				var messageId = req.params.messageId;
+				var url = mservice.maniacUrl + '?mode=message&brdid=' + boardId + '&msgid=' + messageId;
+
+				mservice.request.get(res, url, function (html) {
+					var message = mservice.parse.message(mservice.utils.toInt(messageId), html);
+					mservice.response.json(res, message);
+				});
+			},
+			/**
+			 * quote action, fetches quoted text of a man!ac message
+			 */
+			'/board/:boardId/quote/:messageId': function (req, res, next) {
+				var boardId   = req.params.boardId;
+				var messageId = req.params.messageId;
+				var url = mservice.maniacUrl + '?mode=messageform&brdid=' + boardId + '&msgid=' + messageId;
+
+				mservice.request.get(res, url, function (html) {
+					var quote = mservice.parse.quote(html);
+					mservice.response.json(res, quote);
+				});
+			},
+			/**
+			 * User action, fetches data of a of a man!ac user profile
+			 */
+			'/user/:userId': function (req, res, next) {
+				var userId = req.params.userId;
+				var url = mservice.maniacUrl + '?mode=userprofile&usrid=' + userId;
+
+				mservice.request.get(res, url, function (html) {
+					var user = mservice.parse.user(html);
+					mservice.response.json(res, user);
+				});
+			}
+		},
+		/**
+		 * Routes for HTTP POST method
+		 */
+		post: {
+			/**
+			 * test-login action, checks if given username and password combination is accepted by the forum
+			 */
+			'/test-login': function (req, res, next) {
+				var onSuccess = function () {
+					var data = {
+						success: true
+					};
+					mservice.response.json(res, data);
+				};
+				var onError = function () {
+					var data = {
+						success: false
+					};
+					mservice.response.json(res, data);
+				};
+				mservice.request.authenticate(req, res, onSuccess, onError);
+			},
+			/**
+			 * Preview action
+			 */
+			'/board/:boardId/message/preview': function (req, res, next) {
+				var options = {
+					form: {
+						mode: 'messagesave',
+						brdid: req.params.boardId,
+						body: req.params.text,
+						preview_x: 'preview'
+					}
 				};
 
-				if ($(body).find('form').length === 0) {
-					message.success = true;
-				}
+				mservice.request.post(res, options, function (html) {
+					var data = null;
+					var error = null;
 
-				res.contentType = 'application/json';
-				res.send(message);
-				// setTimeout(function() {
-				//   res.send(message);
-				// }, 5000);
+					var $html = $(html);
+					if ($html.find('title').text() !== mservice.errors.maniacBoardTitles.reply) {
+						var maniacErrorMessage = $html.find('tr.bg2 td').first().text();
+						error = mservice.errors.maniacMessages[maniacErrorMessage];
+					} else {
+						data = mservice.parse.preview(html);
+					}
+
+					mservice.response.json(res, data, error);
+				});
+			},
+			/**
+			 * Creates a thread to given boardId
+			 */
+			'/board/:boardId/message/': function (req, res, next) {
+				var options = {
+					form: {
+						mode: 'messagesave',
+						brdid: req.params.boardId,
+						nick: req.params.username,
+						pass: req.params.password,
+						subject: req.params.subject,
+						body: req.params.text,
+						notification: req.params.notification
+					}
+				};
+
+				mservice.request.post(res, options, function (html) {
+					var data = {
+						success: true
+					}
+					var error = null;
+
+					var $html = $(html);
+					if ($html.find('title').text() !== mservice.errors.maniacBoardTitles.confirm) {
+						data.success = false;
+						var maniacErrorMessage = $($html.find('tr.bg1 td').get(2)).text();
+						error = mservice.errors.maniacMessages(maniacErrorMessage);
+					}
+
+					mservice.response.json(res, data, error);
+				});
+			},
+			/**
+			 * Creates a reply to messageId
+			 */
+			'/board/:boardId/message/:messageId': function (req, res, next) {
+				var options = {
+					form: {
+						mode: 'messagesave',
+						brdid: req.params.boardId,
+						msgid: req.params.messageId,
+						nick: req.params.username,
+						pass: req.params.password,
+						subject: req.params.subject,
+						body: req.params.text,
+						notification: req.params.notification
+					}
+				};
+
+				mservice.request.post(res, options, function (html) {
+					var data = {
+						success: true
+					}
+					var error = null;
+
+					var $html = $(html);
+					if ($html.find('title').text() !== mservice.errors.maniacBoardTitles.confirm) {
+						data.success = false;
+						var maniacErrorMessage = $($html.find('tr.bg1 td').get(2)).text();
+						error = mservice.errors.maniacMessages(maniacErrorMessage);
+					}
+
+					mservice.response.json(res, data, error);
+				});
+			},
+			/**
+			 * Checks if notification is activated for given messageId
+			 */
+			'/board/:boardId/notification-status/:messageId': function (req, res, next) {
+				mservice.request.authenticate(req, res, function (jar) {
+					var boardId   = req.params.boardId;
+					var messageId = req.params.messageId;
+					var url = mservice.maniacUrl + '?mode=message&brdid=' + boardId + '&msgid=' + messageId;
+
+					var options = {
+						uri: url,
+						jar: jar
+					};
+
+					mservice.request.get(res, options, function (html) {
+						var notificationLinkText = $(html).find('a[href^="pxmboard.php?mode=messagenotification"]').text().trim().split(' ')[1];
+						var data = {
+							notificationEnabled: notificationLinkText === 'deaktivieren'
+						}
+
+						mservice.response.json(res, data);
+					});
+				});
+			},
+			/**
+			 * Toggles notication for given messageId
+			 */
+			'/board/:boardId/notification/:messageId': function (req, res, next) {
+				mservice.request.authenticate(req, res, function (jar) {
+					var boardId   = req.params.boardId;
+					var messageId = req.params.messageId;
+					var url = mservice.maniacUrl + '?mode=messagenotification&brdid=' + boardId + '&msgid=' + messageId;
+
+					var options = {
+						uri: url,
+						jar: jar
+					};
+
+					mservice.request.get(res, options, function (html) {
+						var data = {
+							success: true
+						}
+						var error = null;
+
+						var $html = $(html);
+						var title = $html.find('title').text();
+
+						if (title === mservice.errors.maniacBoardTitles.error) {
+							data.success = false;
+							var maniacErrorMessage = $html.find('tr.bg2 td').first().text();
+							error = mservice.errors.maniacMessages[maniacErrorMessage];
+						}
+
+						mservice.response.json(res, data, error);
+					});
+				});
+			},
+			/**
+			 * Search action, returns threadlist for given boardId matching given search phrase
+			 */
+			'/board/:boardId/search-threads': function (req, res, next) {
+				var options = {
+					uri: mservice.utils.domainFromUri(mservice.maniacUrl) + '/forum/include/Ajax/threadfilter.php',
+					form: {
+						boardid: req.params.boardId,
+						phrase: req.params.phrase
+					},
+					headers: {
+						'User-Agent': 'M!service'
+			        	'X-Requested-With': 'XMLHttpRequest'
+			    	}
+				};
+
+				mservice.request.post(res, options, function (html) {
+					var threadEntries = html.split('</br>');
+					threadEntries.pop(); // Remove last (empty) entry
+
+					var threads = mservice.parse.threads(threadEntries);
+					mservice.response.json(res, threads);
+				});
+			}
+		},
+		/**
+		 * Routes for HTTP PUT method
+		 */
+		put: {
+			/**
+			 * Updates (edits) a message
+			 */
+			'/board/:boardId/message/:messageId': function (req, res, next) {
+				mservice.request.authenticate(req, res, function (jar) {
+					var options = {
+						jar: jar,
+						form: {
+							mode: 'messageeditsave',
+							brdid: req.params.boardId,
+							msgid: req.params.messageId,
+							subject: req.params.subject,
+							body: req.params.text
+						}
+					};
+
+					mservice.request.post(res, options, function (html) {
+						var data = {
+							success: true
+						}
+						var error = null;
+
+						var $html = $(html);
+						var title = $html.find('title').text();
+						if (title != mservice.errors.maniacBoardTitles.confirm) {
+							data.success = false;
+							var maniacErrorMessage = null;
+							if (title === mservice.errors.maniacBoardTitles.error) {
+								maniacErrorMessage = $html.find('tr.bg2 td').first().text();
+							} else if (title === mservice.errors.maniacBoardTitles.edit) {
+								maniacErrorMessage = $($html.find('tr.bg1 td').get(1)).text(); //TODO first() ?
+							}
+							error = maniacErrorMessage ? mservice.errors.maniacMessages[maniacErrorMessage] : 'unknown';
+						}
+
+						mservice.response.json(res, data, error);
+					});
+				});
+			}
+		}
+	},
+	/**
+	 * Request wrapper
+	 */
+	request: {
+		get: function (res, options, fn) {
+			if ((typeof options === 'string')) {
+				options = {
+					uri: options
+				};
 			}
 
-			request({
-				uri: maniacUrl,
+			options = mservice.utils.extend({
+				method: 'GET',
+				timeout: 10000,
+				headers: {
+					'User-Agent': 'M!service'
+				}
+			}, options);
+
+			request(options, function (requestError, requestResponse, requestBody) {
+				if (requestError || requestResponse.statusCode != 200) {
+					mservice.response.connectionError(res);
+			  	} else if (typeof fn === 'function') {
+		  			fn(requestBody);
+			  	}
+			})
+		},
+		post: function (res, options, fn) {
+			options = mservice.utils.extend({
+				uri: mservice.maniacUrl,
 				method: 'POST',
+				timeout: 10000,
+				headers: {
+					'User-Agent': 'M!service'
+				}
+			}, options);
+
+			request(options, function (requestError, requestResponse, requestBody) {
+				if (requestError || requestResponse.statusCode != 200) {
+					mservice.response.connectionError(res);
+			  	} else if (typeof fn === 'function') {
+		  			fn(requestBody, requestResponse);
+			  	}
+			})
+		},
+		authenticate: function (req, res, fnSuccess, fnError) {
+			var options = {
 				form: {
 					mode: 'login',
-					brdid: '',
-					nick: username,
-					pass: password
+					nick: req.params.username,
+					pass: req.params.password
 				}
-			}, onResponse);
-		},
-
-		/**
-		 * Preview action
-		 */
-		'/preview': function (req, res, next) {
-			var form = {
-				mode: 'messagesave',
-				brdid: req.params.boardId,
-				msgid: req.params.messageId,
-				nick: req.params.username,
-				pass: req.params.password,
-				subject: req.params.subject,
-				body: req.params.text,
-				preview_x: 'preview'
 			};
 
-			var onResponse = function(error, response, body) {
-				var $body = $(body);
-
-				var clientResponseMessage = {
-					success: true,
-					content: '',
-					errorCode: '',
-					errorMessage: ''
-				};
-
-				clientResponseMessage.content = parse.preview(body);
-
-				res.contentType = 'application/json';
-				res.send(clientResponseMessage);
-			};
-
-			request({
-				uri: maniacUrl,
-				method: 'POST',
-				form: form
-			}, onResponse);
-		},
-
-		/**
-		 * Post action, creates a posting
-		 */
-		'/post': function (req, res, next) {
-			var form = {
-				mode: 'messagesave',
-				brdid: req.params.boardId,
-				msgid: req.params.messageId,
-				nick: req.params.username,
-				pass: req.params.password,
-				subject: req.params.subject,
-				body: req.params.text,
-				notification: req.params.notification
-			};
-
-			var onResponse = function(error, response, body) {
-				var $body = $(body);
-
-				var clientResponseMessage = {
-					success: true,
-					errorCode: '',
-					errorMessage: ''
-				};
-
-				errorCodeMap = {
-					 3: 2,
-					 7: 3,
-					26: 2
-				};
-
-				if ($body.find('title').text() !== errors.maniacBoardTitles.confirm) {
-					var maniacErrorMessage = $($body.find('tr.bg1 td').get(2)).text();
-					var errorLabel = errors.maniacMessages(maniacErrorMessage);
-					clientResponseMessage.success = false;
-					clientResponseMessage.errorCode = errors.code[errorLabel];
-					clientResponseMessage.errorMessage = errors.messages[errorLabel];
-				}
-
-				res.contentType = 'application/json';
-				res.send(clientResponseMessage);
-			};
-
-			// onResponse(undefined, undefined, undefined);
-
-			request({
-				uri: maniacUrl,
-				method: 'POST',
-				form: form
-			}, onResponse);
-		},
-
-		/**
-		 * Edit action, edits a posting
-		 */
-		'/edit': function (req, res, next) {
-			var username  = req.params.username;
-			var password  = req.params.password;
-			var boardId   = req.params.boardId;
-			var messageId = req.params.messageId;
-			var subject   = req.params.subject;
-			var text      = req.params.text;
-
-			var loginForm = {
-				mode: 'login',
-				brdid: '',
-				nick: username,
-				pass: password
-			};
-
-			var onLoginResponse = function(loginError, loginResponse, loginBody) {
-				var errorCode;
-				var clientResponseMessage = {
-					success: true,
-					errorCode: '',
-					errorMessage: ''
-				};
-
-				if ($(loginBody).find('form').length > 0) {
-					errorLabel = 'login';
-					clientResponseMessage.success = false;
-					clientResponseMessage.errorCode = errors.codes[errorLabel];
-					clientResponseMessage.errorMessage = errors.messages[errorLabel];
-
-					res.contentType = 'application/json';
-					res.send(clientResponseMessage);
-				} else {
-					var cookieString = loginResponse.headers['set-cookie'][0].split(";")[0];
+			mservice.request.post(res, options, function (html, response) {
+				if ($(html).find('form').length > 0) {
+					if (typeof fnError === 'function') {
+						fnError();
+					} else {
+						mservice.response.json(res, null, 'login');
+					}
+				} else if (typeof fnSuccess === 'function') {
+					var cookieString = response.headers['set-cookie'][0].split(";")[0];
 					var cookie = request.cookie(cookieString);
-		 			var jar = request.jar();
-					jar.setCookie(cookie, maniacUrl);
+			 		var jar = request.jar();
+					jar.setCookie(cookie, mservice.maniacUrl);
 
-					var editForm = {
-						mode: 'messageeditsave',
-						brdid: boardId,
-						msgid: messageId,
-						subject: subject,
-						body: text
-					};
-
-					var onEditResponse = function(editError, editResponse, editBody) {
-						var $editBody = $(editBody);
-						var title = $editBody.find('title').text();
-						if (title != errors.maniacBoardTitles.confirm) {
-							var errorLabel = 'unknown';
-							var maniacErrorMessage;
-							if (title === errors.maniacBoardTitles.error) {
-								maniacErrorMessage = $editBody.find('tr.bg2 td').first().text();
-								errorLabel = errors.maniacMessages[maniacErrorMessage];
-							} else if (title === errors.maniacBoardTitles.edit) {
-								maniacErrorMessage = $($editBody.find('tr.bg1 td').get(1)).text(); //TODO first() ?
-								errorLabel = errors.maniacMessages[maniacErrorMessage];
-							}
-
-							clientResponseMessage.success = false;
-							clientResponseMessage.errorCode = errors.codes[errorLabel];
-							clientResponseMessage.errorMessage = errors.messages[errorLabel];
-						}
-
-						res.contentType = 'application/json';
-						res.send(clientResponseMessage);
-					};
-
-					request({
-						uri: maniacUrl,
-						method: 'POST',
-						jar: jar,
-						form: editForm
-					}, onEditResponse);
-				}
-			};
-
-			request({
-				uri: maniacUrl,
-				method: 'POST',
-				form: loginForm
-			}, onLoginResponse)
-		},
-
-		/**
-		 * Notification Status action, checks if reply notification is activated
-		 */
-		'/board/:boardId/notification-status/:messageId': function (req, res, next) {
-			var username  = req.params.username;
-			var password  = req.params.password;
-			var boardId   = req.params.boardId;
-			var messageId = req.params.messageId;
-
-			var loginForm = {
-				mode: 'login',
-				brdid: '',
-				nick: username,
-				pass: password
-			};
-
-			var onLoginResponse = function(loginError, loginResponse, loginBody) {
-				if ($(loginBody).find('form').length > 0) {
-					// TODO error if login failed
-				} else {
-
-					var cookieString = loginResponse.headers['set-cookie'][0].split(";")[0];
-					var cookie = request.cookie(cookieString);
-		 			var jar = request.jar();
-					jar.setCookie(cookie, maniacUrl);
-
-					var url = maniacUrl + '?mode=message&brdid=' + boardId + '&msgid=' + messageId;
-
-					var onNotificatonStatusResponse = function(notificatonStatusError, notificatonStatusResponse, notificatonStatusBody) {
-						var $body = $(notificatonStatusBody);
-						var notificationLinkText = $body.find('a[href^="pxmboard.php?mode=messagenotification"]').text().trim().split(' ')[1];
-						var notificationEnabled = (notificationLinkText === 'deaktivieren');
-
-						var clientResponseMessage = {
-							notificationEnabled: notificationEnabled,
-						};
-
-						// console.log(clientResponseMessage);
-
-						res.contentType = 'application/json';
-						res.send(clientResponseMessage);
-					};
-
-					// onResponse(undefined, undefined, undefined);
-
-					request({
-						uri: url,
-						method: "GET",
-						jar: jar
-					}, onNotificatonStatusResponse);
-				}
-			};
-
-			request({
-				uri: maniacUrl,
-				method: 'POST',
-				form: loginForm
-			}, onLoginResponse)
-		},
-
-		/**
-		 * Notification action, toggles reply notication
-		 */
-		'/board/:boardId/notification/:messageId': function (req, res, next) {
-			var username  = req.params.username;
-			var password  = req.params.password;
-			var boardId   = req.params.boardId;
-			var messageId = req.params.messageId;
-
-			var loginForm = {
-				mode: 'login',
-				brdid: '',
-				nick: username,
-				pass: password
-			};
-
-			var onLoginResponse = function(loginError, loginResponse, loginBody) {
-				var errorCode;
-				var clientResponseMessage = {
-					success: true,
-					errorCode: '',
-					errorMessage: ''
-				};
-
-				if ($(loginBody).find('form').length > 0) {
-					errorLabel = 'login';
-					clientResponseMessage.success = false;
-					clientResponseMessage.errorCode = errors.codes[errorLabel];
-					clientResponseMessage.errorMessage = errors.messages[errorLabel];
-
-					res.contentType = 'application/json';
-					res.send(clientResponseMessage);
-				} else {
-					var cookieString = loginResponse.headers['set-cookie'][0].split(";")[0];
-					var cookie = request.cookie(cookieString);
-		 			var jar = request.jar();
-					jar.setCookie(cookie, maniacUrl);
-
-					var url = maniacUrl + '?mode=messagenotification&brdid=' + boardId + '&msgid=' + messageId;
-
-					var onNotificationResponse = function(notificationError, notificationResponse, notificationBody) {
-						var $body = $(notificationBody);
-						var title = $body.find('title').text();
-
-						if (title === errors.maniacBoardTitles.error) {
-							var maniacErrorMessage = $body.find('tr.bg2 td').first().text();
-							errorLabel = errors.maniacMessages[maniacErrorMessage];
-
-							clientResponseMessage.success = false;
-							clientResponseMessage.errorCode = errors.codes[errorLabel];
-							clientResponseMessage.errorMessage = errors.messages[errorLabel];
-						}
-
-						// console.log(clientResponseMessage);
-
-						res.contentType = 'application/json';
-						res.send(clientResponseMessage);
-					};
-
-					request({
-						uri: url,
-						method: 'GET',
-						jar: jar
-					}, onNotificationResponse);
-				}
-			};
-
-			request({
-				uri: maniacUrl,
-				method: 'POST',
-				form: loginForm
-			}, onLoginResponse)
-		},
-
-		/**
-		 * Search action, returns threadlist for given boardId matching given search phrase
-		 */
-		'/board/:boardId/search': function (req, res, next) {
-			var url = 'http://www.maniac-forum.de/forum/include/Ajax/threadfilter.php';
-			var form = {
-				boardid: req.params.boardId,
-				phrase: req.params.phrase
-			};
-
-			var onResponse = function(error, response, body) {
-				var threads = body.split('</br>');
-				threads.pop(); // Remove last (empty) entry
-
-				var clientResponse = parse.threadList(threads);
-
-				res.contentType = 'application/json';
-				res.send(clientResponse);
-			};
-
-			request({
-				uri: url,
-				method: 'POST',
-				form: form,
-				headers: {
-		        	'X-Requested-With': 'XMLHttpRequest'
-		    	}
-			}, onResponse);
+		  			fnSuccess(jar);
+			  	}
+			});
 		}
-	}
-}
+	},
+	/**
+	 * Client responses
+	 */
+	response: {
+		connectionError: function (res) {
+			mservice.response.json(res, null, 'connection');
+		},
+		json: function (res, data, error) {
+			var clientResponseMessage = {
+				'data': data,
+				'error': null
+			};
 
-var dispatcher = function(server, actions) {
-	for (var route in actions['GET']) {
-		server.get(route, actions['GET'][route]);
-	}
-	for (var route in actions['POST']) {
-		server.post(route, actions['POST'][route]);
+			if (error) {
+				var errorCode = mservice.errors.codes[error];
+				var errorMessage = mservice.errors.messages[error];
+				clientResponseMessage.error = {
+					'code': errorCode,
+					'message': errorMessage
+				};
+
+				console.log(clientResponseMessage);
+			}
+
+			res.contentType = 'application/json';
+			res.send(clientResponseMessage);
+
+		},
+		html: function (res, html) {
+			res.writeHead(200, {
+				'Content-Length': Buffer.byteLength(html),
+				'Content-Type': 'text/html'
+			});
+			res.write(html);
+			res.end();
+		}
+	},
+	/**
+	 * Error table
+	 */
+	errors: {
+		codes: {
+			unknown: 0,
+			connection: 1,
+			permission: 2,
+			login: 3,
+			boardId: 4,
+			messageId: 5,
+			subject: 6,
+			answerExists: 7
+		},
+		messages: {
+			unknown: 'An unknown error is occured',
+			connection: 'Could not connect to maniac server',
+			permission: 'Permission denied',
+			login: 'Authentication failed',
+			boardId: 'boardId is missing',
+			messageId: 'messageId is missing',
+			subject: 'Subject not filled',
+			answerExists: 'This message was already answered'
+		},
+		maniacMessages: {
+			'Bitte geben sie ihren Nickname ein': 'login',
+			'Passwort ungültig': 'login',
+			'Sie sind nicht dazu berechtigt': 'permission',
+			'konnte Daten nicht einfügen': 'unchanged',
+			'Board id fehlt': 'boardId',
+			'message id ungültig': 'messageId',
+			'Thema fehlt': 'subject',
+			'Auf diese Nachricht wurde bereits geantwortet': 'answerExists',
+		},
+		maniacBoardTitles: {
+			confirm: '-= board: confirm =-',
+			reply: '-= board: reply =-',
+			error: '-= board: error =-',
+			edit: '-= board: edit =-'
+		}
+	},
+	/**
+	 * Helper functions
+	 */
+	utils: {
+		extend: function (a, b) {
+		    for (var key in b) {
+		        if (b.hasOwnProperty(key)) {
+		            a[key] = b[key];
+		        }
+		    }
+
+		    return a;
+		},
+		domainFromUri: function (uri) {
+			var parts = uri.split('/');
+			return parts[0] + '//' + parts[2];
+		},
+		datetimeStringToISO8601: function (datetimeString) {
+			if ( ! datetimeString) {
+				return '';
+			}
+
+		    var dateArr = datetimeString.match(/(\d{2}).(\d{2}).(\d{2,4})\s(\d{2}):(\d{2})/);
+		    var year = dateArr[3].length === 2 ? '20' + dateArr[3] : dateArr[3];
+		    var month = dateArr[2] - 1;
+		    var day = dateArr[1];
+		    var hours = dateArr[4];
+		    var minutes = dateArr[5];
+		    var date = new Date(year, month, day, hours, minutes);
+		    var tzo = - date.getTimezoneOffset();
+		    var dif = tzo >= 0 ? '+' : '-';
+		    var pad = function(num) {
+		        norm = Math.abs(Math.floor(num));
+		        return (norm < 10 ? '0' : '') + norm;
+		    };
+
+		    return date.getFullYear()
+		        + '-' + pad(date.getMonth() + 1)
+		        + '-' + pad(date.getDate())
+		        + 'T' + pad(date.getHours())
+		        + ':' + pad(date.getMinutes())
+		        + ':' + pad(date.getSeconds())
+		        + dif + pad(tzo / 60)
+		        + ':' + pad(tzo % 60)
+		    ;
+		},
+		toInt: function (string) {
+			return parseInt(string, 10);
+		}
 	}
 };
 
-var server = restify.createServer();
-server.use(restify.bodyParser());
-
-dispatcher(server, actions);
-
-server.listen(port);
-
-
-
-
-// actions['GET']['/board/:boardId/threadlist']({params: {boardId: 6}})
-// actions['GET']['/board/:boardId/messagelist/:threadId']({params: {boardId: 6, threadId: 151910}})
-// actions['GET']['/board/:boardId/message/:messageId']({params: {boardId: 6, messageId: 3574644}})
-// actions['POST']['/board/:boardId/search']({params: {boardId: 6}})
-// actions['POST']['/board/:boardId/notification/:messageId']({params: {boardId: 6, messageId: 3567281}})
-
-// actions['POST']['/preview']()
-
-
+/**
+ * Start server
+ */
+mservice.start();
