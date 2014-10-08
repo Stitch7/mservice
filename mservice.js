@@ -55,6 +55,7 @@ var mservice = {
 			name: 'M!service'
 		});
 		server.use(restify.bodyParser());
+		server.use(restify.gzipResponse());
 		server.on('uncaughtException', function(req, res, route, err) {
 			console.log('%s - [FATAL ERROR] client: %s - "%s: %s" - %s',
 				mservice.utils.now(),
@@ -728,13 +729,16 @@ var mservice = {
 			options = mservice.utils.extend({
 				method: 'GET',
 				timeout: 10000,
+				gzip: true,
 				headers: {
-					'User-Agent': 'M!service'
+					'User-Agent': 'M!service',
+					'accept-encoding' : 'gzip,deflate'
 				}
 			}, options);
 
 			request(options, function (requestError, requestResponse, requestBody) {
-				if (requestError || requestResponse.statusCode != 200) {
+				if (requestError || requestResponse.statusCode !== 200) {
+					res.status(504);
 					mservice.response.connectionError(res);
 			  	} else if (typeof fn === 'function') {
 		  			fn(requestBody);
@@ -746,13 +750,16 @@ var mservice = {
 				uri: mservice.maniacUrl,
 				method: 'POST',
 				timeout: 10000,
+				gzip: true,
 				headers: {
-					'User-Agent': 'M!service'
+					'User-Agent': 'M!service',
+					'accept-encoding' : 'gzip,deflate'
 				}
 			}, options);
 
 			request(options, function (requestError, requestResponse, requestBody) {
-				if (requestError || requestResponse.statusCode != 200) {
+				if (requestError || requestResponse.statusCode !== 200) {
+					res.status(504);
 					mservice.response.connectionError(res);
 			  	} else if (typeof fn === 'function') {
 		  			fn(requestBody, requestResponse);
@@ -806,7 +813,6 @@ var mservice = {
 					'code': errorCode,
 					'message': errorMessage
 				};
-
 				// console.log(clientResponseMessage);
 			}
 
