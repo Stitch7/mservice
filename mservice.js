@@ -51,8 +51,22 @@ var mservice = {
 	 * Start server
 	 */
 	start: function () {
-		var server = restify.createServer();
+		var server = restify.createServer({
+			name: 'M!service'
+		});
 		server.use(restify.bodyParser());
+		server.on('uncaughtException', function(req, res, route, err) {
+			console.log('%s - [FATAL ERROR] client: %s - "%s: %s" - %s',
+				mservice.utils.now(),
+				mservice.utils.clientIP(req),
+				route.spec.method,
+				route.spec.path,
+				err.toString()
+			);
+
+			res.status(500);
+			mservice.response.json(res, null, 'unknown');
+		});
 
 		// Dispatch routes
 		var routes = this.routes;
@@ -793,7 +807,7 @@ var mservice = {
 					'message': errorMessage
 				};
 
-				console.log(clientResponseMessage);
+				// console.log(clientResponseMessage);
 			}
 
 			res.contentType = 'application/json';
@@ -862,6 +876,17 @@ var mservice = {
 	 * Helper functions
 	 */
 	utils: {
+		clientIP: function (req) {
+			return req.headers['x-forwarded-for'] ||
+			     req.connection.remoteAddress ||
+			     req.socket.remoteAddress ||
+			     req.connection.socket.remoteAddress
+			;
+		},
+		domainFromUri: function (uri) {
+			var parts = uri.split('/');
+			return parts[0] + '//' + parts[2];
+		},
 		extend: function (a, b) {
 		    for (var key in b) {
 		        if (b.hasOwnProperty(key)) {
@@ -870,10 +895,6 @@ var mservice = {
 		    }
 
 		    return a;
-		},
-		domainFromUri: function (uri) {
-			var parts = uri.split('/');
-			return parts[0] + '//' + parts[2];
 		},
 		datetimeStringToISO8601: function (datetimeString) {
 			if ( ! datetimeString) {
@@ -903,6 +924,38 @@ var mservice = {
 		        + dif + pad(tzo / 60)
 		        + ':' + pad(tzo % 60)
 		    ;
+		},
+		now: function () {
+			var now = new Date();
+
+			var dd = now.getDate();
+			if (dd < 10) {
+			    dd = '0' + dd;
+			}
+
+			var mm = now.getMonth() + 1; // January is 0
+			if (mm < 10) {
+			    mm = '0' + mm;
+			}
+
+			var yyyy = now.getFullYear();
+
+			var H = now.getHours();
+			if (H < 10) {
+				H = '0' + H;
+			}
+
+            var i = now.getMinutes();
+        	if (i < 10) {
+        		i = '0' + i;
+        	}
+
+            var s = now.getSeconds();
+            if (s < 10) {
+        		s = '0' + s;
+        	}
+
+			return yyyy + '-' + mm + '-' + dd + ' ' + H + ':' + i + ':' + s;
 		},
 		toInt: function (string) {
 			return parseInt(string, 10);
