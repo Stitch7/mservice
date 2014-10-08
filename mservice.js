@@ -87,8 +87,11 @@ var mservice = {
 			return boards;
 		},
 
-		threads: function(threadEntries) {
+		threads: function(html) {
 			var threads = [];
+			var threadEntries = html.split(/<\/*br>/);
+			threadEntries.pop(); // Remove last (empty) entry
+
 			// Compile Regexp outside loop to save perfomance
 			var mainRegExp = /(.+)\s-\s(.+)\sam\s(.+)\(\s.+\s(\d+)\s(?:\|\s[A-Za-z:]+\s(.+)\s|)\)/;
 
@@ -349,11 +352,18 @@ var mservice = {
 				var url = mservice.maniacUrl + '?mode=threadlist&brdid=' + boardId;
 
 				mservice.request.get(res, url, function (html) {
-					var threadEntries = $(html).find('body p').html().split('<br>');
-					threadEntries.pop(); // Remove last (empty) entry
+					var data = null;
+					var error = null;
 
-					var threads = mservice.parse.threads(threadEntries);
-					mservice.response.json(res, threads);
+					var $html = $(html);
+					var title = $html.find('title').text();
+					if (title === mservice.errors.maniacBoardTitles.error) {
+						error = 'boardId';
+					} else {
+						data = mservice.parse.threads($html.find('body p').html());
+					}
+
+					mservice.response.json(res, data, error);
 				});
 			},
 			/**
@@ -365,8 +375,20 @@ var mservice = {
 				var url = mservice.maniacUrl + '?mode=thread&brdid=' + boardId + '&thrdid=' + threadId;
 
 				mservice.request.get(res, url, function (html) {
-					var thread = mservice.parse.thread(html);
-					mservice.response.json(res, thread);
+					var data = null;
+					var error = null;
+
+					var $html = $(html);
+					var title = $html.find('title').text();
+					if (title === mservice.errors.maniacBoardTitles.error) {
+						error = 'boardId';
+					} else if ($html.find('body > ul').length === 0) { // unknown threadId return empty page
+						error = 'threadId';
+					} else {
+						data = mservice.parse.thread(html);
+					}
+
+					mservice.response.json(res, data, error);
 				});
 			},
 			/**
@@ -378,8 +400,19 @@ var mservice = {
 				var url = mservice.maniacUrl + '?mode=message&brdid=' + boardId + '&msgid=' + messageId;
 
 				mservice.request.get(res, url, function (html) {
-					var message = mservice.parse.message(mservice.utils.toInt(messageId), html);
-					mservice.response.json(res, message);
+					var data = null;
+					var error = null;
+
+					var $html = $(html);
+					var title = $html.find('title').text();
+					if (title === mservice.errors.maniacBoardTitles.error) {
+						var maniacErrorMessage = $html.find('tr.bg2 td').first().text();
+						error = mservice.errors.maniacMessages[maniacErrorMessage];
+					} else {
+						data = mservice.parse.message(mservice.utils.toInt(messageId), html);
+					}
+
+					mservice.response.json(res, data, error);
 				});
 			},
 			/**
@@ -391,8 +424,19 @@ var mservice = {
 				var url = mservice.maniacUrl + '?mode=messageform&brdid=' + boardId + '&msgid=' + messageId;
 
 				mservice.request.get(res, url, function (html) {
-					var quote = mservice.parse.quote(html);
-					mservice.response.json(res, quote);
+					var data = null;
+					var error = null;
+
+					var $html = $(html);
+					var title = $html.find('title').text();
+					if (title === mservice.errors.maniacBoardTitles.error) {
+						var maniacErrorMessage = $html.find('tr.bg2 td').first().text();
+						error = mservice.errors.maniacMessages[maniacErrorMessage];
+					} else {
+						data = mservice.parse.quote(html);
+					}
+
+					mservice.response.json(res, data, error);
 				});
 			},
 			/**
@@ -403,8 +447,17 @@ var mservice = {
 				var url = mservice.maniacUrl + '?mode=userprofile&usrid=' + userId;
 
 				mservice.request.get(res, url, function (html) {
-					var user = mservice.parse.user(html);
-					mservice.response.json(res, user);
+					var data = null;
+					var error = null;
+
+					var title = $(html).find('title').text();
+					if (title === mservice.errors.maniacBoardTitles.error) {
+						error = 'userId';
+					} else {
+						data = mservice.parse.user(html);
+					}
+
+					mservice.response.json(res, data, error);
 				});
 			}
 		},
@@ -591,17 +644,14 @@ var mservice = {
 						phrase: req.params.phrase
 					},
 					headers: {
-						'User-Agent': 'M!service'
+						'User-Agent': 'M!service',
 			        	'X-Requested-With': 'XMLHttpRequest'
 			    	}
 				};
 
 				mservice.request.post(res, options, function (html) {
-					var threadEntries = html.split('</br>');
-					threadEntries.pop(); // Remove last (empty) entry
-
-					var threads = mservice.parse.threads(threadEntries);
-					mservice.response.json(res, threads);
+					var data = mservice.parse.threads(html);
+					mservice.response.json(res, data);
 				});
 			}
 		},
@@ -749,6 +799,10 @@ var mservice = {
 			res.contentType = 'application/json';
 			res.send(clientResponseMessage);
 
+			// setTimeout(function () {
+			// 	res.send(clientResponseMessage);
+			// }, 5000);
+
 		},
 		html: function (res, html) {
 			res.writeHead(200, {
@@ -771,17 +825,21 @@ var mservice = {
 			boardId: 4,
 			messageId: 5,
 			subject: 6,
-			answerExists: 7
+			answerExists: 7,
+			threadId: 8,
+			userId: 9
 		},
 		messages: {
 			unknown: 'An unknown error is occured',
 			connection: 'Could not connect to maniac server',
 			permission: 'Permission denied',
 			login: 'Authentication failed',
-			boardId: 'boardId is missing',
-			messageId: 'messageId is missing',
+			boardId: 'boardId is invalid',
+			messageId: 'messageId is invalid',
 			subject: 'Subject not filled',
-			answerExists: 'This message was already answered'
+			answerExists: 'This message was already answered',
+			threadId: 'threadId is invalid',
+			userId: 'userId is invalid'
 		},
 		maniacMessages: {
 			'Bitte geben sie ihren Nickname ein': 'login',
@@ -791,7 +849,7 @@ var mservice = {
 			'Board id fehlt': 'boardId',
 			'message id ungültig': 'messageId',
 			'Thema fehlt': 'subject',
-			'Auf diese Nachricht wurde bereits geantwortet': 'answerExists',
+			'Auf diese Nachricht wurde bereits geantwortet': 'answerExists'
 		},
 		maniacBoardTitles: {
 			confirm: '-= board: confirm =-',
