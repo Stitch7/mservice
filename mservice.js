@@ -31,6 +31,7 @@
 var sys = require('sys');
 var fs = require('fs');
 var http = require('http');
+var yargs = require('yargs');
 var restify = require('restify');
 var request = require('request');
 var $ = require('cheerio');
@@ -40,19 +41,26 @@ var $ = require('cheerio');
  */
 var mservice = {
 	/**
-	 * TCP Port
+	 * Default options
 	 */
-	port: 8080,
-	/**
-	 * URL to maniac forum
-	 */
-	maniacUrl: 'http://maniac-forum.de/forum/pxmboard.php',
+	options: {
+		port: 8080,
+		maniacUrl: 'https://maniac-forum.de/forum/pxmboard.php',
+		ssl: {
+			key: undefined,
+			certificate: undefined,
+		}
+	},
 	/**
 	 * Start server
 	 */
-	start: function () {
+	start: function (options) {
+		mservice.options = mservice.utils.extend(mservice.options, options);
+
 		var server = restify.createServer({
-			name: 'M!service'
+			name: 'M!service',
+			key: options.ssl.key,
+  			certificate: options.ssl.certificate
 		});
 		server.use(restify.bodyParser());
 		server.use(restify.gzipResponse());
@@ -77,7 +85,7 @@ var mservice = {
 			}
 		}
 
-		server.listen(this.port);
+		server.listen(mservice.options.port);
 	},
 	/**
 	 * Parser methods
@@ -312,7 +320,7 @@ var mservice = {
 
 			var image = $html.find('tr.bg2 td img').first().attr('src');
 			if (image != 'images/empty.gif') {
-				data.push(mservice.maniacUrl.replace(/pxmboard.php/, '') + image);
+				data.push(mservice.options.maniacUrl.replace(/pxmboard.php/, '') + image);
 			} else {
 				data.push(null);
 			}
@@ -353,7 +361,7 @@ var mservice = {
 			 * boards action
 			 */
 			'/boards': function (req, res, next) {
-				var url = mservice.maniacUrl;
+				var url = mservice.options.maniacUrl;
 				mservice.request.get(res, url, function (html) {
 					var boards = mservice.parse.boards(html);
 					mservice.response.json(res, boards);
@@ -364,7 +372,7 @@ var mservice = {
 			 */
 			'/board/:boardId/threads': function (req, res, next) {
 				var boardId  = req.params.boardId;
-				var url = mservice.maniacUrl + '?mode=threadlist&brdid=' + boardId;
+				var url = mservice.options.maniacUrl + '?mode=threadlist&brdid=' + boardId;
 
 				mservice.request.get(res, url, function (html) {
 					var data = null;
@@ -387,7 +395,7 @@ var mservice = {
 			 '/board/:boardId/thread/:threadId': function (req, res, next) {
 			 	var boardId  = req.params.boardId;
 				var threadId = req.params.threadId;
-				var url = mservice.maniacUrl + '?mode=thread&brdid=' + boardId + '&thrdid=' + threadId;
+				var url = mservice.options.maniacUrl + '?mode=thread&brdid=' + boardId + '&thrdid=' + threadId;
 
 				mservice.request.get(res, url, function (html) {
 					var data = null;
@@ -412,7 +420,7 @@ var mservice = {
 			'/board/:boardId/message/:messageId': function (req, res, next) {
 				var boardId   = req.params.boardId;
 				var messageId = req.params.messageId;
-				var url = mservice.maniacUrl + '?mode=message&brdid=' + boardId + '&msgid=' + messageId;
+				var url = mservice.options.maniacUrl + '?mode=message&brdid=' + boardId + '&msgid=' + messageId;
 
 				mservice.request.get(res, url, function (html) {
 					var data = null;
@@ -436,7 +444,7 @@ var mservice = {
 			'/board/:boardId/quote/:messageId': function (req, res, next) {
 				var boardId   = req.params.boardId;
 				var messageId = req.params.messageId;
-				var url = mservice.maniacUrl + '?mode=messageform&brdid=' + boardId + '&msgid=' + messageId;
+				var url = mservice.options.maniacUrl + '?mode=messageform&brdid=' + boardId + '&msgid=' + messageId;
 
 				mservice.request.get(res, url, function (html) {
 					var data = null;
@@ -459,7 +467,7 @@ var mservice = {
 			 */
 			'/user/:userId': function (req, res, next) {
 				var userId = req.params.userId;
-				var url = mservice.maniacUrl + '?mode=userprofile&usrid=' + userId;
+				var url = mservice.options.maniacUrl + '?mode=userprofile&usrid=' + userId;
 
 				mservice.request.get(res, url, function (html) {
 					var data = null;
@@ -598,7 +606,7 @@ var mservice = {
 				mservice.request.authenticate(req, res, function (jar) {
 					var boardId   = req.params.boardId;
 					var messageId = req.params.messageId;
-					var url = mservice.maniacUrl + '?mode=message&brdid=' + boardId + '&msgid=' + messageId;
+					var url = mservice.options.maniacUrl + '?mode=message&brdid=' + boardId + '&msgid=' + messageId;
 
 					var options = {
 						uri: url,
@@ -622,7 +630,7 @@ var mservice = {
 				mservice.request.authenticate(req, res, function (jar) {
 					var boardId   = req.params.boardId;
 					var messageId = req.params.messageId;
-					var url = mservice.maniacUrl + '?mode=messagenotification&brdid=' + boardId + '&msgid=' + messageId;
+					var url = mservice.options.maniacUrl + '?mode=messagenotification&brdid=' + boardId + '&msgid=' + messageId;
 
 					var options = {
 						uri: url,
@@ -653,7 +661,7 @@ var mservice = {
 			 */
 			'/board/:boardId/search-threads': function (req, res, next) {
 				var options = {
-					uri: mservice.utils.domainFromUri(mservice.maniacUrl) + '/forum/include/Ajax/threadfilter.php',
+					uri: mservice.utils.domainFromUri(mservice.options.maniacUrl) + '/forum/include/Ajax/threadfilter.php',
 					form: {
 						boardid: req.params.boardId,
 						phrase: req.params.phrase
@@ -728,6 +736,7 @@ var mservice = {
 
 			options = mservice.utils.extend({
 				method: 'GET',
+				rejectUnauthorized: false,
 				timeout: 10000,
 				gzip: true,
 				headers: {
@@ -747,8 +756,9 @@ var mservice = {
 		},
 		post: function (res, options, fn) {
 			options = mservice.utils.extend({
-				uri: mservice.maniacUrl,
+				uri: mservice.options.maniacUrl,
 				method: 'POST',
+				rejectUnauthorized: false,
 				timeout: 10000,
 				gzip: true,
 				headers: {
@@ -786,7 +796,7 @@ var mservice = {
 					var cookieString = response.headers['set-cookie'][0].split(";")[0];
 					var cookie = request.cookie(cookieString);
 			 		var jar = request.jar();
-					jar.setCookie(cookie, mservice.maniacUrl);
+					jar.setCookie(cookie, mservice.options.maniacUrl);
 
 		  			fnSuccess(jar);
 			  	}
@@ -895,7 +905,7 @@ var mservice = {
 		},
 		extend: function (a, b) {
 		    for (var key in b) {
-		        if (b.hasOwnProperty(key)) {
+		        if (b.hasOwnProperty(key) && b[key] !== undefined) {
 		            a[key] = b[key];
 		        }
 		    }
@@ -969,7 +979,49 @@ var mservice = {
 	}
 };
 
+var checkSSLKeyAndCertificateArg = function (argv, options) {
+	var error = null;
+	var key = argv['key'] ? argv['key'] : '';
+	var certificate = argv['certificate'] ? argv['certificate'] : '';
+
+	if (key.length > 0 || certificate.length > 0) {
+		if (key.length === 0 || certificate.length === 0) {
+			error = 'To start server in SSL mode both key and certificate is required';
+		} else if ( ! fs.existsSync(key)) {
+			// error = 'Could not find ssl key: ' + key;
+		} else if ( ! fs.existsSync(certificate)) {
+			// error = 'Could not find ssl certificate: ' + certificate;
+		}
+	}
+
+	if (error) {
+		throw '\n' + '\033[31mERROR: \033[0m' + error + '\n';
+	}
+};
+
+/**
+ * Setup command line arguments
+ */
+var argv = yargs
+    .usage('M!service server')
+    .example('$0', 'starts server')
+    .example('$0 -k=/etc/ssl/localcerts/apache.key -c=/etc/ssl/localcerts/apache.pem', 'starts server in SSL mode')
+    .alias('p', 'port').describe('p', 'TCP port').default('p', mservice.port)
+    .alias('u', 'maniac-url').describe('u', 'URL to maniac-forum').default('u', mservice.options.maniacUrl)
+    .alias('k', 'key').describe('k', 'path to ssl key').check(checkSSLKeyAndCertificateArg)
+    .alias('c', 'certificate').describe('c', 'path to ssl certificate').check(checkSSLKeyAndCertificateArg)
+    .requiresArg(['p', 'u', 'k', 'c'])
+    .argv
+;
+
 /**
  * Start server
  */
-mservice.start();
+mservice.start({
+	port: argv.port,
+	maniacUrl: argv.maniacUrl,
+	ssl: {
+		key: argv.key,
+		certificate: argv.certificate
+	}
+});
