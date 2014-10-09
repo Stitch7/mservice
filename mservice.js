@@ -59,8 +59,8 @@ var mservice = {
 
 		var server = restify.createServer({
 			name: 'M!service',
-			key: options.ssl.key,
-  			certificate: options.ssl.certificate
+			key: fs.readFileSync(mservice.options.ssl.key),
+  			certificate: fs.readFileSync(mservice.options.ssl.certificate)
 		});
 		server.use(restify.bodyParser());
 		server.use(restify.gzipResponse());
