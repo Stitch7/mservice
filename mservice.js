@@ -30,9 +30,11 @@
  */
 var sys = require('sys');
 var fs = require('fs');
+var path = require('path');
 var http = require('http');
 var yargs = require('yargs');
 var restify = require('restify');
+var bunyan = require('bunyan');
 var request = require('request');
 var $ = require('cheerio');
 
@@ -44,11 +46,17 @@ var mservice = {
 	 * Default options
 	 */
 	options: {
+		name: 'M!service',
 		port: 8080,
 		maniacUrl: 'https://maniac-forum.de/forum/pxmboard.php',
 		ssl: {
 			key: undefined,
 			certificate: undefined,
+		},
+		log: {
+			disabled: false,
+			verbose: false,
+			file: false
 		}
 	},
 	/**
@@ -56,36 +64,64 @@ var mservice = {
 	 */
 	start: function (options) {
 		mservice.options = mservice.utils.extend(mservice.options, options);
+		var key = mservice.options.ssl.key;
+		var certificate = mservice.options.ssl.certificate;
+
+		var log;
+		if ( ! mservice.options.log.disabled) {
+			log = bunyan.createLogger({
+				name: mservice.options.name,
+				streams: [(mservice.options.log.file ? { path: mservice.options.log.file } : { stream: process.stdout })],
+				serializers: bunyan.stdSerializers
+			});
+		}
 
 		var server = restify.createServer({
-			name: 'M!service',
-			key: fs.readFileSync(mservice.options.ssl.key),
-  			certificate: fs.readFileSync(mservice.options.ssl.certificate)
+			name: mservice.options.name,
+			key: key ? fs.readFileSync(key) : key,
+  			certificate: certificate ? fs.readFileSync(certificate) : certificate,
+  			log: log
 		});
+		server.pre(restify.pre.sanitizePath());
 		server.use(restify.bodyParser());
 		server.use(restify.gzipResponse());
 		server.on('uncaughtException', function(req, res, route, err) {
-			console.log('%s - [FATAL ERROR] client: %s - "%s: %s" - %s',
-				mservice.utils.now(),
-				mservice.utils.clientIP(req),
-				route.spec.method,
-				route.spec.path,
-				err.toString()
-			);
-
+			req.log.error({ req: req }, err.toString());
 			res.status(500);
-			mservice.response.json(res, null, 'unknown');
+			mservice.response.json(res, null, 'httpInternalServerError', next);
+		});
+		server.on('NotFound', function(req, res, next) {
+			if (mservice.options.log.verbose) {
+				req.log.warn({ req: req }, 'NotFound');
+			}
+			res.status(404);
+			mservice.response.json(res, null, 'httpNotFound', next);
+		});
+		server.on('MethodNotAllowed', function(req, res, next) {
+			if (mservice.options.log.verbose) {
+				req.log.warn({ req: req }, 'MethodNotAllowed');
+			}
+			res.status(405);
+			mservice.response.json(res, null, 'httpMethodNotAllowed', next);
+		});
+		server.on('after', function(req, res, next) {
+			if (mservice.options.log.verbose) {
+				req.log.info({ req: req }, 'REQUEST');
+			}
 		});
 
 		// Dispatch routes
-		var routes = this.routes;
+		var routes = mservice.routes;
+		var routePrefix = 'mservice';
 		for (var httpMethod in routes) {
 			for (var route in routes[httpMethod]) {
-				server[httpMethod]('mservice' + route, routes[httpMethod][route]);
+				server[httpMethod](routePrefix + route, routes[httpMethod][route]);
 			}
 		}
 
-		server.listen(mservice.options.port);
+		server.listen(mservice.options.port, function () {
+			log.info('Server started listening at ' + server.url);
+		});
 	},
 	/**
 	 * Parser methods
@@ -354,7 +390,7 @@ var mservice = {
 				    	return console.log(error);
 				  	}
 
-				  	mservice.response.html(res, data);
+				  	mservice.response.html(res, data, error, next);
 				});
 			},
 			/**
@@ -362,9 +398,9 @@ var mservice = {
 			 */
 			'/boards': function (req, res, next) {
 				var url = mservice.options.maniacUrl;
-				mservice.request.get(res, url, function (html) {
-					var boards = mservice.parse.boards(html);
-					mservice.response.json(res, boards);
+				mservice.request.get(res, next, url, function (html) {
+					var data = mservice.parse.boards(html);
+					mservice.response.json(res, data, null, next);
 				});
 			},
 			/**
@@ -374,7 +410,7 @@ var mservice = {
 				var boardId  = req.params.boardId;
 				var url = mservice.options.maniacUrl + '?mode=threadlist&brdid=' + boardId;
 
-				mservice.request.get(res, url, function (html) {
+				mservice.request.get(res, next, url, function (html) {
 					var data = null;
 					var error = null;
 
@@ -386,7 +422,7 @@ var mservice = {
 						data = mservice.parse.threads($html.find('body p').html());
 					}
 
-					mservice.response.json(res, data, error);
+					mservice.response.json(res, data, error, next);
 				});
 			},
 			/**
@@ -397,7 +433,7 @@ var mservice = {
 				var threadId = req.params.threadId;
 				var url = mservice.options.maniacUrl + '?mode=thread&brdid=' + boardId + '&thrdid=' + threadId;
 
-				mservice.request.get(res, url, function (html) {
+				mservice.request.get(res, next, url, function (html) {
 					var data = null;
 					var error = null;
 
@@ -411,7 +447,7 @@ var mservice = {
 						data = mservice.parse.thread(html);
 					}
 
-					mservice.response.json(res, data, error);
+					mservice.response.json(res, data, error, next);
 				});
 			},
 			/**
@@ -422,7 +458,7 @@ var mservice = {
 				var messageId = req.params.messageId;
 				var url = mservice.options.maniacUrl + '?mode=message&brdid=' + boardId + '&msgid=' + messageId;
 
-				mservice.request.get(res, url, function (html) {
+				mservice.request.get(res, next, url, function (html) {
 					var data = null;
 					var error = null;
 
@@ -435,7 +471,7 @@ var mservice = {
 						data = mservice.parse.message(mservice.utils.toInt(messageId), html);
 					}
 
-					mservice.response.json(res, data, error);
+					mservice.response.json(res, data, error, next);
 				});
 			},
 			/**
@@ -446,7 +482,7 @@ var mservice = {
 				var messageId = req.params.messageId;
 				var url = mservice.options.maniacUrl + '?mode=messageform&brdid=' + boardId + '&msgid=' + messageId;
 
-				mservice.request.get(res, url, function (html) {
+				mservice.request.get(res, next, url, function (html) {
 					var data = null;
 					var error = null;
 
@@ -459,7 +495,7 @@ var mservice = {
 						data = mservice.parse.quote(html);
 					}
 
-					mservice.response.json(res, data, error);
+					mservice.response.json(res, data, error, next);
 				});
 			},
 			/**
@@ -469,7 +505,7 @@ var mservice = {
 				var userId = req.params.userId;
 				var url = mservice.options.maniacUrl + '?mode=userprofile&usrid=' + userId;
 
-				mservice.request.get(res, url, function (html) {
+				mservice.request.get(res, next, url, function (html) {
 					var data = null;
 					var error = null;
 
@@ -480,7 +516,7 @@ var mservice = {
 						data = mservice.parse.user(html);
 					}
 
-					mservice.response.json(res, data, error);
+					mservice.response.json(res, data, error, next);
 				});
 			}
 		},
@@ -496,15 +532,15 @@ var mservice = {
 					var data = {
 						success: true
 					};
-					mservice.response.json(res, data);
+					mservice.response.json(res, data, null, next);
 				};
 				var onError = function () {
 					var data = {
 						success: false
 					};
-					mservice.response.json(res, data);
+					mservice.response.json(res, data, null, next);
 				};
-				mservice.request.authenticate(req, res, onSuccess, onError);
+				mservice.request.authenticate(req, res, next, onSuccess, onError);
 			},
 			/**
 			 * Preview action
@@ -519,7 +555,7 @@ var mservice = {
 					}
 				};
 
-				mservice.request.post(res, options, function (html) {
+				mservice.request.post(res, next, options, function (html) {
 					var data = null;
 					var error = null;
 
@@ -531,7 +567,7 @@ var mservice = {
 						data = mservice.parse.preview(html);
 					}
 
-					mservice.response.json(res, data, error);
+					mservice.response.json(res, data, error, next);
 				});
 			},
 			/**
@@ -550,7 +586,7 @@ var mservice = {
 					}
 				};
 
-				mservice.request.post(res, options, function (html) {
+				mservice.request.post(res, next, options, function (html) {
 					var data = {
 						success: true
 					}
@@ -563,7 +599,7 @@ var mservice = {
 						error = mservice.errors.maniacMessages(maniacErrorMessage);
 					}
 
-					mservice.response.json(res, data, error);
+					mservice.response.json(res, data, error, next);
 				});
 			},
 			/**
@@ -583,7 +619,7 @@ var mservice = {
 					}
 				};
 
-				mservice.request.post(res, options, function (html) {
+				mservice.request.post(res, next, options, function (html) {
 					var data = {
 						success: true
 					}
@@ -596,14 +632,14 @@ var mservice = {
 						error = mservice.errors.maniacMessages(maniacErrorMessage);
 					}
 
-					mservice.response.json(res, data, error);
+					mservice.response.json(res, data, error, next);
 				});
 			},
 			/**
 			 * Checks if notification is activated for given messageId
 			 */
 			'/board/:boardId/notification-status/:messageId': function (req, res, next) {
-				mservice.request.authenticate(req, res, function (jar) {
+				mservice.request.authenticate(req, res, next, function (jar) {
 					var boardId   = req.params.boardId;
 					var messageId = req.params.messageId;
 					var url = mservice.options.maniacUrl + '?mode=message&brdid=' + boardId + '&msgid=' + messageId;
@@ -613,13 +649,13 @@ var mservice = {
 						jar: jar
 					};
 
-					mservice.request.get(res, options, function (html) {
+					mservice.request.get(res, next, options, function (html) {
 						var notificationLinkText = $(html).find('a[href^="pxmboard.php?mode=messagenotification"]').text().trim().split(' ')[1];
 						var data = {
 							notificationEnabled: notificationLinkText === 'deaktivieren'
 						}
 
-						mservice.response.json(res, data);
+						mservice.response.json(res, data, null, next);
 					});
 				});
 			},
@@ -627,7 +663,7 @@ var mservice = {
 			 * Toggles notication for given messageId
 			 */
 			'/board/:boardId/notification/:messageId': function (req, res, next) {
-				mservice.request.authenticate(req, res, function (jar) {
+				mservice.request.authenticate(req, res, next, function (jar) {
 					var boardId   = req.params.boardId;
 					var messageId = req.params.messageId;
 					var url = mservice.options.maniacUrl + '?mode=messagenotification&brdid=' + boardId + '&msgid=' + messageId;
@@ -637,7 +673,7 @@ var mservice = {
 						jar: jar
 					};
 
-					mservice.request.get(res, options, function (html) {
+					mservice.request.get(res, next, options, function (html) {
 						var data = {
 							success: true
 						}
@@ -652,7 +688,7 @@ var mservice = {
 							error = mservice.errors.maniacMessages[maniacErrorMessage];
 						}
 
-						mservice.response.json(res, data, error);
+						mservice.response.json(res, data, error, next);
 					});
 				});
 			},
@@ -672,9 +708,9 @@ var mservice = {
 			    	}
 				};
 
-				mservice.request.post(res, options, function (html) {
+				mservice.request.post(res, next, options, function (html) {
 					var data = mservice.parse.threads(html);
-					mservice.response.json(res, data);
+					mservice.response.json(res, data, null, next);
 				});
 			}
 		},
@@ -686,7 +722,7 @@ var mservice = {
 			 * Updates (edits) a message
 			 */
 			'/board/:boardId/message/:messageId': function (req, res, next) {
-				mservice.request.authenticate(req, res, function (jar) {
+				mservice.request.authenticate(req, res, next, function (jar) {
 					var options = {
 						jar: jar,
 						form: {
@@ -698,7 +734,7 @@ var mservice = {
 						}
 					};
 
-					mservice.request.post(res, options, function (html) {
+					mservice.request.post(res, next, options, function (html) {
 						var data = {
 							success: true
 						}
@@ -717,7 +753,7 @@ var mservice = {
 							error = maniacErrorMessage ? mservice.errors.maniacMessages[maniacErrorMessage] : 'unknown';
 						}
 
-						mservice.response.json(res, data, error);
+						mservice.response.json(res, data, error, next);
 					});
 				});
 			}
@@ -727,7 +763,7 @@ var mservice = {
 	 * Request wrapper
 	 */
 	request: {
-		get: function (res, options, fn) {
+		get: function (res, next, options, fn) {
 			if ((typeof options === 'string')) {
 				options = {
 					uri: options
@@ -754,7 +790,7 @@ var mservice = {
 			  	}
 			})
 		},
-		post: function (res, options, fn) {
+		post: function (res, next, options, fn) {
 			options = mservice.utils.extend({
 				uri: mservice.options.maniacUrl,
 				method: 'POST',
@@ -776,7 +812,7 @@ var mservice = {
 			  	}
 			})
 		},
-		authenticate: function (req, res, fnSuccess, fnError) {
+		authenticate: function (req, res, next, fnSuccess, fnError) {
 			var options = {
 				form: {
 					mode: 'login',
@@ -785,12 +821,12 @@ var mservice = {
 				}
 			};
 
-			mservice.request.post(res, options, function (html, response) {
+			mservice.request.post(res, next, options, function (html, response) {
 				if ($(html).find('form').length > 0) {
 					if (typeof fnError === 'function') {
 						fnError();
 					} else {
-						mservice.response.json(res, null, 'login');
+						mservice.response.json(res, null, 'login', next);
 					}
 				} else if (typeof fnSuccess === 'function') {
 					var cookieString = response.headers['set-cookie'][0].split(";")[0];
@@ -807,10 +843,10 @@ var mservice = {
 	 * Client responses
 	 */
 	response: {
-		connectionError: function (res) {
-			mservice.response.json(res, null, 'connection');
+		connectionError: function (res, next) {
+			mservice.response.json(res, null, 'connection', next);
 		},
-		json: function (res, data, error) {
+		json: function (res, data, error, next) {
 			var clientResponseMessage = {
 				'data': data,
 				'error': null
@@ -823,18 +859,15 @@ var mservice = {
 					'code': errorCode,
 					'message': errorMessage
 				};
-				// console.log(clientResponseMessage);
 			}
 
 			res.contentType = 'application/json';
 			res.send(clientResponseMessage);
+			// setTimeout(function () {	res.send(clientResponseMessage); }, 5000);
 
-			// setTimeout(function () {
-			// 	res.send(clientResponseMessage);
-			// }, 5000);
-
+			next();
 		},
-		html: function (res, html) {
+		html: function (res, html, error, next) {
 			res.writeHead(200, {
 				'Content-Length': Buffer.byteLength(html),
 				'Content-Type': 'text/html'
@@ -848,6 +881,9 @@ var mservice = {
 	 */
 	errors: {
 		codes: {
+			httpNotFound: 404,
+			httpMethodNotAllowed: 405,
+			httpInternalServerError: 500,
 			unknown: 0,
 			connection: 1,
 			permission: 2,
@@ -860,6 +896,9 @@ var mservice = {
 			userId: 9
 		},
 		messages: {
+			httpNotFound: 'Not Found',
+			httpMethodNotAllowed: 'Method Not Allowed',
+			httpInternalServerError: 'Internal Server Error',
 			unknown: 'An unknown error is occured',
 			connection: 'Could not connect to maniac server',
 			permission: 'Permission denied',
@@ -892,13 +931,6 @@ var mservice = {
 	 * Helper functions
 	 */
 	utils: {
-		clientIP: function (req) {
-			return req.headers['x-forwarded-for'] ||
-			     req.connection.remoteAddress ||
-			     req.socket.remoteAddress ||
-			     req.connection.socket.remoteAddress
-			;
-		},
 		domainFromUri: function (uri) {
 			var parts = uri.split('/');
 			return parts[0] + '//' + parts[2];
@@ -976,52 +1008,106 @@ var mservice = {
 		toInt: function (string) {
 			return parseInt(string, 10);
 		}
-	}
-};
+	},
 
-var checkSSLKeyAndCertificateArg = function (argv, options) {
-	var error = null;
-	var key = argv['key'] ? argv['key'] : '';
-	var certificate = argv['certificate'] ? argv['certificate'] : '';
-
-	if (key.length > 0 || certificate.length > 0) {
-		if (key.length === 0 || certificate.length === 0) {
-			error = 'To start server in SSL mode both key and certificate is required';
-		} else if ( ! fs.existsSync(key)) {
-			// error = 'Could not find ssl key: ' + key;
-		} else if ( ! fs.existsSync(certificate)) {
-			// error = 'Could not find ssl certificate: ' + certificate;
+	argv: function () {
+		var argError = function (msg) {
+			throw '\033[31mERROR: \033[0m' + msg;
 		}
-	}
 
-	if (error) {
-		throw '\n' + '\033[31mERROR: \033[0m' + error + '\n';
+		var checkSSLKeyAndCertificateArg = function (argv) {
+			var error = null;
+			var key = argv['key'] ? argv['key'] : '';
+			var certificate = argv['certificate'] ? argv['certificate'] : '';
+
+			if (key.length > 0 || certificate.length > 0) {
+				if (key.length === 0 || certificate.length === 0) {
+					argError('To start server in SSL mode both key and certificate are required');
+				} else if ( ! fs.existsSync(key)) {
+					argError('Could not read ssl key: ' + key);
+				} else if ( ! fs.existsSync(certificate)) {
+					argError('Could not read ssl certificate: ' + certificate);
+				}
+			}
+		};
+
+		var checkLogFileArg = function (argv) {
+			var error = null;
+			var logFile = argv['logFile'] ? argv['logFile'] : false;
+			var disableLogging = argv['disableLogging'];
+
+			var fileIsWriteable = function (file) {
+				var isWriteable = true;
+				var fd;
+
+				try {
+				    fd = fs.openSync(file, 'a+', 0660);
+				} catch(err) {
+				    isWriteable = false;
+				}
+
+				if (fd) {
+			    	fs.closeSync(fd);
+			    }
+
+				return isWriteable;
+			};
+
+			if ( ! disableLogging && logFile && ! fileIsWriteable(logFile)) {
+				argError('Could not write to log file: ' + logFile + '. Make sure directory exists and verify permissions.');
+			}
+		};
+
+		return yargs
+			.strict()
+		    .usage('M!service Server')
+		    .example('$0', 'Starts server')
+		    .example('$0 -k=/etc/ssl/localcerts/my.key -c=/etc/ssl/localcerts/my.crt', 'Starts server in SSL mode')
+		    .example('$0 -l=/var/log/mservice/mservice.log', 'Starts server with log file')
+		    .example('$0 --verbose-logging | mservice/node_modules/bunyan/bin/bunyan', 'Starts server for development')
+		    .help('h', 'Displays this help message')
+		    	.alias('h', 'help')
+		    .alias('p', 'port')
+		    	.describe('p', 'TCP port')
+		    	.default('p', mservice.options.port)
+		    .alias('u', 'maniac-url')
+		    	.describe('u', 'URL to maniac-forum')
+		    	.default('u', mservice.options.maniacUrl)
+		    .alias('k', 'key')
+		    	.describe('k', 'Path to ssl key')
+		    	.check(checkSSLKeyAndCertificateArg)
+		    .alias('c', 'certificate')
+		    	.describe('c', 'Path to ssl certificate')
+		    	.check(checkSSLKeyAndCertificateArg)
+		    .describe('log-file', 'Output file for log (If false, output goes to stdout)')
+		    	.default('log-file', mservice.options.log.file)
+		    	.check(checkLogFileArg)
+		    .boolean('disable-logging')
+		    	.describe('disable-logging', 'Disables logging')
+		    	.default('disable-logging', mservice.options.log.disabled)
+		    .boolean('verbose-logging')
+		    	.describe('verbose-logging', 'If enabled all requests are logged (useful for development)')
+		    	.default('verbose-logging', mservice.options.log.verbose)
+		    .requiresArg(['p', 'u', 'k', 'c'])
+		    .argv
 	}
 };
 
 /**
- * Setup command line arguments
+ * Start server with options from command line
  */
-var argv = yargs
-    .usage('M!service server')
-    .example('$0', 'starts server')
-    .example('$0 -k=/etc/ssl/localcerts/apache.key -c=/etc/ssl/localcerts/apache.pem', 'starts server in SSL mode')
-    .alias('p', 'port').describe('p', 'TCP port').default('p', mservice.port)
-    .alias('u', 'maniac-url').describe('u', 'URL to maniac-forum').default('u', mservice.options.maniacUrl)
-    .alias('k', 'key').describe('k', 'path to ssl key').check(checkSSLKeyAndCertificateArg)
-    .alias('c', 'certificate').describe('c', 'path to ssl certificate').check(checkSSLKeyAndCertificateArg)
-    .requiresArg(['p', 'u', 'k', 'c'])
-    .argv
-;
+var argv = mservice.argv();
 
-/**
- * Start server
- */
 mservice.start({
 	port: argv.port,
 	maniacUrl: argv.maniacUrl,
 	ssl: {
 		key: argv.key,
 		certificate: argv.certificate
+	},
+	log: {
+		disabled: argv.disableLogging,
+		verbose: argv.verboseLogging,
+		file: argv.logFile
 	}
 });
