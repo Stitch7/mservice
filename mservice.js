@@ -28,10 +28,8 @@
 /**
  * Includes
  */
-var sys = require('sys');
 var fs = require('fs');
 var path = require('path');
-var http = require('http');
 var yargs = require('yargs');
 var restify = require('restify');
 var bunyan = require('bunyan');
