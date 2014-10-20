@@ -55,7 +55,8 @@ var mservice = {
 			disabled: false,
 			verbose: false,
 			file: false
-		}
+		},
+		requestTimeout: 5000
 	},
 	/**
 	 * Start server
@@ -173,7 +174,7 @@ var mservice = {
 
 				if (regExpResult !== null) {
 					subject 	= regExpResult[1];
-					author  	= regExpResult[2];
+					username  	= regExpResult[2];
 					date 	    = mservice.utils.datetimeStringToISO8601(regExpResult[3]);
 					answerCount = mservice.utils.toInt(regExpResult[4]);
 					answerDate  = mservice.utils.datetimeStringToISO8601(regExpResult[5]);
@@ -185,7 +186,7 @@ var mservice = {
 					messageId: messageId,
 					sticky: sticky,
 					closed: closed,
-					author: author,
+					username: username,
 					mod: mod,
 					subject: subject,
 					date: date,
@@ -257,21 +258,7 @@ var mservice = {
 			var text = $text.text().trim();
 			var textHtml = $text.html().replace(removeLinkBracesRegExp, '$1').trim();
 
-			// TODO maybe try with regexp...
-			// (?<!&gt;)\[<a.+>(.+\.(jpg|jpeg|gif|png).*)<\/a>\]
-			$text.find('font[face="Courier New"] > a').replaceWith(function () {
-				var replacement;
-				var $a = $(this);
-				var href = $a.attr('href');
-
-				if (href.match(/.+\.(jpg|jpeg|gif|png)$/) !== null) {
-					replacement = '<a href="' + href + '"><img src="' + href + '"/></a>';
-				} else {
-					replacement = '<a href="' + href + '">' + href + '</a>';
-				}
-
-				return replacement;
-			});
+			$text.find('font[face="Courier New"] > a').replaceWith(mservice.utils.embedImages);
 			var textHtmlWithEmbeddedImages = $text.html().replace(removeLinkBracesRegExp, '$1').trim();
 
 			return {
@@ -295,21 +282,7 @@ var mservice = {
 			var text = $text.text().trim();
 			var textHtml = $text.html().replace(removeLinkBracesRegExp, '$1').trim();
 
-			// TODO maybe try with regexp...
-			// (?<!&gt;)\[<a.+>(.+\.(jpg|jpeg|gif|png).*)<\/a>\]
-			$text.find('font[face="Courier New"] > a').replaceWith(function () {
-				var replacement;
-				var $a = $(this);
-				var href = $a.attr('href');
-
-				if (href.match(/.+\.(jpg|jpeg|gif|png)$/) !== null) {
-					replacement = '<a href="' + href + '"><img src="' + href + '"/></a>';
-				} else {
-					replacement = '<a href="' + href + '">' + href + '</a>';
-				}
-
-				return replacement;
-			});
+			$text.find('font[face="Courier New"] > a').replaceWith(mservice.utils.embedImages);
 			var textHtmlWithEmbeddedImages = $text.html().replace(removeLinkBracesRegExp, '$1').trim();
 
 			return {
@@ -779,7 +752,7 @@ var mservice = {
 			options = mservice.utils.extend({
 				method: 'GET',
 				rejectUnauthorized: false,
-				timeout: 10000,
+				timeout: mservice.options.requestTimeout,
 				gzip: true,
 				headers: {
 					'User-Agent': 'M!service',
@@ -801,7 +774,7 @@ var mservice = {
 				uri: mservice.options.maniacUrl,
 				method: 'POST',
 				rejectUnauthorized: false,
-				timeout: 10000,
+				timeout: mservice.options.requestTimeout,
 				gzip: true,
 				headers: {
 					'User-Agent': 'M!service',
@@ -863,6 +836,7 @@ var mservice = {
 
 			res.status(status);
 			res.contentType = 'application/json';
+			res.charSet('utf-8');
 			res.send(reply);
 			// setTimeout(function () {	res.send(clientResponseMessage); }, 5000);
 
@@ -973,6 +947,18 @@ var mservice = {
 		        + dif + pad(tzo / 60)
 		        + ':' + pad(tzo % 60)
 		    ;
+		},
+		embedImages: function () {
+			var replacement;
+			var href = $(this).attr('href');
+
+			if (href.match(/.+\.(jpg|jpeg|gif|png)$/) !== null) {
+				replacement = '<a href="' + href + '"><img src="' + href + '"/></a>';
+			} else {
+				replacement = '<a href="' + href + '">' + href + '</a>';
+			}
+
+			return replacement;
 		},
 		now: function () {
 			var now = new Date();
