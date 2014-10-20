@@ -135,7 +135,7 @@ var mservice = {
 				if (href.indexOf(hrefSearch) != -1) {
 					var board = {};
 					board.id = mservice.utils.toInt(href.substring(href.indexOf(hrefSearch) + hrefSearch.length));
-					board.text = $a.text();
+					board.name = $a.text();
 
 					boards.push(board);
 				}
@@ -275,7 +275,7 @@ var mservice = {
 			var textHtmlWithEmbeddedImages = $text.html().replace(removeLinkBracesRegExp, '$1').trim();
 
 			return {
-				messageId: messageId,
+				messageId: mservice.utils.toInt(messageId),
 				userId: userId,
 				username: username,
 				subject: subject,
@@ -327,9 +327,11 @@ var mservice = {
 			}
 		},
 
-		user: function (html) {
+		user: function (userId, html) {
 			var profile = {
-				image: undefined,
+				userId: undefined,
+				username: undefined,
+				picture: undefined,
 				firstname: undefined,
 				lastname: undefined,
 				domicile: undefined,
@@ -350,7 +352,10 @@ var mservice = {
 			};
 
 			var $html = $(html);
-			var data = [];
+			var data = [mservice.utils.toInt(userId)];
+
+			var username = $html.find('#header').text().replace(/Userprofil für: /, '');
+			data.push(username);
 
 			var image = $html.find('tr.bg2 td img').first().attr('src');
 			if (image != 'images/empty.gif') {
@@ -367,6 +372,9 @@ var mservice = {
 			for (var key in profile) {
 				profile[key] = data[i++];
 			}
+
+			profile['registrationDate'] = mservice.utils.datetimeStringToISO8601(profile['registrationDate']);
+			profile['lastUpdate'] = mservice.utils.datetimeStringToISO8601(profile['lastUpdate']);
 
 			return profile;
 		}
@@ -439,7 +447,7 @@ var mservice = {
 					var title = $html.find('title').text();
 					if (title === mservice.errors.maniacBoardTitles.error) {
 						error = 'boardId';
-					} else if ($html.find('body > ul').length === 0) { // unknown threadId return empty page
+					} else if ($html.find('body > ul').length === 0) { // unknown threadId returns empty page
 						error = 'threadId';
 					} else {
 						data = mservice.parse.thread(html);
@@ -466,7 +474,7 @@ var mservice = {
 						var maniacErrorMessage = $html.find('tr.bg2 td').first().text();
 						error = mservice.errors.maniacMessages[maniacErrorMessage];
 					} else {
-						data = mservice.parse.message(mservice.utils.toInt(messageId), html);
+						data = mservice.parse.message(messageId, html);
 					}
 
 					mservice.response.json(res, data, error, next);
@@ -511,7 +519,7 @@ var mservice = {
 					if (title === mservice.errors.maniacBoardTitles.error) {
 						error = 'userId';
 					} else {
-						data = mservice.parse.user(html);
+						data = mservice.parse.user(userId, html);
 					}
 
 					mservice.response.json(res, data, error, next);
@@ -571,7 +579,7 @@ var mservice = {
 			/**
 			 * Creates a thread to given boardId
 			 */
-			'/board/:boardId/message/': function (req, res, next) {
+			'/board/:boardId/message': function (req, res, next) {
 				var options = {
 					form: {
 						mode: 'messagesave',
@@ -746,7 +754,7 @@ var mservice = {
 							if (title === mservice.errors.maniacBoardTitles.error) {
 								maniacErrorMessage = $html.find('tr.bg2 td').first().text();
 							} else if (title === mservice.errors.maniacBoardTitles.edit) {
-								maniacErrorMessage = $($html.find('tr.bg1 td').get(1)).text(); //TODO first() ?
+								maniacErrorMessage = $($html.find('tr.bg1 td').get(1)).text();
 							}
 							error = maniacErrorMessage ? mservice.errors.maniacMessages[maniacErrorMessage] : 'unknown';
 						}
@@ -782,7 +790,7 @@ var mservice = {
 			request(options, function (requestError, requestResponse, requestBody) {
 				if (requestError || requestResponse.statusCode !== 200) {
 					res.status(504);
-					mservice.response.connectionError(res);
+					mservice.response.connectionError(res, next);
 			  	} else if (typeof fn === 'function') {
 		  			fn(requestBody);
 			  	}
@@ -804,7 +812,7 @@ var mservice = {
 			request(options, function (requestError, requestResponse, requestBody) {
 				if (requestError || requestResponse.statusCode !== 200) {
 					res.status(504);
-					mservice.response.connectionError(res);
+					mservice.response.connectionError(res, next);
 			  	} else if (typeof fn === 'function') {
 		  			fn(requestBody, requestResponse);
 			  	}
@@ -827,7 +835,7 @@ var mservice = {
 						mservice.response.json(res, null, 'login', next);
 					}
 				} else if (typeof fnSuccess === 'function') {
-					var cookieString = response.headers['set-cookie'][0].split(";")[0];
+					var cookieString = response.headers['set-cookie'][0].split(';')[0];
 					var cookie = request.cookie(cookieString);
 			 		var jar = request.jar();
 					jar.setCookie(cookie, mservice.options.maniacUrl);
@@ -845,22 +853,17 @@ var mservice = {
 			mservice.response.json(res, null, 'connection', next);
 		},
 		json: function (res, data, error, next) {
-			var clientResponseMessage = {
-				'data': data,
-				'error': null
-			};
+			var status = 200;
+			var reply  = data;
 
 			if (error) {
-				var errorCode = mservice.errors.codes[error];
-				var errorMessage = mservice.errors.messages[error];
-				clientResponseMessage.error = {
-					'code': errorCode,
-					'message': errorMessage
-				};
+				status = mservice.errors.codes[error];
+				reply  = { error: mservice.errors.messages[error] };
 			}
 
+			res.status(status);
 			res.contentType = 'application/json';
-			res.send(clientResponseMessage);
+			res.send(reply);
 			// setTimeout(function () {	res.send(clientResponseMessage); }, 5000);
 
 			next();
@@ -882,16 +885,16 @@ var mservice = {
 			httpNotFound: 404,
 			httpMethodNotAllowed: 405,
 			httpInternalServerError: 500,
-			unknown: 0,
-			connection: 1,
-			permission: 2,
-			login: 3,
-			boardId: 4,
-			messageId: 5,
-			subject: 6,
-			answerExists: 7,
-			threadId: 8,
-			userId: 9
+			unknown: 500,
+			connection: 504,
+			permission: 401,
+			login: 401,
+			boardId: 404,
+			messageId: 404,
+			subject: 400,
+			answerExists: 403,
+			threadId: 404,
+			userId: 404
 		},
 		messages: {
 			httpNotFound: 'Not Found',
@@ -901,12 +904,12 @@ var mservice = {
 			connection: 'Could not connect to maniac server',
 			permission: 'Permission denied',
 			login: 'Authentication failed',
-			boardId: 'boardId is invalid',
-			messageId: 'messageId is invalid',
+			boardId: 'boardId not found',
+			messageId: 'messageId not found',
 			subject: 'Subject not filled',
 			answerExists: 'This message was already answered',
-			threadId: 'threadId is invalid',
-			userId: 'userId is invalid'
+			threadId: 'threadId not found',
+			userId: 'userId not found'
 		},
 		maniacMessages: {
 			'Bitte geben sie ihren Nickname ein': 'login',
