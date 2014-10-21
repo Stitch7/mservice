@@ -86,21 +86,18 @@ var mservice = {
 		server.use(restify.gzipResponse());
 		server.on('uncaughtException', function(req, res, route, err) {
 			req.log.error({ req: req }, err.toString());
-			res.status(500);
-			mservice.response.json(res, null, 'httpInternalServerError', next);
+			mservice.response.json(res, null, 'httpInternalServerError');
 		});
 		server.on('NotFound', function(req, res, next) {
 			if (mservice.options.log.verbose) {
 				req.log.warn({ req: req }, 'NotFound');
 			}
-			res.status(404);
 			mservice.response.json(res, null, 'httpNotFound', next);
 		});
 		server.on('MethodNotAllowed', function(req, res, next) {
 			if (mservice.options.log.verbose) {
 				req.log.warn({ req: req }, 'MethodNotAllowed');
 			}
-			res.status(405);
 			mservice.response.json(res, null, 'httpMethodNotAllowed', next);
 		});
 		server.on('after', function(req, res, next) {
@@ -338,7 +335,7 @@ var mservice = {
 			}
 
 			$html.find('tr.bg2').each(function (key, value) {
-				data.push($($(this).find('td').get(1)).text().trim());
+				data.push($($(this).find('td').get(1)).text().replace(/\n/g, '').trim());
 			});
 
 			var i = 0;
@@ -840,7 +837,9 @@ var mservice = {
 			res.send(reply);
 			// setTimeout(function () {	res.send(clientResponseMessage); }, 5000);
 
-			next();
+			if (typeof next === 'function') {
+				next();
+			}
 		},
 		html: function (res, html, error, next) {
 			res.writeHead(200, {
