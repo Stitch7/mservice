@@ -85,23 +85,25 @@ var mservice = {
 		server.use(restify.bodyParser());
 		server.use(restify.gzipResponse());
 		server.on('uncaughtException', function(req, res, route, err) {
-			req.log.error({ req: req }, err.toString());
+			if (log) {
+				req.log.error({ req: req }, err.toString());
+			}
 			mservice.response.json(res, null, 'httpInternalServerError');
 		});
 		server.on('NotFound', function(req, res, next) {
-			if (mservice.options.log.verbose) {
+			if (log && mservice.options.log.verbose) {
 				req.log.warn({ req: req }, 'NotFound');
 			}
 			mservice.response.json(res, null, 'httpNotFound', next);
 		});
 		server.on('MethodNotAllowed', function(req, res, next) {
-			if (mservice.options.log.verbose) {
+			if (log && mservice.options.log.verbose) {
 				req.log.warn({ req: req }, 'MethodNotAllowed');
 			}
 			mservice.response.json(res, null, 'httpMethodNotAllowed', next);
 		});
 		server.on('after', function(req, res, next) {
-			if (mservice.options.log.verbose) {
+			if (log && mservice.options.log.verbose) {
 				req.log.info({ req: req }, 'REQUEST');
 			}
 		});
@@ -116,7 +118,9 @@ var mservice = {
 		}
 
 		server.listen(mservice.options.port, function () {
-			log.info('Server started listening at ' + server.url);
+			if (log) {
+				log.info('Server started listening at ' + server.url);
+			}
 		});
 	},
 	/**
@@ -464,6 +468,7 @@ var mservice = {
 
 					var $html = $(html);
 					var title = $html.find('title').text();
+
 					if (title === mservice.errors.maniacBoardTitles.error) {
 						var maniacErrorMessage = $html.find('tr.bg2 td').first().text();
 						error = mservice.errors.maniacMessages[maniacErrorMessage];
@@ -572,7 +577,7 @@ var mservice = {
 					if ($html.find('title').text() !== mservice.errors.maniacBoardTitles.confirm) {
 						data.success = false;
 						var maniacErrorMessage = $($html.find('tr.bg1 td').get(2)).text();
-						error = mservice.errors.maniacMessages(maniacErrorMessage);
+						error = mservice.errors.maniacMessages[maniacErrorMessage];
 					}
 
 					mservice.response.json(res, data, error, next);
@@ -605,7 +610,7 @@ var mservice = {
 					if ($html.find('title').text() !== mservice.errors.maniacBoardTitles.confirm) {
 						data.success = false;
 						var maniacErrorMessage = $($html.find('tr.bg1 td').get(2)).text();
-						error = mservice.errors.maniacMessages(maniacErrorMessage);
+						error = mservice.errors.maniacMessages[maniacErrorMessage];
 					}
 
 					mservice.response.json(res, data, error, next);
@@ -835,7 +840,7 @@ var mservice = {
 			res.contentType = 'application/json';
 			res.charSet('utf-8');
 			res.send(reply);
-			// setTimeout(function () {	res.send(clientResponseMessage); }, 5000);
+			// setTimeout(function () {	res.send(reply); }, 5000);
 
 			if (typeof next === 'function') {
 				next();
@@ -865,7 +870,8 @@ var mservice = {
 			boardId: 404,
 			messageId: 404,
 			subject: 400,
-			answerExists: 403,
+			answerExists: 409,
+			threadClosed: 403,
 			threadId: 404,
 			userId: 404
 		},
@@ -881,6 +887,7 @@ var mservice = {
 			messageId: 'messageId not found',
 			subject: 'Subject not filled',
 			answerExists: 'This message was already answered',
+			threadClosed: 'Thread is closed',
 			threadId: 'threadId not found',
 			userId: 'userId not found'
 		},
@@ -892,7 +899,8 @@ var mservice = {
 			'Board id fehlt': 'boardId',
 			'message id ungültig': 'messageId',
 			'Thema fehlt': 'subject',
-			'Auf diese Nachricht wurde bereits geantwortet': 'answerExists'
+			'Auf diese Nachricht wurde bereits geantwortet': 'answerExists',
+			'dieser Thread ist geschlossen': 'threadClosed'
 		},
 		maniacBoardTitles: {
 			confirm: '-= board: confirm =-',
