@@ -333,9 +333,11 @@ var mservice = {
 
 			var image = $html.find('tr.bg2 td img').first().attr('src');
 			if (image != 'images/empty.gif') {
-				data.push(mservice.options.maniacUrl.replace(/pxmboard.php/, '') + image);
+				// Use http instead of https for the image URI, because iOS7.1 on iPhone doesn't accept the maniac servers SSL certificate
+				// Fun fact: iOS7.1 on iPad does accept it, no problems on iOS8, too.
+				data.push(mservice.utils.domainFromUri(mservice.options.maniacUrl, 'http') + '/forum/' +image);
 			} else {
-				data.push(null);
+				data.push('');
 			}
 
 			$html.find('tr.bg2').each(function (key, value) {
@@ -913,9 +915,10 @@ var mservice = {
 	 * Helper functions
 	 */
 	utils: {
-		domainFromUri: function (uri) {
+		domainFromUri: function (uri, replaceProtocol) {
 			var parts = uri.split('/');
-			return parts[0] + '//' + parts[2];
+			var protocol = typeof replaceProtocol !== 'undefined' ? replaceProtocol + ':' : parts[0];
+			return protocol + '//' + parts[2];
 		},
 		extend: function (a, b) {
 		    for (var key in b) {
