@@ -104,7 +104,7 @@ var mservice = {
 		});
 		server.on('after', function(req, res, next) {
 			if (log && mservice.options.log.verbose) {
-				req.log.info({ req: req }, 'REQUEST');
+				req.log.info({ req: req, res: res }, 'REQUEST');
 			}
 		});
 
@@ -570,14 +570,11 @@ var mservice = {
 				};
 
 				mservice.request.post(res, next, options, function (html) {
-					var data = {
-						success: true
-					}
+					var data = null;
 					var error = null;
 
 					var $html = $(html);
 					if ($html.find('title').text() !== mservice.errors.maniacBoardTitles.confirm) {
-						data.success = false;
 						var maniacErrorMessage = $($html.find('tr.bg1 td').get(2)).text();
 						error = mservice.errors.maniacMessages[maniacErrorMessage];
 					}
@@ -603,14 +600,11 @@ var mservice = {
 				};
 
 				mservice.request.post(res, next, options, function (html) {
-					var data = {
-						success: true
-					}
+					var data = null;
 					var error = null;
 
 					var $html = $(html);
 					if ($html.find('title').text() !== mservice.errors.maniacBoardTitles.confirm) {
-						data.success = false;
 						var maniacErrorMessage = $($html.find('tr.bg1 td').get(2)).text();
 						error = mservice.errors.maniacMessages[maniacErrorMessage];
 					}
@@ -657,16 +651,13 @@ var mservice = {
 					};
 
 					mservice.request.get(res, next, options, function (html) {
-						var data = {
-							success: true
-						}
+						var data = null;
 						var error = null;
 
 						var $html = $(html);
 						var title = $html.find('title').text();
 
 						if (title === mservice.errors.maniacBoardTitles.error) {
-							data.success = false;
 							var maniacErrorMessage = $html.find('tr.bg2 td').first().text();
 							error = mservice.errors.maniacMessages[maniacErrorMessage];
 						}
@@ -718,15 +709,13 @@ var mservice = {
 					};
 
 					mservice.request.post(res, next, options, function (html) {
-						var data = {
-							success: true
-						}
+						var data = null;
 						var error = null;
 
+						console.log(html);
 						var $html = $(html);
 						var title = $html.find('title').text();
 						if (title != mservice.errors.maniacBoardTitles.confirm) {
-							data.success = false;
 							var maniacErrorMessage = null;
 							if (title === mservice.errors.maniacBoardTitles.error) {
 								maniacErrorMessage = $html.find('tr.bg2 td').first().text();
@@ -831,7 +820,7 @@ var mservice = {
 		},
 		json: function (res, data, error, next) {
 			var status = 200;
-			var reply  = data;
+			var reply  = data || {};
 
 			if (error) {
 				status = mservice.errors.codes[error];
@@ -867,13 +856,14 @@ var mservice = {
 			httpInternalServerError: 500,
 			unknown: 500,
 			connection: 504,
-			permission: 401,
+			permission: 403,
 			login: 401,
 			boardId: 404,
 			messageId: 404,
 			subject: 400,
 			answerExists: 409,
-			threadClosed: 403,
+			unchanged: 406,
+			threadClosed: 423,
 			threadId: 404,
 			userId: 404
 		},
@@ -889,6 +879,7 @@ var mservice = {
 			messageId: 'messageId not found',
 			subject: 'Subject not filled',
 			answerExists: 'This message was already answered',
+			unchanged: 'Data was not changed',
 			threadClosed: 'Thread is closed',
 			threadId: 'threadId not found',
 			userId: 'userId not found'
