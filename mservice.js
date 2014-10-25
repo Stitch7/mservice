@@ -91,16 +91,16 @@ var mservice = {
 			mservice.response.json(res, null, 'httpInternalServerError');
 		});
 		server.on('NotFound', function(req, res, next) {
-			if (log && mservice.options.log.verbose) {
+			if (log) {
 				req.log.warn({ req: req }, 'NotFound');
 			}
-			mservice.response.json(res, null, 'httpNotFound', next);
+			mservice.response.json(res, null, 'httpNotFound');
 		});
 		server.on('MethodNotAllowed', function(req, res, next) {
-			if (log && mservice.options.log.verbose) {
+			if (log) {
 				req.log.warn({ req: req }, 'MethodNotAllowed');
 			}
-			mservice.response.json(res, null, 'httpMethodNotAllowed', next);
+			mservice.response.json(res, null, 'httpMethodNotAllowed');
 		});
 		server.on('after', function(req, res, next) {
 			if (log && mservice.options.log.verbose) {
@@ -712,7 +712,6 @@ var mservice = {
 						var data = null;
 						var error = null;
 
-						console.log(html);
 						var $html = $(html);
 						var title = $html.find('title').text();
 						if (title != mservice.errors.maniacBoardTitles.confirm) {
