@@ -116,6 +116,10 @@ var mservice = {
 				server[httpMethod](routePrefix + route, routes[httpMethod][route]);
 			}
 		}
+		server.get('/', function (req, res, next) {
+			res.header('Location', routePrefix);
+			res.send(302);
+		});
 
 		server.listen(mservice.options.port, function () {
 			if (log) {
@@ -367,12 +371,21 @@ var mservice = {
 			 * index action
 			 */
 			'/': function (req, res, next) {
-				fs.readFile('doc/index.html', 'utf8', function (error, data) {
+				var marked = require('marked');
+
+				fs.readFile('index.html', 'utf8', function (error, data) {
 					if (error) {
 				    	return console.log(error);
 				  	}
+					var indexHtml = data;
+					fs.readFile('README.md', 'utf8', function (error, data) {
+						if (error) {
+					    	return console.log(error);
+					  	}
 
-				  	mservice.response.html(res, data, error, next);
+					  	var html = indexHtml.replace(/<!-- README.md -->/, marked(data));
+					  	mservice.response.html(res, html, error, next);
+					});
 				});
 			},
 			/**
@@ -837,12 +850,17 @@ var mservice = {
 			}
 		},
 		html: function (res, html, error, next) {
+			// console.log(Buffer.byteLength(html));
 			res.writeHead(200, {
 				'Content-Length': Buffer.byteLength(html),
-				'Content-Type': 'text/html'
+				'Content-Type': 'text/html; charset=utf-8'
 			});
 			res.write(html);
 			res.end();
+
+			if (typeof next === 'function') {
+				next();
+			}
 		}
 	},
 	/**
