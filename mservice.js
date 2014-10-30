@@ -82,6 +82,7 @@ var mservice = {
   			log: log
 		});
 		server.pre(restify.pre.sanitizePath());
+		server.use(restify.authorizationParser());
 		server.use(restify.bodyParser());
 		server.use(restify.gzipResponse());
 		server.on('uncaughtException', function(req, res, route, err) {
@@ -389,6 +390,12 @@ var mservice = {
 				});
 			},
 			/**
+			 * test-login action, checks if given username and password combination is accepted by the forum
+			 */
+			'/test-login': function (req, res, next) {
+				mservice.request.authenticate(req, res, next);
+			},
+			/**
 			 * boards action
 			 */
 			'/boards': function (req, res, next) {
@@ -495,137 +502,6 @@ var mservice = {
 				});
 			},
 			/**
-			 * User action, fetches data of a of a man!ac user profile
-			 */
-			'/user/:userId': function (req, res, next) {
-				var userId = req.params.userId;
-				var url = mservice.options.maniacUrl + '?mode=userprofile&usrid=' + userId;
-
-				mservice.request.get(res, next, url, function (html) {
-					var data = null;
-					var error = null;
-
-					var title = $(html).find('title').text();
-					if (title === mservice.errors.maniacBoardTitles.error) {
-						error = 'userId';
-					} else {
-						data = mservice.parse.user(userId, html);
-					}
-
-					mservice.response.json(res, data, error, next);
-				});
-			}
-		},
-		/**
-		 * Routes for HTTP POST method
-		 */
-		post: {
-			/**
-			 * test-login action, checks if given username and password combination is accepted by the forum
-			 */
-			'/test-login': function (req, res, next) {
-				var onSuccess = function () {
-					var data = {
-						success: true
-					};
-					mservice.response.json(res, data, null, next);
-				};
-				var onError = function () {
-					var data = {
-						success: false
-					};
-					mservice.response.json(res, data, null, next);
-				};
-				mservice.request.authenticate(req, res, next, onSuccess, onError);
-			},
-			/**
-			 * Preview action
-			 */
-			'/board/:boardId/message/preview': function (req, res, next) {
-				var options = {
-					form: {
-						mode: 'messagesave',
-						brdid: req.params.boardId,
-						body: req.params.text,
-						preview_x: 'preview'
-					}
-				};
-
-				mservice.request.post(res, next, options, function (html) {
-					var data = null;
-					var error = null;
-
-					var $html = $(html);
-					if ($html.find('title').text() !== mservice.errors.maniacBoardTitles.reply) {
-						var maniacErrorMessage = $html.find('tr.bg2 td').first().text();
-						error = mservice.errors.maniacMessages[maniacErrorMessage];
-					} else {
-						data = mservice.parse.preview(html);
-					}
-
-					mservice.response.json(res, data, error, next);
-				});
-			},
-			/**
-			 * Creates a thread to given boardId
-			 */
-			'/board/:boardId/message': function (req, res, next) {
-				var options = {
-					form: {
-						mode: 'messagesave',
-						brdid: req.params.boardId,
-						nick: req.params.username,
-						pass: req.params.password,
-						subject: req.params.subject,
-						body: req.params.text,
-						notification: req.params.notification
-					}
-				};
-
-				mservice.request.post(res, next, options, function (html) {
-					var data = null;
-					var error = null;
-
-					var $html = $(html);
-					if ($html.find('title').text() !== mservice.errors.maniacBoardTitles.confirm) {
-						var maniacErrorMessage = $($html.find('tr.bg1 td').get(2)).text();
-						error = mservice.errors.maniacMessages[maniacErrorMessage];
-					}
-
-					mservice.response.json(res, data, error, next);
-				});
-			},
-			/**
-			 * Creates a reply to messageId
-			 */
-			'/board/:boardId/message/:messageId': function (req, res, next) {
-				var options = {
-					form: {
-						mode: 'messagesave',
-						brdid: req.params.boardId,
-						msgid: req.params.messageId,
-						nick: req.params.username,
-						pass: req.params.password,
-						subject: req.params.subject,
-						body: req.params.text,
-						notification: req.params.notification
-					}
-				};
-
-				mservice.request.post(res, next, options, function (html) {
-					var data = null;
-					var error = null;
-
-					var $html = $(html);
-					if ($html.find('title').text() !== mservice.errors.maniacBoardTitles.confirm) {
-						var maniacErrorMessage = $($html.find('tr.bg1 td').get(2)).text();
-						error = mservice.errors.maniacMessages[maniacErrorMessage];
-					}
-
-					mservice.response.json(res, data, error, next);
-				});
-			},
-			/**
 			 * Checks if notification is activated for given messageId
 			 */
 			'/board/:boardId/notification-status/:messageId': function (req, res, next) {
@@ -677,6 +553,119 @@ var mservice = {
 
 						mservice.response.json(res, data, error, next);
 					});
+				});
+			},
+			/**
+			 * User action, fetches data of a of a man!ac user profile
+			 */
+			'/user/:userId': function (req, res, next) {
+				var userId = req.params.userId;
+				var url = mservice.options.maniacUrl + '?mode=userprofile&usrid=' + userId;
+
+				mservice.request.get(res, next, url, function (html) {
+					var data = null;
+					var error = null;
+
+					var title = $(html).find('title').text();
+					if (title === mservice.errors.maniacBoardTitles.error) {
+						error = 'userId';
+					} else {
+						data = mservice.parse.user(userId, html);
+					}
+
+					mservice.response.json(res, data, error, next);
+				});
+			}
+		},
+		/**
+		 * Routes for HTTP POST method
+		 */
+		post: {
+			/**
+			 * Preview action
+			 */
+			'/board/:boardId/message/preview': function (req, res, next) {
+				var options = {
+					form: {
+						mode: 'messagesave',
+						brdid: req.params.boardId,
+						body: req.params.text,
+						preview_x: 'preview'
+					}
+				};
+
+				mservice.request.post(res, next, options, function (html) {
+					var data = null;
+					var error = null;
+
+					var $html = $(html);
+					if ($html.find('title').text() !== mservice.errors.maniacBoardTitles.reply) {
+						var maniacErrorMessage = $html.find('tr.bg2 td').first().text();
+						error = mservice.errors.maniacMessages[maniacErrorMessage];
+					} else {
+						data = mservice.parse.preview(html);
+					}
+
+					mservice.response.json(res, data, error, next);
+				});
+			},
+			/**
+			 * Creates a thread to given boardId
+			 */
+			'/board/:boardId/message': function (req, res, next) {
+				var options = {
+					form: {
+						mode: 'messagesave',
+						brdid: req.params.boardId,
+						nick: req.authorization.basic.username,
+						pass: req.authorization.basic.password,
+						subject: req.params.subject,
+						body: req.params.text,
+						notification: req.params.notification
+					}
+				};
+
+				mservice.request.post(res, next, options, function (html) {
+					var data = null;
+					var error = null;
+
+					var $html = $(html);
+					if ($html.find('title').text() !== mservice.errors.maniacBoardTitles.confirm) {
+						var maniacErrorMessage = $($html.find('tr.bg1 td').get(2)).text();
+						error = mservice.errors.maniacMessages[maniacErrorMessage];
+					}
+
+					mservice.response.json(res, data, error, next);
+				});
+			},
+			/**
+			 * Creates a reply to messageId
+			 */
+			'/board/:boardId/message/:messageId': function (req, res, next) {
+				var options = {
+					form: {
+						mode: 'messagesave',
+						brdid: req.params.boardId,
+						msgid: req.params.messageId,
+						nick: req.authorization.basic.username,
+						pass: req.authorization.basic.password,
+						subject: req.params.subject,
+						body: req.params.text,
+						notification: req.params.notification
+					}
+				};
+
+				mservice.request.post(res, next, options, function (html) {
+					var data = null;
+					var error = null;
+
+					var $html = $(html);
+					if ($html.find('title').text() !== mservice.errors.maniacBoardTitles.confirm) {
+						var maniacErrorMessage = $($html.find('tr.bg1 td').get(2)).text();
+						error = mservice.errors.maniacMessages[maniacErrorMessage];
+					}
+
+					mservice.response.json(res, data, error, next);
 				});
 			},
 			/**
@@ -796,30 +785,28 @@ var mservice = {
 			  	}
 			})
 		},
-		authenticate: function (req, res, next, fnSuccess, fnError) {
+		authenticate: function (req, res, next, fnSuccess) {
 			var options = {
 				form: {
 					mode: 'login',
-					nick: req.params.username,
-					pass: req.params.password
+					nick: req.authorization.basic.username,
+					pass: req.authorization.basic.password
 				}
 			};
 
 			mservice.request.post(res, next, options, function (html, response) {
 				if ($(html).find('form').length > 0) {
-					if (typeof fnError === 'function') {
-						fnError();
-					} else {
-						mservice.response.json(res, null, 'login', next);
-					}
-				} else if (typeof fnSuccess === 'function') {
+					mservice.response.json(res, null, 'login', next);
+				} else 	if (typeof fnSuccess === 'function') {
 					var cookieString = response.headers['set-cookie'][0].split(';')[0];
 					var cookie = request.cookie(cookieString);
 			 		var jar = request.jar();
 					jar.setCookie(cookie, mservice.options.maniacUrl);
 
 		  			fnSuccess(jar);
-			  	}
+	  			} else {
+	  				mservice.response.json(res, null, null, next);
+	  			}
 			});
 		}
 	},
@@ -832,7 +819,7 @@ var mservice = {
 		},
 		json: function (res, data, error, next) {
 			var status = 200;
-			var reply  = data || {};
+			var reply  = data || '';
 
 			if (error) {
 				status = mservice.errors.codes[error];

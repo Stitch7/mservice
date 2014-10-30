@@ -4,7 +4,7 @@ M!service
 M!service ist ein in JavaScript geschriebener Serverdienst, der eine RESTful JSON API für das Man!ac Forum bereitstellt.
 
 # Usage
-Vorraussetzung ist NodeJS >= v0.10.30 (ältere Versionen wurden nicht gestestet)<br/>
+Vorraussetzung ist `NodeJS` >= v0.10.30 (ältere Versionen wurden nicht gestestet)<br/>
 Für den Betrieb empfiehlt sich der Einsatz von `forever`:<br/>
 https://github.com/nodejitsu/forever
     
@@ -35,7 +35,55 @@ https://github.com/nodejitsu/forever
 
 # API
 
-Wie bei REST üblich, ist bei der Verwendung der API der HTTP Status Code der Server Response zu beachten. Alle gültigen Requests erhalten eine Response mit Code 200, im Fehlerfall wird der entsprechende Code laut RFC 7231 und eine Beschreibung des Fehlers im Feld `error` zurückgegeben.  
+
+
+### Parameter
+
+Spezifische Ressourcen werden über Parameter angesprochen. Falls vorhanden, sind die Parameter zur Spezifizierung einer Ressource Teil der dazugehörigen URI welche in der Beschreibung Platzhalter in Form von _:ParameterName_ enthält die in der Tabelle _URI Params_ beschrieben sind.
+Parameter zur Manipulation einer Ressource werden im Request Body mitgesendet und sind falls vorhanden in der Tabelle _Dara Params_ beschrieben. 
+
+### Authentifizierung
+
+Einige Ressourcen benötigen Authentifizierung, dazu muss beim Request eine gültige Username / Passwort Kombination für das Man!ac-Forum im HTTP-Header in Form von Basic Authentication nach RFC 2617 mitgesendet werden. Wenn eine Ressource eine gültige Authentifizierung benötigt dies mit __`NEEDS AUTHENTICATION`__ unterhalb der URI markiert.
+
+### Responses
+
+Bei der Verwendung der API ist der HTTP Status Code der Server Response zu beachten. Alle gültigen Requests erhalten eine Response mit Code 200, im Fehlerfall wird der entsprechende Code laut RFC 7231 und eine Beschreibung des Fehlers im Feld `error` zurückgegeben. Alle spezifischen Error Responses der einzelnen Ressourcen werden als _Example Error Response_ zu der jeweiligen Ressource beschrieben. 
+
+__Allgemeine Error Responses:__
+
+| HTTP Status Code            | Beschreibung                                                                                                     |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| 404 - Not Found             | Die angeforderte Ressource existiert nicht                                                                       |
+| 405 - Method Not Allowed    | Die verwendete HTTP Methode für die angeforderte Ressource ist nicht erlaubt                                     |
+| 500 - Internal Server Error | Unbekannter Fehler ist aufgetreten                                                                               |
+| 504 - Gateway Timeout       | Es konnte keine Verbindung zum Forumsserver hergestellt werden, tritt zB in den Downzeiten während der Nacht auf |
+
+
+
+
+## Test Login
+
+Überprüft Login Daten.
+
+### HTTP Method: `GET`
+
+    mservice/test-login
+
+__`NEEDS AUTHENTICATION`__
+
+    
+### Example Success Response
+
+    HTTP/1.1 200 OK
+
+### Example Error Response
+	
+    HTTP/1.1 401 Unauthorized
+    {
+    	"error": "Authentication failed"
+	}
+    
 
 ## Boards
 
@@ -43,11 +91,7 @@ Daten der Startseite / Boardübersicht.
 
 ### HTTP Method: `GET`
 
-    mservice/boards
-    
-### URL Params
-
-_Keine_
+    mservice/boards    
 
 ### Response Data
 
@@ -404,39 +448,6 @@ Daten eines User-Profils.
     }
 
 
-## Test Login
-
-Überprüft Login Daten. Es ist zu beachten, dass hier im Gegensatz zu anderen Requests, welche Authentifizierung benötigen, immer mit HTTP Code 200 geantwortet wird, auch wenn die gesendeten Login Daten ungültig sind.
-
-### HTTP Method: `POST`
-
-    mservice/test-login
-
-### URL Params
-
-_Keine_
-
-### Data Params
-
-| Parameter | Beschreibung   |
-| --------- | ---------------|
-| username  | Benutzername   |
-| password  | Passwort       |
-
-### Response Data
-
-| Feld    | Typ       | Beschreibung        |
-| ------- | --------- | --------------------|
-| success | Boolean   | Login Daten gültig  |
-
-    
-### Example Success Response
-
-    HTTP/1.1 200 OK
-    {
-        "success": true
-    }
-
 ## Message Preview
 
 Erzeugt das Vorschau-HTML für ein Posting.
@@ -492,6 +503,8 @@ Erstellt einen neuen Thread.
 
     mservice/board/:boardId/message
     
+__`NEEDS AUTHENTICATION`__    
+    
 ### URL Params
 
 | Parameter | Beschreibung |
@@ -502,8 +515,6 @@ Erstellt einen neuen Thread.
 
 | Parameter    | Beschreibung                        |
 | ------------ | ------------------------------------|
-| username     | Benutzername                        |
-| password     | Passwort                            |
 | subject      | Thema (Betreff)                     |
 | text         | Inhalt / Text                       |
 | notification | Flag für Mailbenachrichtigung (1/0) |
@@ -520,6 +531,8 @@ Erzeugt eine Antwort zur übergebenen Message ID.
 ### HTTP Method: `POST`
 
     mservice/board/:boardId/message/:messageId
+
+__`NEEDS AUTHENTICATION`__    
     
 ### URL Params
 
@@ -532,8 +545,6 @@ Erzeugt eine Antwort zur übergebenen Message ID.
 
 | Parameter    | Beschreibung                        |
 | ------------ | ------------------------------------|
-| username     | Benutzername                        |
-| password     | Passwort                            |
 | subject      | Thema (Betreff)                     |
 | text         | Inhalt / Text                       |
 | notification | Flag für Mailbenachrichtigung (1/0) |
@@ -544,7 +555,6 @@ Erzeugt eine Antwort zur übergebenen Message ID.
     HTTP/1.1 200 OK
 
     
-    
 ## Edit Message
 
 Editiert die Message mit der übergebenen Message ID. Dies ist nur möglich sofern die Message von den mitgegeben Login Daten erzeugt wurde und noch keine Antwort erstellt wurde. 
@@ -552,6 +562,8 @@ Editiert die Message mit der übergebenen Message ID. Dies ist nur möglich sofe
 ### HTTP Method: `PUT`
 
     mservice/board/:boardId/message/:messageId    
+
+__`NEEDS AUTHENTICATION`__
 
 ### URL Params
 
@@ -564,8 +576,6 @@ Editiert die Message mit der übergebenen Message ID. Dies ist nur möglich sofe
 
 | Parameter    | Beschreibung                        |
 | ------------ | ------------------------------------|
-| username     | Benutzername                        |
-| password     | Passwort                            |
 | subject      | Thema (Betreff)                     |
 | text         | Inhalt / Text                       |
 
@@ -579,9 +589,11 @@ Editiert die Message mit der übergebenen Message ID. Dies ist nur möglich sofe
 
 Schaltet die Mailbenachrichtigung für die übergebene Message ID an oder aus. Die Original API des Maniac Forums bietet leider keine Möglichkeit die Mailbenachrichtigung explizit an oder auszuschalten. Ist die Mailbenachrichtigung also bereits aktiv schaltet dieser Request sie aus, ist sie nicht aktiv wird sie entspechend aktiviert.
 
-### HTTP Method: `POST`
+### HTTP Method: `GET`
 
     mservice/board/:boardId/notification/:messageId
+
+__`NEEDS AUTHENTICATION`__
     
 ### URL Params
 
@@ -589,20 +601,14 @@ Schaltet die Mailbenachrichtigung für die übergebene Message ID an oder aus. D
 | --------- | ------------ |
 | boardId   | Board ID     |
 | messageId | Message ID   |
-
-### Data Params
-
-| Parameter | Beschreibung   |
-| --------- | ---------------|
-| username  | Benutzername   |
-| password  | Passwort       |
-    
     
 ## Status of Notification
 
-### HTTP Method: `POST`
+### HTTP Method: `GET`
 
     mservice/board/:boardId/notification-status/:messageId    
+    
+__`NEEDS AUTHENTICATION`__    
     
 ### URL Params
 
@@ -610,13 +616,6 @@ Schaltet die Mailbenachrichtigung für die übergebene Message ID an oder aus. D
 | --------- | ------------ |
 | boardId   | Board ID     |
 | messageId | Message ID   |
-
-### Data Params
-
-| Parameter | Beschreibung   |
-| --------- | ---------------|
-| username  | Benutzername   |
-| password  | Passwort       |
     
 
 ## Search Threads
