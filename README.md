@@ -531,7 +531,8 @@ Daten eines User-Profils.
 | Feld               | Typ       | Beschreibung        |
 | ------------------ | --------- | --------------------|
 | userId             | Number    | Account-Nr.         |
-| image              | String    | URL zum Profilbild  |
+| username           | String    | Benutzername        |
+| picture            | String    | URL zum Profilbild  |
 | firstname          | String    | Vorname             |
 | lastname           | String    | Nachname            |
 | domicile           | String    | Wohnort             |
@@ -583,6 +584,29 @@ Daten eines User-Profils.
         "error": "userId not found"
     }
 
+## Latest User
+
+Das neuste Mitglied des Forums.
+
+### HTTP Method: `GET`
+
+    mservice/latest-user
+
+### Response Data
+
+| Feld               | Typ       | Beschreibung        |
+| ------------------ | --------- | --------------------|
+| userId             | Number    | Account-Nr.         |
+| username           | String    | Benutzername        |
+
+### Example Success Response
+
+    HTTP/1.1 200 OK
+    {
+        "userId": 52917,
+        "username": "Marty"
+    }
+    
 
 ## Message Preview
 

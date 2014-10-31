@@ -375,6 +375,17 @@ var mservice = {
             profile['lastUpdate'] = mservice.utils.datetimeStringToISO8601(profile['lastUpdate']);
 
             return profile;
+        },
+
+        latestUser: function (html) {
+            var $latestUserA = $(html).find('a[href^="pxmboard.php?mode=userprofile"]');
+            var userId = mservice.utils.toInt(/pxmboard.php\?mode=userprofile&brdid=&usrid=(.+)/.exec($latestUserA.attr('href'))[1]);
+            var username = $latestUserA.text();
+
+            return {
+                userId: userId,
+                username: username
+            };
         }
     },
     /**
@@ -610,6 +621,16 @@ var mservice = {
                     }
 
                     mservice.response.json(res, data, error, next);
+                });
+            },
+            /**
+             * User action, fetches data of a of a man!ac user profile
+             */
+            '/latest-user/': function (req, res, next) {
+                var url = mservice.options.maniacUrl;
+                mservice.request.get(res, next, url, function (html) {
+                    var data = mservice.parse.latestUser(html);
+                    mservice.response.json(res, data, null, next);
                 });
             }
         },
