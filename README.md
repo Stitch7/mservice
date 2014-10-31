@@ -95,11 +95,14 @@ Daten der Startseite / Boardübersicht.
 
 ### Response Data
 
-| Feld       | Typ       | Beschreibung |
-| ---------- | --------- | ------------ |
-| board      | Object    | Board        |
-| board.id   | Number    | Board ID     |
-| board.text | String    | Board Name   |
+| Feld              | Typ       | Beschreibung                        |
+| ----------------- | --------- | ----------------------------------- |
+| board             | Object    | Board                               |
+| board.id          | Number    | Board - ID                          |
+| board.name        | String    | Board - Name                        |
+| board.topic       | String    | Board - Thema                       |
+| board.lastMessage | Date      | Board - Datum der letzten Nachricht |
+| board.mods        | Array     | Board - Liste der Moderatoren Namen |
 
 ### Example Success Response
 
@@ -108,29 +111,78 @@ Daten der Startseite / Boardübersicht.
         [
             {
                 "id": 1,
-                "name": "Smalltalk"
+                "name": "Smalltalk",
+                "topic": "Diskussionen rund um die Welt der Videospiele.",
+                "lastMessage": "2014-10-31T05:44:00+01:00",
+                "mods": [
+                    "Andi",
+                    "Rocco",
+                    "Leviathan",
+                    "Slapshot"
+                ]
             },
             {
                 "id": 2,
-                "name": "For Sale"
+                "name": "For Sale",
+                "topic": "Private Kleinanzeigen: An- und Verkauf gebrauchter Spiele",
+                "lastMessage": "2014-10-31T01:09:00+01:00",
+                "mods": [
+                    "Andi",
+                    "Rocco",
+                    "Leviathan",
+                    "pzykoskinhead",
+                    "Slapshot"
+                ]
             },
             {
                 "id": 4,
-                "name": "Retro'n'Tech"
+                "name": "Retro'n'Tech",
+                "topic": "Retro-Themen, Umbau-Lösungen, Anschluss-Probleme, Computerprobleme, Spielehilfen",
+                "lastMessage": "2014-10-31T05:39:00+01:00",
+                "mods": [
+                    "Slapshot",
+                    "Leviathan",
+                    "Rocco",
+                    "Andi"
+                ]
             },
             {
                 "id": 6,
-                "name": "OT"
+                "name": "OT",
+                "topic": "Ohne Tiefgang - der tägliche Schwachsinn",
+                "lastMessage": "2014-10-31T05:45:00+01:00",
+                "mods": [
+                    "Andi",
+                    "Rocco",
+                    "Leviathan",
+                    "Slapshot"
+                ]
             },
             {
                 "id": 26,
-                "name": "Filme & Serien"
+                "name": "Filme & Serien",
+                "topic": "Alles wofür 24 fps reichen",
+                "lastMessage": "2014-10-31T02:30:00+01:00",
+                "mods": [
+                    "Andi",
+                    "Rocco",
+                    "Leviathan",
+                    "Slapshot"
+                ]
             },
             {
                 "id": 8,
-                "name": "Online-Gaming"
+                "name": "Online-Gaming",
+                "topic": "Alles rund um Onlinespiele",
+                "lastMessage": "2014-10-30T13:55:00+01:00",
+                "mods": [
+                    "Andi",
+                    "Rocco",
+                    "Leviathan",
+                    "Slapshot"
+                ]
             }
-        ]   
+        ]
     }
 
 
@@ -152,19 +204,19 @@ List der Threads (Daten des oberen Frames) eines Boards.
 
 ### Response Data
 
-| Feld               | Typ       | Beschreibung                                 |
-| ------------------ | --------- | -------------------------------------------- |
-| thread             | Object    | Thread                                       |
-| thread.id          | Number    | Thread ID                                    |
-| thread.messageId   | Number    | Message ID des Eingangspostings              |
-| thread.sticky      | Boolean   | Thread ist sticky                            |
-| thread.closed      | Boolean   | Thread ist geschlossen _(Hinweis beachten!)_ |
-| thread.author      | String    | Benutzername des Threadersteller             |
-| thread.mod         | String    | Threadersteller ist ein Moderator            |
-| thread.subject     | String    | Betreff                                      |
-| thread.date        | Date      | Erstellungsdatum                             |
-| thread.answerCount | Number    | Anzahl der Antworten                         |
-| thread.answerDate  | Date      | Datum der letzten Antwort                    |
+| Feld               | Typ       | Beschreibung                                          |
+| ------------------ | --------- | ----------------------------------------------------- |
+| thread             | Object    | Thread                                                |
+| thread.id          | Number    | Thread - ID                                           |
+| thread.messageId   | Number    | Thread - Message ID des Eingangspostings              |
+| thread.sticky      | Boolean   | Thread - Thread ist sticky                            |
+| thread.closed      | Boolean   | Thread - Thread ist geschlossen _(Hinweis beachten!)_ |
+| thread.author      | String    | Thread - Benutzername des Threadersteller             |
+| thread.mod         | String    | Thread - Threadersteller ist ein Moderator            |
+| thread.subject     | String    | Thread - Betreff                                      |
+| thread.date        | Date      | Thread - Erstellungsdatum                             |
+| thread.answerCount | Number    | Thread - Anzahl der Antworten                         |
+| thread.answerDate  | Date      | Thread - Datum der letzten Antwort                    |
 
 
 **Hinweis:**<br/>
@@ -235,15 +287,15 @@ Liste der Messages (Daten des mittleren Frames) eines Threads.
 
 ### Response Data
 
-| Feld               | Typ       | Beschreibung                            |
-| ------------------ | --------- | --------------------------------------- |
-| message            | Object    | Message                                 |
-| message.id         | Number    | Message ID                              |
-| message.level      | Number    | Grad der Einrückung in der Baumstruktur |
-| message.subject    | String    | Betreff                                 |
-| message.mod        | String    | Messageersteller ist ein Moderator      |
-| message.username   | String    | Benutzername                            |
-| message.date       | Date      | Erstellungsdatum                        |
+| Feld               | Typ       | Beschreibung                                      |
+| ------------------ | --------- | ------------------------------------------------- |
+| message            | Object    | Message                                           |
+| message.id         | Number    | Message - ID                                      |
+| message.level      | Number    | Message - Grad der Einrückung in der Baumstruktur |
+| message.subject    | String    | Message - Betreff                                 |
+| message.mod        | String    | Message - Messageersteller ist ein Moderator      |
+| message.username   | String    | Message - Benutzername                            |
+| message.date       | Date      | Message - Erstellungsdatum                        |
 
 
 ### Example Success Response
@@ -323,20 +375,21 @@ Daten des unteren Frames, eine Message.
 
 ### Response Data
 
-| Feld               | Typ       | Beschreibung                                          |
-| ------------------ | --------- | ----------------------------------------------------- |
-| messageId          | Number    | Message ID                                            |
-| userId             | Number    | Account-Nr.                                           |
-| username           | String    | Benutzername                                          |
-| subject            | String    | Betreff                                               |
-| date               | Date      | Erstellungsdatum                                      |
-| text               | String    | Message Body als Plain Text                           |
-| textHtml           | String    | Message Body als HTML                                 |
-| textHtmlWithImages | String    | Message Body als HTML Images in IMG-Tags              |
-| notification       | Boolean   | Status der Mailbenachrichtigung _(Hinweis beachten!)_ |
+| Feld               | Typ              | Beschreibung                                          |
+| ------------------ | ---------------- | ----------------------------------------------------- |
+| messageId          | Number           | Message ID                                            |
+| userId             | Number           | Account-Nr.                                           |
+| username           | String           | Benutzername                                          |
+| subject            | String           | Betreff                                               |
+| date               | Date             | Erstellungsdatum                                      |
+| text               | String           | Message Body als Plain Text                           |
+| textHtml           | String           | Message Body als HTML                                 |
+| textHtmlWithImages | String           | Message Body als HTML Images in IMG-Tags              |
+| notification       | Boolean \| Null  | Status der Mailbenachrichtigung _(Hinweis beachten!)_ |
 
 **Hinweis:**<br/>
-Diese Ressource benötigt normalerweise keine Authentifizierung, möchte man das Feld `notification` verwenden ist aber eine Authentifizierung erforderlich. Dies macht nur Sinn, wenn man vorher schon weiß, dass die Message von dem gleichen User erstellt wurde wie der dessen Username man zur Authentifizierung mitsendet. Dies sollte man aus Performance-Gründen auch nur in diesem Fall tun. Weiß man in bestimmten Fällen nicht vorher von welchem User die Message erstellt wurde, kann man den Status der Mailbenachrichtigung auch über die Ressource `notification-status` separat abfragen.
+Diese Ressource benötigt normalerweise keine Authentifizierung, möchte man das Feld `notification` verwenden ist aber eine Authentifizierung erforderlich. Dies macht nur Sinn, wenn man vorher schon sicherstellen kann, dass die Message von dem gleichen User erstellt wurde wie der dessen Username man zur Authentifizierung mitsendet. Dies sollte man aus Performance-Gründen auch nur in diesem Fall tun. Weiß man in bestimmten Fällen nicht im Vorfeld von welchem User die Message erstellt wurde, kann man den Status der Mailbenachrichtigung auch über die Ressource `notification-status` separat abfragen.<br/>
+Wenn keine Authentifizierung mitgesendet wird, oder der Username nicht mit den Authentifizierungsdaten übereinstimmt ist das Feld `notification` = `NULL`.
 
 ### Example Success Response
 

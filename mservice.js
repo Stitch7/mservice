@@ -135,17 +135,18 @@ var mservice = {
 		boards: function (html) {
 			var boards = [];
 
-			$(html).find('div table tr.bg2 td#norm:nth-child(2) a').each(function () {
-				var $a = $(this);
-				var href = $a.attr('href');
-				var hrefSearch = '?mode=board&brdid=';
-				if (href.indexOf(hrefSearch) != -1) {
-					var board = {};
-					board.id = mservice.utils.toInt(href.substring(href.indexOf(hrefSearch) + hrefSearch.length));
-					board.name = $a.text();
+			$(html).find('div > table table:nth-child(3) tr.bg2').each(function () {
+				var $tr = $(this);
+				var $idAndTitleA = $tr.find('td:nth-child(2) a');
 
-					boards.push(board);
-				}
+				var board = {};
+				board.id = mservice.utils.toInt(/\?mode=board&brdid=(.+)/.exec($idAndTitleA.attr('href'))[1]);
+				board.name = $idAndTitleA.text();
+				board.topic = $tr.find('td:nth-child(3)').text();
+				board.lastMessage = mservice.utils.datetimeStringToISO8601($tr.find('td:nth-child(4)').text());
+				board.mods = $tr.find('td:nth-child(5)').text().trim().split('\n');
+
+				boards.push(board);
 			});
 
 			return boards;
