@@ -44,13 +44,13 @@ Parameter zur Manipulation einer Ressource werden im Request Body mitgesendet un
 
 ### Authentifizierung
 
-Einige Ressourcen benötigen Authentifizierung, dazu muss beim Request eine gültige Username / Passwort Kombination für das Man!ac-Forum im HTTP-Header in Form von Basic Authentication nach RFC 2617 mitgesendet werden. Wenn eine Ressource eine gültige Authentifizierung benötigt dies mit __`NEEDS AUTHENTICATION`__ unterhalb der URI markiert.
+Einige Ressourcen benötigen Authentifizierung, dazu muss beim Request eine gültige Username / Passwort Kombination für das Man!ac-Forum im HTTP-Header in Form von Basic Authentication nach RFC 2617 mitgesendet werden. Wenn eine Ressource eine gültige Authentifizierung benötigt dies mit **`NEEDS AUTHENTICATION`** unterhalb der URI markiert.
 
 ### Responses
 
 Bei der Verwendung der API ist der HTTP Status Code der Server Response zu beachten. Alle gültigen Requests erhalten eine Response mit Code 200, im Fehlerfall wird der entsprechende Code laut RFC 7231 und eine Beschreibung des Fehlers im Feld `error` zurückgegeben. Alle spezifischen Error Responses der einzelnen Ressourcen werden als _Example Error Response_ zu der jeweiligen Ressource beschrieben. 
 
-__Allgemeine Error Responses:__
+**Allgemeine Error Responses:**
 
 | HTTP Status Code            | Beschreibung                                                                                                     |
 | --------------------------- | ---------------------------------------------------------------------------------------------------------------- |
@@ -70,7 +70,7 @@ __Allgemeine Error Responses:__
 
     mservice/test-login
 
-__`NEEDS AUTHENTICATION`__
+**`NEEDS AUTHENTICATION`**
 
     
 ### Example Success Response
@@ -107,28 +107,28 @@ Daten der Startseite / Boardübersicht.
     {     
         [
             {
-                "id":1,
-                "name":"Smalltalk"
+                "id": 1,
+                "name": "Smalltalk"
             },
             {
-                "id":2,
-                "name":"For Sale"
+                "id": 2,
+                "name": "For Sale"
             },
             {
-                "id":4,
-                "name":"Tech'n'Cheats"
+                "id": 4,
+                "name": "Retro'n'Tech"
             },
             {
-                "id":6,
-                "name":"OT"
+                "id": 6,
+                "name": "OT"
             },
             {
-                "id":26,
-                "name":"Filme &amp; Serien"
+                "id": 26,
+                "name": "Filme & Serien"
             },
             {
-                "id":8,
-                "name":"Online-Gaming"
+                "id": 8,
+                "name": "Online-Gaming"
             }
         ]   
     }
@@ -152,24 +152,24 @@ List der Threads (Daten des oberen Frames) eines Boards.
 
 ### Response Data
 
-| Feld               | Typ       | Beschreibung                      |
-| ------------------ | --------- | --------------------------------- |
-| thread             | Object    | Thread                            |
-| thread.id          | Number    | Thread ID                         |
-| thread.messageId   | Number    | Message ID des Eingangspostings   |
-| thread.sticky      | Boolean   | Thread ist sticky                 |
-| thread.closed      | Boolean   | Thread ist geschlossen            |
-| thread.author      | String    | Benutzername des Threadersteller  |
-| thread.mod         | String    | Threadersteller ist ein Moderator |
-| thread.subject     | String    | Betreff                           |
-| thread.date        | Date      | Erstellungsdatum                  |
-| thread.answerCount | Number    | Anzahl der Antworten              |
-| thread.answerDate  | Date      | Datum der letzten Antwort         |
+| Feld               | Typ       | Beschreibung                                 |
+| ------------------ | --------- | -------------------------------------------- |
+| thread             | Object    | Thread                                       |
+| thread.id          | Number    | Thread ID                                    |
+| thread.messageId   | Number    | Message ID des Eingangspostings              |
+| thread.sticky      | Boolean   | Thread ist sticky                            |
+| thread.closed      | Boolean   | Thread ist geschlossen _(Hinweis beachten!)_ |
+| thread.author      | String    | Benutzername des Threadersteller             |
+| thread.mod         | String    | Threadersteller ist ein Moderator            |
+| thread.subject     | String    | Betreff                                      |
+| thread.date        | Date      | Erstellungsdatum                             |
+| thread.answerCount | Number    | Anzahl der Antworten                         |
+| thread.answerDate  | Date      | Datum der letzten Antwort                    |
 
 
 **Hinweis:**<br/>
 Wenn sticky=TRUE, ist closed immer FALSE.<br/>
-Ob ein Sticky Thread geschlossen ist kann nicht aus dem HTML entnommen werden.
+Ob ein Sticky Thread geschlossen ist kann nicht aus dem HTML des Man!ac Forums entnommen werden.
 
 ### Example Success Response
 
@@ -311,6 +311,8 @@ Daten des unteren Frames, eine Message.
 ### HTTP Method: `GET`
 
     mservice/board/:boardId/message/:messageId
+    
+**`OPTIONAL AUTHENTICATION`**    
 
 ### URL Params
 
@@ -321,16 +323,20 @@ Daten des unteren Frames, eine Message.
 
 ### Response Data
 
-| Feld               | Typ       | Beschreibung                             |
-| ------------------ | --------- | ---------------------------------------- |
-| messageId          | Number    | Message ID                               |
-| userId             | Number    | Account-Nr.                              |
-| username           | String    | Benutzername                             |
-| subject            | String    | Betreff                                  |
-| date               | Date      | Erstellungsdatum                         |
-| text               | String    | Message Body als Plain Text              |
-| textHtml           | String    | Message Body als HTML                    |
-| textHtmlWithImages | String    | Message Body als HTML Images in IMG-Tags |
+| Feld               | Typ       | Beschreibung                                          |
+| ------------------ | --------- | ----------------------------------------------------- |
+| messageId          | Number    | Message ID                                            |
+| userId             | Number    | Account-Nr.                                           |
+| username           | String    | Benutzername                                          |
+| subject            | String    | Betreff                                               |
+| date               | Date      | Erstellungsdatum                                      |
+| text               | String    | Message Body als Plain Text                           |
+| textHtml           | String    | Message Body als HTML                                 |
+| textHtmlWithImages | String    | Message Body als HTML Images in IMG-Tags              |
+| notification       | Boolean   | Status der Mailbenachrichtigung _(Hinweis beachten!)_ |
+
+**Hinweis:**<br/>
+Diese Ressource benötigt normalerweise keine Authentifizierung, möchte man das Feld `notification` verwenden ist aber eine Authentifizierung erforderlich. Dies macht nur Sinn, wenn man vorher schon weiß, dass die Message von dem gleichen User erstellt wurde wie der dessen Username man zur Authentifizierung mitsendet. Dies sollte man aus Performance-Gründen auch nur in diesem Fall tun. Weiß man in bestimmten Fällen nicht vorher von welchem User die Message erstellt wurde, kann man den Status der Mailbenachrichtigung auch über die Ressource `notification-status` separat abfragen.
 
 ### Example Success Response
 
@@ -344,6 +350,83 @@ Daten des unteren Frames, eine Message.
         "text": "[https://i.imgur.com/ETtsCml.jpg]\n\nLink zum Vorgänger:\n[https://www.maniac-forum.de/forum/pxmboard.php?mode=message&brdid=6&msgid=3502734]",
         "textHtml": "<a href=\"https://i.imgur.com/ETtsCml.jpg\" target=\"_blank\">https://i.imgur.com/ETtsCml.jpg</a><br>\n<br>\nLink zum Vorgänger:<br>\n<a href=\"https://www.maniac-forum.de/forum/pxmboard.php?mode=message&brdid=6&msgid=3502734\" target=\"_blank\">https://www.maniac-forum.de/forum/pxmboard.php?mode=message&brdid=6&msgid=3502734</a>",
         "textHtmlWithImages": "<a href=\"https://i.imgur.com/ETtsCml.jpg\"><img src=\"https://i.imgur.com/ETtsCml.jpg\"></a><br>\n<br>\nLink zum Vorgänger:<br>\n<a href=\"https://www.maniac-forum.de/forum/pxmboard.php?mode=message&brdid=6&msgid=3502734\">https://www.maniac-forum.de/forum/pxmboard.php?mode=message&brdid=6&msgid=3502734</a>"
+    }
+
+## Notification
+
+Schaltet die Mailbenachrichtigung für die übergebene Message ID an oder aus. Die Original API des Maniac Forums bietet leider keine Möglichkeit die Mailbenachrichtigung explizit an oder auszuschalten. Ist die Mailbenachrichtigung also bereits aktiv schaltet dieser Request sie aus, ist sie nicht aktiv wird sie entspechend aktiviert.
+
+### HTTP Method: `GET`
+
+    mservice/board/:boardId/notification/:messageId
+
+**`NEEDS AUTHENTICATION`**
+    
+### URL Params
+
+| Parameter | Beschreibung |
+| --------- | ------------ |
+| boardId   | Board ID     |
+| messageId | Message ID   |
+
+### Example Success Response
+
+    HTTP/1.1 200 OK
+
+### Example Error Response
+	
+    HTTP/1.1 401 Unauthorized
+    {
+    	"error": "Authentication failed"
+	}
+    
+## Notification Status
+
+Alternative Möglichkeit den Status der Mailbenachrichtigung einer Message abzufragen.
+
+### HTTP Method: `GET`
+
+    mservice/board/:boardId/notification-status/:messageId    
+    
+**`NEEDS AUTHENTICATION`**    
+
+### URL Params
+
+| Parameter | Beschreibung |
+| --------- | ------------ |
+| boardId   | Board ID     |
+| messageId | Message ID   |
+
+### Response Data
+
+| Feld         | Typ       | Beschreibung                    |
+| ------------ | --------- | --------------------------------|
+| notification | Boolean   | Status der Mailbenachrichtigung |
+
+### Example Success Response
+
+    HTTP/1.1 200 OK
+    {
+        "notification": true
+    }
+
+### Example Error Response
+	
+    HTTP/1.1 401 Unauthorized
+    {
+    	"error": "Authentication failed"
+	}
+-
+ 
+	HTTP/1.1 404 Not Found	
+	{
+        "error": "boardId not found"
+    }
+-
+ 
+	HTTP/1.1 404 Not Found	
+	{
+        error: "messageId not found"
     }
 
 
@@ -364,9 +447,9 @@ Zitierter Text einer Message.
 
 ### Response Data
 
-| Feld               | Typ       | Beschreibung        |
-| ------------------ | --------- | --------------------|
-| quote              | String    | Zitat (Plain Text)  |
+| Feld  | Typ       | Beschreibung        |
+| ----- | --------- | --------------------|
+| quote | String    | Zitat (Plain Text)  |
     
 ### Example Success Response
 
@@ -503,7 +586,7 @@ Erstellt einen neuen Thread.
 
     mservice/board/:boardId/message
     
-__`NEEDS AUTHENTICATION`__    
+**`NEEDS AUTHENTICATION`**
     
 ### URL Params
 
@@ -532,7 +615,7 @@ Erzeugt eine Antwort zur übergebenen Message ID.
 
     mservice/board/:boardId/message/:messageId
 
-__`NEEDS AUTHENTICATION`__    
+**`NEEDS AUTHENTICATION`**
     
 ### URL Params
 
@@ -563,7 +646,7 @@ Editiert die Message mit der übergebenen Message ID. Dies ist nur möglich sofe
 
     mservice/board/:boardId/message/:messageId    
 
-__`NEEDS AUTHENTICATION`__
+**`NEEDS AUTHENTICATION`**
 
 ### URL Params
 
@@ -584,38 +667,6 @@ __`NEEDS AUTHENTICATION`__
 
     HTTP/1.1 200 OK
     
-
-## Notification
-
-Schaltet die Mailbenachrichtigung für die übergebene Message ID an oder aus. Die Original API des Maniac Forums bietet leider keine Möglichkeit die Mailbenachrichtigung explizit an oder auszuschalten. Ist die Mailbenachrichtigung also bereits aktiv schaltet dieser Request sie aus, ist sie nicht aktiv wird sie entspechend aktiviert.
-
-### HTTP Method: `GET`
-
-    mservice/board/:boardId/notification/:messageId
-
-__`NEEDS AUTHENTICATION`__
-    
-### URL Params
-
-| Parameter | Beschreibung |
-| --------- | ------------ |
-| boardId   | Board ID     |
-| messageId | Message ID   |
-    
-## Status of Notification
-
-### HTTP Method: `GET`
-
-    mservice/board/:boardId/notification-status/:messageId    
-    
-__`NEEDS AUTHENTICATION`__    
-    
-### URL Params
-
-| Parameter | Beschreibung |
-| --------- | ------------ |
-| boardId   | Board ID     |
-| messageId | Message ID   |
     
 
 ## Search Threads

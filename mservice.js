@@ -247,15 +247,15 @@ var mservice = {
 			return thread;
 		},
 
-		message: function(messageId, html) {
+		message: function (messageId, html) {
 			var $html = $(html);
 
-			var $bg1TRs  = $html.find('body table tr.bg1 td');
-			var $userA   = $($bg1TRs.get(5)).find('a');
+			var $bg1TRs = $html.find('body table tr.bg1 td');
+			var $userA  = $($bg1TRs.get(5)).find('a').first();
 
 			var userId   = mservice.utils.toInt(/pxmboard.php\?mode=userprofile&brdid=\d+&usrid=(\d+)/.exec($userA.attr('href'))[1]);
-			var username = $userA.html();
-			var subject  = $($bg1TRs.get(2)).find('b').html();
+			var username = $userA.text();
+			var subject  = $($bg1TRs.get(2)).find('b').text();
 			var date     = mservice.utils.datetimeStringToISO8601($($bg1TRs.get(7)).html());
 
 			var removeLinkBracesRegExp = /\[(<a.+>.+<\/a>)\]/g;
@@ -267,6 +267,8 @@ var mservice = {
 			$text.find('font[face="Courier New"] > a').replaceWith(mservice.utils.embedImages);
 			var textHtmlWithEmbeddedImages = $text.html().replace(removeLinkBracesRegExp, '$1').trim();
 
+			var notification = mservice.parse.notificationStatus(html).notification;
+
 			return {
 				messageId: mservice.utils.toInt(messageId),
 				userId: userId,
@@ -275,11 +277,25 @@ var mservice = {
 				date: date,
 				text: text,
 				textHtml: textHtml,
-				textHtmlWithImages: textHtmlWithEmbeddedImages
+				textHtmlWithImages: textHtmlWithEmbeddedImages,
+				notification: notification
 			};
 		},
 
-		preview: function(html) {
+		notificationStatus: function (html) {
+			var notification = null;
+			var notificationLinkText = $(html).find('a[href^="pxmboard.php?mode=messagenotification"]').text().trim().split(' ')[1];
+
+			if (notificationLinkText !== undefined) {
+				notification = notificationLinkText === 'deaktivieren';
+			}
+
+			return {
+				notification: notification
+			};
+		},
+
+		preview: function (html) {
 			var $html = $(html);
 
 			var removeLinkBracesRegExp = /\[(<a.+>.+<\/a>)\]/g;
@@ -460,7 +476,7 @@ var mservice = {
 				var messageId = req.params.messageId;
 				var url = mservice.options.maniacUrl + '?mode=message&brdid=' + boardId + '&msgid=' + messageId;
 
-				mservice.request.get(res, next, url, function (html) {
+				var sendMessageResponse = function (html) {
 					var data = null;
 					var error = null;
 
@@ -474,7 +490,19 @@ var mservice = {
 					}
 
 					mservice.response.json(res, data, error, next);
-				});
+				};
+
+				if (req.authorization.basic === undefined) {
+					mservice.request.get(res, next, url, sendMessageResponse);
+				} else {
+					mservice.request.authenticate(req, res, next, function (jar) {
+						var options = {
+							uri: url,
+							jar: jar
+						};
+						mservice.request.get(res, next, options, sendMessageResponse);
+					});
+				}
 			},
 			/**
 			 * quote action, fetches quoted text of a man!ac message
@@ -516,12 +544,19 @@ var mservice = {
 					};
 
 					mservice.request.get(res, next, options, function (html) {
-						var notificationLinkText = $(html).find('a[href^="pxmboard.php?mode=messagenotification"]').text().trim().split(' ')[1];
-						var data = {
-							notificationEnabled: notificationLinkText === 'deaktivieren'
+						var data = null;
+						var error = null;
+
+						var $html = $(html);
+						var title = $html.find('title').text();
+						if (title === mservice.errors.maniacBoardTitles.error) {
+							var maniacErrorMessage = $html.find('tr.bg2 td').first().text();
+							error = mservice.errors.maniacMessages[maniacErrorMessage];
+						} else {
+							data = mservice.parse.notificationStatus(html);
 						}
 
-						mservice.response.json(res, data, null, next);
+						mservice.response.json(res, data, error, next);
 					});
 				});
 			},
@@ -786,28 +821,32 @@ var mservice = {
 			})
 		},
 		authenticate: function (req, res, next, fnSuccess) {
-			var options = {
-				form: {
-					mode: 'login',
-					nick: req.authorization.basic.username,
-					pass: req.authorization.basic.password
-				}
-			};
+			if (req.authorization.basic === undefined) {
+				mservice.response.json(res, null, 'login', next);
+			} else {
+				var options = {
+					form: {
+						mode: 'login',
+						nick: req.authorization.basic.username,
+						pass: req.authorization.basic.password
+					}
+				};
 
-			mservice.request.post(res, next, options, function (html, response) {
-				if ($(html).find('form').length > 0) {
-					mservice.response.json(res, null, 'login', next);
-				} else 	if (typeof fnSuccess === 'function') {
-					var cookieString = response.headers['set-cookie'][0].split(';')[0];
-					var cookie = request.cookie(cookieString);
-			 		var jar = request.jar();
-					jar.setCookie(cookie, mservice.options.maniacUrl);
+				mservice.request.post(res, next, options, function (html, response) {
+					if ($(html).find('form').length > 0) {
+						mservice.response.json(res, null, 'login', next);
+					} else 	if (typeof fnSuccess === 'function') {
+						var cookieString = response.headers['set-cookie'][0].split(';')[0];
+						var cookie = request.cookie(cookieString);
+				 		var jar = request.jar();
+						jar.setCookie(cookie, mservice.options.maniacUrl);
 
-		  			fnSuccess(jar);
-	  			} else {
-	  				mservice.response.json(res, null, null, next);
-	  			}
-			});
+			  			fnSuccess(jar);
+		  			} else {
+		  				mservice.response.json(res, null, null, next);
+		  			}
+				});
+			}
 		}
 	},
 	/**
