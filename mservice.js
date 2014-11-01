@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 /**
  * M!service
  * RESTful JSON API for famous Man!ac Forum
@@ -24,6 +23,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+'use strict';
 
 /**
  * Includes
@@ -176,7 +177,7 @@ var mservice = {
                 var mod = $('span', threadEntries[i]).hasClass('highlight');
 
                 // Fishing other thread data via easy regexp from line freed of html
-                var subject, author, date, answerCount, answerDate;
+                var subject, username, date, answerCount, answerDate;
                 var regExpResult = mainRegExp.exec($(threadEntries[i]).text().trim().replace(/(\n|\t)/g, ''));
 
                 if (regExpResult !== null) {
@@ -227,7 +228,7 @@ var mservice = {
                     username: username,
                     date: date
                 };
-            }
+            };
 
             $(html).find('body > ul').each(function () {
                 (function walkthrough($ul, level) {
@@ -320,7 +321,7 @@ var mservice = {
 
             return {
                 quote: quote
-            }
+            };
         },
 
         user: function (userId, html) {
@@ -371,8 +372,8 @@ var mservice = {
                 profile[key] = data[i++];
             }
 
-            profile['registrationDate'] = mservice.utils.datetimeStringToISO8601(profile['registrationDate']);
-            profile['lastUpdate'] = mservice.utils.datetimeStringToISO8601(profile['lastUpdate']);
+            profile.registrationDate = mservice.utils.datetimeStringToISO8601(profile.registrationDate);
+            profile.lastUpdate = mservice.utils.datetimeStringToISO8601(profile.lastUpdate);
 
             return profile;
         },
@@ -818,7 +819,7 @@ var mservice = {
                 } else if (typeof fn === 'function') {
                     fn(requestBody);
                 }
-            })
+            });
         },
         post: function (res, next, options, fn) {
             options = mservice.utils.extend({
@@ -840,7 +841,7 @@ var mservice = {
                 } else if (typeof fn === 'function') {
                     fn(requestBody, requestResponse);
                 }
-            })
+            });
         },
         authenticate: function (req, res, next, fnSuccess) {
             if (req.authorization.basic === undefined) {
@@ -898,9 +899,8 @@ var mservice = {
             }
         },
         html: function (res, html, error, next) {
-            // console.log(Buffer.byteLength(html));
             res.writeHead(200, {
-                'Content-Length': Buffer.byteLength(html),
+                //'Content-Length': Buffer.byteLength(html),
                 'Content-Type': 'text/html; charset=utf-8'
             });
             res.write(html);
@@ -1000,7 +1000,7 @@ var mservice = {
             var tzo = - date.getTimezoneOffset();
             var dif = tzo >= 0 ? '+' : '-';
             var pad = function(num) {
-                norm = Math.abs(Math.floor(num));
+                var norm = Math.abs(Math.floor(num));
                 return (norm < 10 ? '0' : '') + norm;
             };
 
@@ -1065,13 +1065,13 @@ var mservice = {
 
     argv: function () {
         var argError = function (msg) {
-            throw '\033[31mERROR: \033[0m' + msg;
-        }
+            throw '\x1B[31mERROR: \x1B[0m' + msg;
+        };
 
         var checkSSLKeyAndCertificateArg = function (argv) {
             var error = null;
-            var key = argv['key'] ? argv['key'] : '';
-            var certificate = argv['certificate'] ? argv['certificate'] : '';
+            var key = argv.key ? argv.key : '';
+            var certificate = argv.certificate ? argv.certificate : '';
 
             if (key.length > 0 || certificate.length > 0) {
                 if (key.length === 0 || certificate.length === 0) {
@@ -1086,15 +1086,15 @@ var mservice = {
 
         var checkLogFileArg = function (argv) {
             var error = null;
-            var logFile = argv['logFile'] ? argv['logFile'] : false;
-            var disableLogging = argv['disableLogging'];
+            var logFile = argv.logFile ? argv.logFile : false;
+            var disableLogging = argv.disableLogging;
 
             var fileIsWriteable = function (file) {
                 var isWriteable = true;
                 var fd;
 
                 try {
-                    fd = fs.openSync(file, 'a+', 0660);
+                    fd = fs.openSync(file, 'a+', 432 /* 0660 */);
                 } catch(err) {
                     isWriteable = false;
                 }
@@ -1142,7 +1142,7 @@ var mservice = {
                 .describe('verbose-logging', 'If enabled all requests are logged (useful for development)')
                 .default('verbose-logging', mservice.options.log.verbose)
             .requiresArg(['p', 'u', 'k', 'c'])
-            .argv
+            .argv;
     }
 };
 
