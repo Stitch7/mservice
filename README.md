@@ -4,10 +4,11 @@ M!service
 M!service ist ein in JavaScript geschriebener Serverdienst, der eine RESTful JSON API für das Man!ac Forum bereitstellt.
 
 # Usage
+
 Vorraussetzung ist `NodeJS` >= v0.10.30 (ältere Versionen wurden nicht gestestet)<br/>
 Für den Betrieb empfiehlt sich der Einsatz von `forever`:<br/>
 https://github.com/nodejitsu/forever
-    
+
     $ [sudo] npm install forever -g
     $ forever start -c mservice.js [OPTIONS]
 
@@ -35,20 +36,18 @@ https://github.com/nodejitsu/forever
 
 # API
 
-
-
 ### Parameter
 
-Spezifische Ressourcen werden über Parameter angesprochen. Falls vorhanden, sind die Parameter zur Spezifizierung einer Ressource Teil der dazugehörigen URI welche in der Beschreibung Platzhalter in Form von _:ParameterName_ enthält die in der Tabelle _URI Params_ beschrieben sind.
-Parameter zur Manipulation einer Ressource werden im Request Body mitgesendet und sind falls vorhanden in der Tabelle _Dara Params_ beschrieben. 
+Spezifische Ressourcen werden über Parameter angesprochen. Falls vorhanden, sind die Parameter zur Spezifizierung einer Ressource Teil der dazugehörigen URI welche in der Beschreibung Platzhalter in Form von _:ParameterName_ enthält, die in der Tabelle _URI Params_ beschrieben sind.
+Parameter zur Manipulation einer Ressource werden im Request Body mitgesendet und sind falls vorhanden in der Tabelle _Data Params_ beschrieben.
 
 ### Authentifizierung
 
-Einige Ressourcen benötigen Authentifizierung, dazu muss beim Request eine gültige Username / Passwort Kombination für das Man!ac-Forum im HTTP-Header in Form von Basic Authentication nach RFC 2617 mitgesendet werden. Wenn eine Ressource eine gültige Authentifizierung benötigt dies mit **`NEEDS AUTHENTICATION`** unterhalb der URI markiert.
+Einige Ressourcen benötigen Authentifizierung, dazu muss beim Request eine für das Man!ac-Forum gültige Username / Passwort Kombination im HTTP-Header in Form von Basic Authentication nach RFC 2617 mitgesendet werden. Wenn eine Ressource eine gültige Authentifizierung benötigt ist dies mit **`NEEDS AUTHENTICATION`** unterhalb der URI markiert.
 
 ### Responses
 
-Bei der Verwendung der API ist der HTTP Status Code der Server Response zu beachten. Alle gültigen Requests erhalten eine Response mit Code 200, im Fehlerfall wird der entsprechende Code laut RFC 7231 und eine Beschreibung des Fehlers im Feld `error` zurückgegeben. Alle spezifischen Error Responses der einzelnen Ressourcen werden als _Example Error Response_ zu der jeweiligen Ressource beschrieben. 
+Bei der Verwendung der API ist der HTTP Status Code der Server Response zu beachten. Alle gültigen Requests erhalten eine Response mit Code 200, im Fehlerfall wird der entsprechende Code laut RFC 7231 und eine Beschreibung des Fehlers im Feld `error` zurückgegeben. Alle spezifischen Error Responses der einzelnen Ressourcen werden als _Example Error Response_ zu der jeweiligen Ressource beschrieben.
 
 **Allgemeine Error Responses:**
 
@@ -58,8 +57,6 @@ Bei der Verwendung der API ist der HTTP Status Code der Server Response zu beach
 | 405 - Method Not Allowed    | Die verwendete HTTP Methode für die angeforderte Ressource ist nicht erlaubt                                     |
 | 500 - Internal Server Error | Unbekannter Fehler ist aufgetreten                                                                               |
 | 504 - Gateway Timeout       | Es konnte keine Verbindung zum Forumsserver hergestellt werden, tritt zB in den Downzeiten während der Nacht auf |
-
-
 
 
 ## Test Login
@@ -72,18 +69,18 @@ Bei der Verwendung der API ist der HTTP Status Code der Server Response zu beach
 
 **`NEEDS AUTHENTICATION`**
 
-    
+
 ### Example Success Response
 
     HTTP/1.1 200 OK
 
 ### Example Error Response
-	
+
     HTTP/1.1 401 Unauthorized
     {
     	"error": "Authentication failed"
 	}
-    
+
 
 ## Boards
 
@@ -91,7 +88,7 @@ Daten der Startseite / Boardübersicht.
 
 ### HTTP Method: `GET`
 
-    mservice/boards    
+    mservice/boards
 
 ### Response Data
 
@@ -107,7 +104,7 @@ Daten der Startseite / Boardübersicht.
 ### Example Success Response
 
     HTTP/1.1 200 OK
-    {     
+    {
         [
             {
                 "id": 1,
@@ -189,13 +186,13 @@ Daten der Startseite / Boardübersicht.
 
 ## Threads
 
-List der Threads (Daten des oberen Frames) eines Boards.
+Liste der Threads (Daten des oberen Frames) eines Boards.
 
 ### HTTP Method: `GET`
 
     mservice/board/:boardId/threads
 
-### URL Params
+### URI Params
 
 | Parameter | Beschreibung |
 | --------- | ------------ |
@@ -220,7 +217,7 @@ List der Threads (Daten des oberen Frames) eines Boards.
 
 
 **Hinweis:**<br/>
-Wenn sticky=TRUE, ist closed immer FALSE.<br/>
+Wenn `sticky` = `TRUE`, ist `closed` immer `FALSE`.<br/>
 Ob ein Sticky Thread geschlossen ist kann nicht aus dem HTML des Man!ac Forums entnommen werden.
 
 ### Example Success Response
@@ -268,6 +265,15 @@ Ob ein Sticky Thread geschlossen ist kann nicht aus dem HTML des Man!ac Forums e
         ]
     }
 
+### Example Error Response
+
+##### Ungültige Board ID referenziert:
+
+	HTTP/1.1 404 Not Found
+	{
+        "error": "boardId not found"
+    }
+
 
 ## Thread
 
@@ -276,8 +282,8 @@ Liste der Messages (Daten des mittleren Frames) eines Threads.
 ### HTTP Method: `GET`
 
     mservice/board/:boardId/thread/:threadId
-    
-### URL Params
+
+### URI Params
 
 | Parameter | Beschreibung |
 | --------- | ------------ |
@@ -353,7 +359,24 @@ Liste der Messages (Daten des mittleren Frames) eines Threads.
             },
             ...
         ]
-    }    
+    }
+
+### Example Error Response
+
+##### Ungültige Board ID referenziert:
+
+	HTTP/1.1 404 Not Found
+	{
+        "error": "boardId not found"
+    }
+
+
+##### Ungültige Thread ID referenziert:
+
+    HTTP/1.1 404 Not Found
+    {
+        "error": "threadId not found"
+    }
 
 
 ## Message
@@ -363,10 +386,10 @@ Daten des unteren Frames, eine Message.
 ### HTTP Method: `GET`
 
     mservice/board/:boardId/message/:messageId
-    
-**`OPTIONAL AUTHENTICATION`**    
 
-### URL Params
+**`OPTIONAL AUTHENTICATION`**
+
+### URI Params
 
 | Parameter | Beschreibung |
 | --------- | ------------ |
@@ -389,7 +412,7 @@ Daten des unteren Frames, eine Message.
 
 **Hinweis:**<br/>
 Diese Ressource benötigt normalerweise keine Authentifizierung, möchte man das Feld `notification` verwenden ist aber eine Authentifizierung erforderlich. Dies macht nur Sinn, wenn man vorher schon sicherstellen kann, dass die Message von dem gleichen User erstellt wurde wie der dessen Username man zur Authentifizierung mitsendet. Dies sollte man aus Performance-Gründen auch nur in diesem Fall tun. Weiß man in bestimmten Fällen nicht im Vorfeld von welchem User die Message erstellt wurde, kann man den Status der Mailbenachrichtigung auch über die Ressource `notification-status` separat abfragen.<br/>
-Wenn keine Authentifizierung mitgesendet wird, oder der Username nicht mit den Authentifizierungsdaten übereinstimmt ist das Feld `notification` = `NULL`.
+Wenn keine Authentifizierung mitgesendet wird oder der Username nicht mit den Authentifizierungsdaten übereinstimmt ist das Feld `notification` = `NULL`.
 
 ### Example Success Response
 
@@ -405,45 +428,33 @@ Wenn keine Authentifizierung mitgesendet wird, oder der Username nicht mit den A
         "textHtmlWithImages": "<a href=\"https://i.imgur.com/ETtsCml.jpg\"><img src=\"https://i.imgur.com/ETtsCml.jpg\"></a><br>\n<br>\nLink zum Vorgänger:<br>\n<a href=\"https://www.maniac-forum.de/forum/pxmboard.php?mode=message&brdid=6&msgid=3502734\">https://www.maniac-forum.de/forum/pxmboard.php?mode=message&brdid=6&msgid=3502734</a>"
     }
 
-## Notification
-
-Schaltet die Mailbenachrichtigung für die übergebene Message ID an oder aus. Die Original API des Maniac Forums bietet leider keine Möglichkeit die Mailbenachrichtigung explizit an oder auszuschalten. Ist die Mailbenachrichtigung also bereits aktiv schaltet dieser Request sie aus, ist sie nicht aktiv wird sie entspechend aktiviert.
-
-### HTTP Method: `GET`
-
-    mservice/board/:boardId/notification/:messageId
-
-**`NEEDS AUTHENTICATION`**
-    
-### URL Params
-
-| Parameter | Beschreibung |
-| --------- | ------------ |
-| boardId   | Board ID     |
-| messageId | Message ID   |
-
-### Example Success Response
-
-    HTTP/1.1 200 OK
-
 ### Example Error Response
-	
-    HTTP/1.1 401 Unauthorized
-    {
-    	"error": "Authentication failed"
-	}
-    
+
+##### Ungültige Board ID referenziert:
+
+	HTTP/1.1 404 Not Found
+	{
+        "error": "boardId not found"
+    }
+
+##### Ungültige Message ID referenziert:
+
+	HTTP/1.1 404 Not Found
+	{
+        error: "messageId not found"
+    }
+
 ## Notification Status
 
 Alternative Möglichkeit den Status der Mailbenachrichtigung einer Message abzufragen.
 
 ### HTTP Method: `GET`
 
-    mservice/board/:boardId/notification-status/:messageId    
-    
-**`NEEDS AUTHENTICATION`**    
+    mservice/board/:boardId/notification-status/:messageId
 
-### URL Params
+**`NEEDS AUTHENTICATION`**
+
+### URI Params
 
 | Parameter | Beschreibung |
 | --------- | ------------ |
@@ -464,23 +475,74 @@ Alternative Möglichkeit den Status der Mailbenachrichtigung einer Message abzuf
     }
 
 ### Example Error Response
-	
+
+##### Benutzername / Passwort ungültig:
+
     HTTP/1.1 401 Unauthorized
     {
     	"error": "Authentication failed"
 	}
--
- 
-	HTTP/1.1 404 Not Found	
+
+##### Ungültige Board ID referenziert:
+
+	HTTP/1.1 404 Not Found
 	{
         "error": "boardId not found"
     }
--
- 
-	HTTP/1.1 404 Not Found	
+
+##### Ungültige Message ID referenziert:
+
+	HTTP/1.1 404 Not Found
 	{
         error: "messageId not found"
     }
+
+
+
+## Notification
+
+Schaltet die Mailbenachrichtigung für die übergebene Message ID an oder aus. Die Original API des Maniac Forums bietet leider keine Möglichkeit die Mailbenachrichtigung explizit an oder auszuschalten und gibt auch keine Rückmeldung in welche Richtung der Status geändert wurde. Ist die Mailbenachrichtigung also bereits aktiv schaltet dieser Request sie aus, ist sie nicht aktiv wird sie entspechend aktiviert.
+
+### HTTP Method: `GET`
+
+    mservice/board/:boardId/notification/:messageId
+
+**`NEEDS AUTHENTICATION`**
+
+### URI Params
+
+| Parameter | Beschreibung |
+| --------- | ------------ |
+| boardId   | Board ID     |
+| messageId | Message ID   |
+
+### Example Success Response
+
+    HTTP/1.1 200 OK
+
+### Example Error Response
+
+##### Benutzername / Passwort ungültig:
+
+    HTTP/1.1 401 Unauthorized
+    {
+    	"error": "Authentication failed"
+	}
+
+##### Ungültige Board ID referenziert:
+
+	HTTP/1.1 404 Not Found
+	{
+        "error": "boardId not found"
+    }
+
+##### Ungültige Message ID referenziert:
+
+	HTTP/1.1 404 Not Found
+	{
+        error: "messageId not found"
+    }
+
 
 
 ## Quote Message
@@ -491,7 +553,7 @@ Zitierter Text einer Message.
 
     mservice/board/:boardId/quote/:messageId
 
-### URL Params
+### URI Params
 
 | Parameter | Beschreibung |
 | --------- | ------------ |
@@ -503,110 +565,30 @@ Zitierter Text einer Message.
 | Feld  | Typ       | Beschreibung        |
 | ----- | --------- | --------------------|
 | quote | String    | Zitat (Plain Text)  |
-    
-### Example Success Response
 
-    HTTP/1.1 200 OK    
-    {
-        "quote": ">[img:https://i.imgur.com/ETtsCml.jpg]\n>\n>Link zum Vorgänger:\n>[https://www.maniac-forum.de/forum/pxmboard.php?mode=message&brdid=6&msgid=3502734]"
-    }    
-
-## User
-
-Daten eines User-Profils.
-
-### HTTP Method: `GET`
-
-    mservice/user/:userId
-
-### URL Params
-
-| Parameter | Beschreibung |
-| --------- | ------------ |
-| userId    | Account-Nr.  |
-
-
-### Response Data
-
-| Feld               | Typ       | Beschreibung        |
-| ------------------ | --------- | --------------------|
-| userId             | Number    | Account-Nr.         |
-| username           | String    | Benutzername        |
-| picture            | String    | URL zum Profilbild  |
-| firstname          | String    | Vorname             |
-| lastname           | String    | Nachname            |
-| domicile           | String    | Wohnort             |
-| registrationDate   | Date      | Mitglied seit       |
-| email              | String    | E-Mail              |
-| icq                | String    | ICQ                 |
-| homepage           | String    | Homepage            |
-| firstGame          | String    | Erstes Spiel        |
-| allTimeClassics    | String    | All-Time-Classics   |
-| favoriteGenres     | String    | Lieblingsgenres     |
-| currentSystems     | String    | Aktuelle Systeme    |
-| hobbies            | String    | Hobbys              |
-| xboxLiveGamertag   | String    | Xbox Live Gamertag  |
-| psnId              | String    | PS Network ID       |
-| nintendoFriendcode | String    | Nintendo Friendcode |
-| lastUpdate         | Date      | Letztes Update      |
-
-    
 ### Example Success Response
 
     HTTP/1.1 200 OK
     {
-        "userId": 2615,
-        "username": "Stitch",
-        "picture": "https://maniac-forum.de/forum/images/profile/2600/2615.jpg",
-        "firstname": "-",
-        "lastname": "-",
-        "domicile": "Gießen",
-        "accountNo": "2615",
-        "registrationDate": "",
-        "email": "",
-        "icq": "48592251",
-        "homepage": "",
-        "firstGame": "Summer Games",
-        "allTimeClassics": "Turrican, Super Mario World, Zelda3, ShenMue I+II, Garou MOTW, GTA4",
-        "favoriteGenres": "Jump 'n' Runs, Racer, Shen Mue artiges",
-        "currentSystems": "Current:PS3, Xbox360, WindoofPast:Wii, NES, PS2, Gamecube, Dreamcast, GBA, NeoGeoPocket, PSX, SNES, MegaDrive, MasterSystem, GameBoy, C64",
-        "hobbies": "",
-        "xboxLiveGamertag": "",
-        "psnId": "seeteufelfilet",
-        "nintendoFriendcode": "",
-        "lastUpdate": "2014-07-23T22:48:00+02:00"
+        "quote": ">[img:https://i.imgur.com/ETtsCml.jpg]\n>\n>Link zum Vorgänger:\n>[https://www.maniac-forum.de/forum/pxmboard.php?mode=message&brdid=6&msgid=3502734]"
     }
 
 ### Example Error Response
 
+##### Ungültige Board ID referenziert:
+
 	HTTP/1.1 404 Not Found
-    {
-        "error": "userId not found"
+	{
+        "error": "boardId not found"
     }
 
-## Latest User
+##### Ungültige Message ID referenziert:
 
-Das neuste Mitglied des Forums.
-
-### HTTP Method: `GET`
-
-    mservice/latest-user
-
-### Response Data
-
-| Feld               | Typ       | Beschreibung        |
-| ------------------ | --------- | --------------------|
-| userId             | Number    | Account-Nr.         |
-| username           | String    | Benutzername        |
-
-### Example Success Response
-
-    HTTP/1.1 200 OK
-    {
-        "userId": 52917,
-        "username": "Marty"
+	HTTP/1.1 404 Not Found
+	{
+        error: "messageId not found"
     }
-    
+
 
 ## Message Preview
 
@@ -615,8 +597,8 @@ Erzeugt das Vorschau-HTML für ein Posting.
 ### HTTP Method: `POST`
 
     mservice/board/:boardId/message/preview
-    
-### URL Params
+
+### URI Params
 
 | Parameter | Beschreibung |
 | --------- | ------------ |
@@ -637,7 +619,7 @@ Erzeugt das Vorschau-HTML für ein Posting.
 | textHtml           | String    | Message Body als HTML                    |
 | textHtmlWithImages | String    | Message Body als HTML Images in IMG-Tags |
 
-    
+
 ### Example Success Response
 
     HTTP/1.1 200 OK
@@ -646,14 +628,16 @@ Erzeugt das Vorschau-HTML für ein Posting.
         "previewTextHtml": "Ein zu previewender Text mit Bild <a href=\"http://www.example.com/image.png\" target=\"_blank\">http://www.example.com/image.png</a> und <b>fettem Wort</b>",
         "previewTextHtmlWithImages": "Ein zu previewender Text mit Bild <a href=\"http://www.example.com/image.png\"><img src=\"http://www.example.com/image.png\"></a> und <b>fettem Wort</b>"
     }
-    
+
 ### Example Error Response
+
+##### Ungültige Board ID referenziert:
 
 	HTTP/1.1 404 Not Found
     {
         "error": "boardId not found"
     }
-        
+
 
 ## Create Thread
 
@@ -662,10 +646,10 @@ Erstellt einen neuen Thread.
 ### HTTP Method: `POST`
 
     mservice/board/:boardId/message
-    
+
 **`NEEDS AUTHENTICATION`**
-    
-### URL Params
+
+### URI Params
 
 | Parameter | Beschreibung |
 | --------- | ------------ |
@@ -678,11 +662,35 @@ Erstellt einen neuen Thread.
 | subject      | Thema (Betreff)                     |
 | text         | Inhalt / Text                       |
 | notification | Flag für Mailbenachrichtigung (1/0) |
-   
+
 
 ### Example Success Response
 
     HTTP/1.1 200 OK
+
+### Example Error Response
+
+##### Thema / Betreff Feld nicht gefüllt:
+
+    HTTP/1.1 400 Bad Request
+    {
+        "error": "Subject not filled"
+    }
+
+##### Benutzername / Passwort ungültig:
+
+    HTTP/1.1 401 Unauthorized
+    {
+    	"error": "Authentication failed"
+	}
+
+##### Ungültige Board ID referenziert:
+
+	HTTP/1.1 404 Not Found
+	{
+        "error": "boardId not found"
+    }
+
 
 ## Create Reply
 
@@ -693,8 +701,8 @@ Erzeugt eine Antwort zur übergebenen Message ID.
     mservice/board/:boardId/message/:messageId
 
 **`NEEDS AUTHENTICATION`**
-    
-### URL Params
+
+### URI Params
 
 | Parameter | Beschreibung |
 | --------- | ------------ |
@@ -708,24 +716,54 @@ Erzeugt eine Antwort zur übergebenen Message ID.
 | subject      | Thema (Betreff)                     |
 | text         | Inhalt / Text                       |
 | notification | Flag für Mailbenachrichtigung (1/0) |
-    
-    
+
+
 ### Example Success Response
 
     HTTP/1.1 200 OK
 
-    
+### Example Error Response
+
+##### Benutzername / Passwort ungültig:
+
+    HTTP/1.1 401 Unauthorized
+    {
+    	"error": "Authentication failed"
+	}
+
+##### Ungültige Board ID referenziert:
+
+	HTTP/1.1 404 Not Found
+	{
+        "error": "boardId not found"
+    }
+
+##### Ungültige Message ID referenziert:
+
+	HTTP/1.1 404 Not Found
+	{
+        error: "messageId not found"
+    }
+
+##### Zugehöriger Thread ist geschlossen:
+
+    HTTP/1.1 423 Locked
+    {
+        "error": "Thread is closed"
+    }
+
+
 ## Edit Message
 
-Editiert die Message mit der übergebenen Message ID. Dies ist nur möglich sofern die Message von den mitgegeben Login Daten erzeugt wurde und noch keine Antwort erstellt wurde. 
+Editiert die Message mit der übergebenen Message ID. Dies ist nur möglich sofern die Message von den mitgegeben Login Daten erzeugt wurde und noch keine Antwort erstellt wurde.
 
 ### HTTP Method: `PUT`
 
-    mservice/board/:boardId/message/:messageId    
+    mservice/board/:boardId/message/:messageId
 
 **`NEEDS AUTHENTICATION`**
 
-### URL Params
+### URI Params
 
 | Parameter | Beschreibung |
 | --------- | ------------ |
@@ -743,18 +781,68 @@ Editiert die Message mit der übergebenen Message ID. Dies ist nur möglich sofe
 ### Example Success Response
 
     HTTP/1.1 200 OK
-    
-    
+
+### Example Error Response
+
+##### Benutzername / Passwort ungültig:
+
+    HTTP/1.1 401 Unauthorized
+    {
+    	"error": "Authentication failed"
+	}
+
+##### Message wurde nicht vom in den Authentifizierung-Daten enthaltenen Benutzer erstellt:
+
+    HTTP/1.1 403 Forbidden
+    {
+        "error": "Permission denied"
+    }
+
+##### Ungültige Board ID referenziert:
+
+	HTTP/1.1 404 Not Found
+	{
+        "error": "boardId not found"
+    }
+
+##### Ungültige Message ID referenziert:
+
+	HTTP/1.1 404 Not Found
+	{
+        error: "messageId not found"
+    }
+
+##### Message wurde unverändert abgesendet:
+
+	HTTP/1.1 406 Not Acceptable
+    {
+        "error": "Data was not changed"
+    }
+
+##### Message hat bereits Antworten erhalten und kann deshalb nicht mehr editiert werden:
+
+    HTTP/1.1 409 Conflict
+    {
+        "error": "This message was already answered"
+    }
+
+##### Zugehöriger Thread ist geschlossen:
+
+    HTTP/1.1 423 Locked
+    {
+        "error": "Thread is closed"
+    }
+
 
 ## Search Threads
 
-Schnelle Suche nach dem Thema eines Threads. Entspricht der neuen Schnellsuche im oberen Frame. Die Original API des Maniac Forums nimmt hier keine Fehlerbehandlung vor, M!Service schaltet diese aus Gründen der Performance ebenfalls nicht vor. Wird also eine ungültige Board ID referenziert wird in jedem Fall ein leeres Suchergebnis zurückgegeben.    
+Schnelle Suche nach dem Thema eines Threads. Entspricht der neuen Schnellsuche im oberen Frame. Die Original API des Maniac Forums nimmt hier keine Fehlerbehandlung vor, M!Service schaltet diese aus Gründen der Performance ebenfalls nicht vor. Wird also eine ungültige Board ID referenziert wird in jedem Fall ein leeres Suchergebnis zurückgegeben.
 
 ### HTTP Method: `POST`
 
     mservice/board/:boardId/search-threads
 
-### URL Params
+### URI Params
 
 | Parameter | Beschreibung |
 | --------- | ------------ |
@@ -844,5 +932,107 @@ Schnelle Suche nach dem Thema eines Threads. Entspricht der neuen Schnellsuche i
                 "answerDate":"2013-10-12T16:55:00+02:00"
             },
             ...
-        ]    
-    }    
+        ]
+    }
+
+## User
+
+Daten eines User-Profils.
+
+### HTTP Method: `GET`
+
+    mservice/user/:userId
+
+### URI Params
+
+| Parameter | Beschreibung |
+| --------- | ------------ |
+| userId    | Account-Nr.  |
+
+
+### Response Data
+
+| Feld               | Typ       | Beschreibung        |
+| ------------------ | --------- | --------------------|
+| userId             | Number    | Account-Nr.         |
+| username           | String    | Benutzername        |
+| picture            | String    | URL zum Profilbild  |
+| firstname          | String    | Vorname             |
+| lastname           | String    | Nachname            |
+| domicile           | String    | Wohnort             |
+| registrationDate   | Date      | Mitglied seit       |
+| email              | String    | E-Mail              |
+| icq                | String    | ICQ                 |
+| homepage           | String    | Homepage            |
+| firstGame          | String    | Erstes Spiel        |
+| allTimeClassics    | String    | All-Time-Classics   |
+| favoriteGenres     | String    | Lieblingsgenres     |
+| currentSystems     | String    | Aktuelle Systeme    |
+| hobbies            | String    | Hobbys              |
+| xboxLiveGamertag   | String    | Xbox Live Gamertag  |
+| psnId              | String    | PS Network ID       |
+| nintendoFriendcode | String    | Nintendo Friendcode |
+| lastUpdate         | Date      | Letztes Update      |
+
+
+### Example Success Response
+
+    HTTP/1.1 200 OK
+    {
+        "userId": 2615,
+        "username": "Stitch",
+        "picture": "http://maniac-forum.de/forum/images/profile/2600/2615.jpg",
+        "firstname": "-",
+        "lastname": "-",
+        "domicile": "Gießen",
+        "accountNo": "2615",
+        "registrationDate": "",
+        "email": "",
+        "icq": "48592251",
+        "homepage": "",
+        "firstGame": "Summer Games",
+        "allTimeClassics": "Turrican, Super Mario World, Zelda3, ShenMue I+II, Garou MOTW, GTA4",
+        "favoriteGenres": "Jump 'n' Runs, Racer, Shen Mue artiges",
+        "currentSystems": "Current:PS3, Xbox360, WindoofPast:Wii, NES, PS2, Gamecube, Dreamcast, GBA, NeoGeoPocket, PSX, SNES, MegaDrive, MasterSystem, GameBoy, C64",
+        "hobbies": "",
+        "xboxLiveGamertag": "",
+        "psnId": "seeteufelfilet",
+        "nintendoFriendcode": "",
+        "lastUpdate": "2014-07-23T22:48:00+02:00"
+    }
+
+### Example Error Response
+
+##### Ungültige Account-Nr. referenziert:
+
+	HTTP/1.1 404 Not Found
+    {
+        "error": "userId not found"
+    }
+
+## Latest User
+
+Das neuste Mitglied des Forums.
+
+### HTTP Method: `GET`
+
+    mservice/latest-user
+
+### Response Data
+
+| Feld               | Typ       | Beschreibung        |
+| ------------------ | --------- | --------------------|
+| userId             | Number    | Account-Nr.         |
+| username           | String    | Benutzername        |
+
+### Example Success Response
+
+    HTTP/1.1 200 OK
+    {
+        "userId": 52917,
+        "username": "Marty"
+    }
+
+# License
+
+M!service ist freie Software und steht unter der MIT-Lizenz.
