@@ -3,7 +3,7 @@
  * M!service
  * RESTful JSON API for famous Man!ac Forum
  *
- * Copyright (c) 2014 Christopher Reitz
+ * Copyright (c) 2014 Christopher Reitz <christopher@reitz.re>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -671,60 +671,81 @@ var mservice = {
              * Creates a thread to given boardId
              */
             '/board/:boardId/message': function (req, res, next) {
-                var options = {
-                    form: {
-                        mode: 'messagesave',
-                        brdid: req.params.boardId,
-                        nick: req.authorization.basic.username,
-                        pass: req.authorization.basic.password,
-                        subject: req.params.subject,
-                        body: req.params.text,
-                        notification: req.params.notification
-                    }
-                };
+                if (req.authorization.basic === undefined) {
+                    mservice.response.json(res, null, 'login', next);
+                } else {
+                    var options = {
+                        form: {
+                            mode: 'messagesave',
+                            brdid: req.params.boardId,
+                            nick: req.authorization.basic.username,
+                            pass: req.authorization.basic.password,
+                            subject: req.params.subject,
+                            body: req.params.text,
+                            notification: req.params.notification
+                        }
+                    };
 
-                mservice.request.post(res, next, options, function (html) {
-                    var data = null;
-                    var error = null;
+                    mservice.request.post(res, next, options, function (html) {
+                        var data = null;
+                        var error = null;
 
-                    var $html = $(html);
-                    if ($html.find('title').text() !== mservice.errors.maniacBoardTitles.confirm) {
-                        var maniacErrorMessage = $($html.find('tr.bg1 td').get(2)).text();
-                        error = mservice.errors.maniacMessages[maniacErrorMessage];
-                    }
+                        var $html = $(html);
+                        var title = $html.find('title').text();
+                        if (title !== mservice.errors.maniacBoardTitles.confirm) {
+                            var maniacErrorMessage = null;
+                            if (title === mservice.errors.maniacBoardTitles.error) {
+                                maniacErrorMessage = $html.find('tr.bg2 td').first().text();
+                            } else if (title === mservice.errors.maniacBoardTitles.reply) {
+                                maniacErrorMessage = $($html.find('tr.bg1 td').get(2)).text();
+                            }
+                            error = maniacErrorMessage ? mservice.errors.maniacMessages[maniacErrorMessage] : 'unknown';
+                        }
 
-                    mservice.response.json(res, data, error, next);
-                });
+                        mservice.response.json(res, data, error, next);
+                    });
+                }
             },
             /**
              * Creates a reply to messageId
              */
             '/board/:boardId/message/:messageId': function (req, res, next) {
-                var options = {
-                    form: {
-                        mode: 'messagesave',
-                        brdid: req.params.boardId,
-                        msgid: req.params.messageId,
-                        nick: req.authorization.basic.username,
-                        pass: req.authorization.basic.password,
-                        subject: req.params.subject,
-                        body: req.params.text,
-                        notification: req.params.notification
-                    }
-                };
+                if (req.authorization.basic === undefined) {
+                    mservice.response.json(res, null, 'login', next);
+                } else {
+                    var options = {
+                        form: {
+                            mode: 'messagesave',
+                            brdid: req.params.boardId,
+                            msgid: req.params.messageId,
+                            nick: req.authorization.basic.username,
+                            pass: req.authorization.basic.password,
+                            subject: req.params.subject,
+                            body: req.params.text,
+                            notification: req.params.notification
+                        }
+                    };
 
-                mservice.request.post(res, next, options, function (html) {
-                    var data = null;
-                    var error = null;
+                    mservice.request.post(res, next, options, function (html) {
+                        var data = null;
+                        var error = null;
 
-                    var $html = $(html);
-                    if ($html.find('title').text() !== mservice.errors.maniacBoardTitles.confirm) {
-                        var maniacErrorMessage = $($html.find('tr.bg1 td').get(2)).text();
-                        error = mservice.errors.maniacMessages[maniacErrorMessage];
-                    }
+                        var $html = $(html);
+                        var title = $html.find('title').text();
+                        console.log(html);
+                        if (title !== mservice.errors.maniacBoardTitles.confirm) {
+                            var maniacErrorMessage = null;
+                            if (title === mservice.errors.maniacBoardTitles.error) {
+                                maniacErrorMessage = $html.find('tr.bg2 td').first().text();
+                            } else if (title === mservice.errors.maniacBoardTitles.reply) {
+                                maniacErrorMessage = $($html.find('tr.bg1 td').get(2)).text();
+                            }
+                            error = maniacErrorMessage ? mservice.errors.maniacMessages[maniacErrorMessage] : 'unknown';
+                        }
 
-                    mservice.response.json(res, data, error, next);
-                });
+                        mservice.response.json(res, data, error, next);
+                    });
+                }
             },
             /**
              * Search action, returns threadlist for given boardId matching given search phrase
@@ -774,7 +795,8 @@ var mservice = {
 
                         var $html = $(html);
                         var title = $html.find('title').text();
-                        if (title != mservice.errors.maniacBoardTitles.confirm) {
+                        if (title !== mservice.errors.maniacBoardTitles.confirm) {
+                            console.log(html);
                             var maniacErrorMessage = null;
                             if (title === mservice.errors.maniacBoardTitles.error) {
                                 maniacErrorMessage = $html.find('tr.bg2 td').first().text();
@@ -951,6 +973,7 @@ var mservice = {
         },
         maniacMessages: {
             'Bitte geben sie ihren Nickname ein': 'login',
+            'Nickname unbekannt': 'login',
             'Passwort ungültig': 'login',
             'Sie sind nicht dazu berechtigt': 'permission',
             'konnte Daten nicht einfügen': 'unchanged',
@@ -962,8 +985,8 @@ var mservice = {
         },
         maniacBoardTitles: {
             confirm: '-= board: confirm =-',
-            reply: '-= board: reply =-',
             error: '-= board: error =-',
+            reply: '-= board: reply =-',
             edit: '-= board: edit =-'
         }
     },
