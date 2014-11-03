@@ -3,16 +3,43 @@ M!service
 
 M!service ist ein in JavaScript geschriebener Serverdienst, der eine RESTful JSON API für das Man!ac Forum bereitstellt.
 
-# Usage
+# Inhalt
+
+- [Usage](#user-content-usage)
+	- [Command Line Options](#user-content-command-line-options)
+- [API](#user-content-api)
+	- [Allgemeines](#user-content-allgemeines) 
+		- [Parameter](#user-content-parameter)
+		- [Authentifizierung](#user-content-authentifizierung)
+		- [Responses](#user-content-responses)
+	- [Test Login](#user-content-test-login)	
+	- [Boards](#user-content-boards)
+	- [Threads](#user-content-threads)
+	- [Thread](#user-content-thread)
+	- [Message](#user-content-message)
+	- [Notification Status](#user-content-notification-status)
+	- [Notification](#user-content-notification)
+	- [Quote Message](#user-content-quote-message)
+	- [Message Preview](#user-content-message-preview)
+	- [Create Thread](#user-content-create-thread)
+	- [Create Reply](#user-content-create-reply)
+	- [Edit Message](#user-content-edit-message)
+	- [Search Threads](#user-content-search-threads)
+	- [User](#user-content-user)
+	- [Latest User](#user-content-latest-user)
+- [License](#user-content-license)
+
+
+# <a name="user-content-usage"></a>Usage
 
 Vorraussetzung ist `NodeJS` >= v0.10.30 (ältere Versionen wurden nicht gestestet)<br/>
-Für den Betrieb empfiehlt sich der Einsatz von `forever`:<br/>
-https://github.com/nodejitsu/forever
+Für den Betrieb empfiehlt sich der Einsatz von [forever](https://github.com/nodejitsu/forever):
 
     $ [sudo] npm install forever -g
     $ forever start -c mservice.js [OPTIONS]
 
-### Command Line Options
+
+### <a name="user-content-command-line-options"></a>Command Line Options
 
     $ ./mservice.js --help
     M!service Server
@@ -34,18 +61,20 @@ https://github.com/nodejitsu/forever
       --verbose-logging  If enabled all requests are logged (useful for development)  [default: false]
 
 
-# API
+# <a name="user-content-api"></a>API
 
-### Parameter
+## <a name="user-content-allgemeines"></a>Allgemeines
+
+### <a name="user-content-parameter"></a>Parameter
 
 Spezifische Ressourcen werden über Parameter angesprochen. Falls vorhanden, sind die Parameter zur Spezifizierung einer Ressource Teil der dazugehörigen URI welche in der Beschreibung Platzhalter in Form von _:ParameterName_ enthält, die in der Tabelle _URI Params_ beschrieben sind.
 Parameter zur Manipulation einer Ressource werden im Request Body mitgesendet und sind falls vorhanden in der Tabelle _Data Params_ beschrieben.
 
-### Authentifizierung
+### <a name="user-content-authentifizierung"></a>Authentifizierung
 
 Einige Ressourcen benötigen Authentifizierung, dazu muss beim Request eine für das Man!ac-Forum gültige Username / Passwort Kombination im HTTP-Header in Form von Basic Authentication nach RFC 2617 mitgesendet werden. Wenn eine Ressource eine gültige Authentifizierung benötigt ist dies mit **`NEEDS AUTHENTICATION`** unterhalb der URI markiert.
 
-### Responses
+### <a name="user-content-responses"></a>Responses
 
 Bei der Verwendung der API ist der HTTP Status Code der Server Response zu beachten. Alle gültigen Requests erhalten eine Response mit Code 200, im Fehlerfall wird der entsprechende Code laut RFC 7231 und eine Beschreibung des Fehlers im Feld `error` zurückgegeben. Alle spezifischen Error Responses der einzelnen Ressourcen werden als _Example Error Response_ zu der jeweiligen Ressource beschrieben.
 
@@ -59,7 +88,7 @@ Bei der Verwendung der API ist der HTTP Status Code der Server Response zu beach
 | 504 - Gateway Timeout       | Es konnte keine Verbindung zum Forumsserver hergestellt werden, tritt zB in den Downzeiten während der Nacht auf |
 
 
-## Test Login
+## <a name="user-content-test-login"></a>Test Login
 
 Überprüft Login Daten.
 
@@ -82,7 +111,7 @@ Bei der Verwendung der API ist der HTTP Status Code der Server Response zu beach
 	}
 
 
-## Boards
+## <a name="user-content-boards"></a>Boards
 
 Daten der Startseite / Boardübersicht.
 
@@ -184,7 +213,7 @@ Daten der Startseite / Boardübersicht.
 
 
 
-## Threads
+## <a name="user-content-threads"></a>Threads
 
 Liste der Threads (Daten des oberen Frames) eines Boards.
 
@@ -275,7 +304,7 @@ Ob ein Sticky Thread geschlossen ist kann nicht aus dem HTML des Man!ac Forums e
     }
 
 
-## Thread
+## <a name="user-content-thread"></a>Thread
 
 Liste der Messages (Daten des mittleren Frames) eines Threads.
 
@@ -379,7 +408,7 @@ Liste der Messages (Daten des mittleren Frames) eines Threads.
     }
 
 
-## Message
+## <a name="user-content-message"></a>Message
 
 Daten des unteren Frames, eine Message.
 
@@ -444,7 +473,7 @@ Wenn keine Authentifizierung mitgesendet wird oder der Username nicht mit den Au
         error: "messageId not found"
     }
 
-## Notification Status
+## <a name="user-content-notification-status"></a>Notification Status
 
 Alternative Möglichkeit den Status der Mailbenachrichtigung einer Message abzufragen.
 
@@ -499,7 +528,7 @@ Alternative Möglichkeit den Status der Mailbenachrichtigung einer Message abzuf
 
 
 
-## Notification
+## <a name="user-content-notification"></a>Notification
 
 Schaltet die Mailbenachrichtigung für die übergebene Message ID an oder aus. Die Original API des Maniac Forums bietet leider keine Möglichkeit die Mailbenachrichtigung explizit an oder auszuschalten und gibt auch keine Rückmeldung in welche Richtung der Status geändert wurde. Ist die Mailbenachrichtigung also bereits aktiv schaltet dieser Request sie aus, ist sie nicht aktiv wird sie entspechend aktiviert.
 
@@ -545,7 +574,7 @@ Schaltet die Mailbenachrichtigung für die übergebene Message ID an oder aus. D
 
 
 
-## Quote Message
+## <a name="user-content-quote-message"></a>Quote Message
 
 Zitierter Text einer Message.
 
@@ -590,7 +619,7 @@ Zitierter Text einer Message.
     }
 
 
-## Message Preview
+## <a name="user-content-message-preview"></a>Message Preview
 
 Erzeugt das Vorschau-HTML für ein Posting.
 
@@ -639,7 +668,7 @@ Erzeugt das Vorschau-HTML für ein Posting.
     }
 
 
-## Create Thread
+## <a name="user-content-create-thread"></a>Create Thread
 
 Erstellt einen neuen Thread.
 
@@ -692,7 +721,7 @@ Erstellt einen neuen Thread.
     }
 
 
-## Create Reply
+## <a name="user-content-create-reply"></a>Create Reply
 
 Erzeugt eine Antwort zur übergebenen Message ID.
 
@@ -753,7 +782,7 @@ Erzeugt eine Antwort zur übergebenen Message ID.
     }
 
 
-## Edit Message
+## <a name="user-content-edit-message"></a>Edit Message
 
 Editiert die Message mit der übergebenen Message ID. Dies ist nur möglich sofern die Message von den mitgegeben Login Daten erzeugt wurde und noch keine Antwort erstellt wurde.
 
@@ -834,7 +863,7 @@ Editiert die Message mit der übergebenen Message ID. Dies ist nur möglich sofe
     }
 
 
-## Search Threads
+## <a name="user-content-search-threads"></a>Search Threads
 
 Schnelle Suche nach dem Thema eines Threads. Entspricht der neuen Schnellsuche im oberen Frame. Die Original API des Maniac Forums nimmt hier keine Fehlerbehandlung vor, M!Service schaltet diese aus Gründen der Performance ebenfalls nicht vor. Wird also eine ungültige Board ID referenziert wird in jedem Fall ein leeres Suchergebnis zurückgegeben.
 
@@ -935,7 +964,7 @@ Schnelle Suche nach dem Thema eines Threads. Entspricht der neuen Schnellsuche i
         ]
     }
 
-## User
+## <a name="user-content-user"></a>User
 
 Daten eines User-Profils.
 
@@ -1010,7 +1039,7 @@ Daten eines User-Profils.
         "error": "userId not found"
     }
 
-## Latest User
+## <a name="user-content-latest-user"></a>Latest User
 
 Das neuste Mitglied des Forums.
 
@@ -1033,6 +1062,6 @@ Das neuste Mitglied des Forums.
         "username": "Marty"
     }
 
-# License
+# <a name="user-content-license"></a>License
 
-M!service ist freie Software und steht unter der MIT-Lizenz.
+M!service ist freie Software und steht unter der [MIT-Lizenz](#https://en.wikipedia.org/wiki/MIT_License).
