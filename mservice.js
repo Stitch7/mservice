@@ -1153,7 +1153,7 @@ var mservice = {
             .example('$0', 'Starts server')
             .example('$0 -k=/etc/ssl/localcerts/my.key -c=/etc/ssl/localcerts/my.crt', 'Starts server in SSL mode')
             .example('$0 -l=/var/log/mservice/mservice.log', 'Starts server with log file')
-            .example('$0 --verbose-logging | mservice/node_modules/bunyan/bin/bunyan', 'Starts server for development')
+            .example('$0 --verbose-logging | mservice/node_modules/bunyan/bin/bunyan -o short', 'Starts server for development')
             .help('h', 'Displays this help message')
                 .alias('h', 'help')
             .alias('p', 'port')

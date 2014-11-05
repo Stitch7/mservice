@@ -45,10 +45,10 @@ Für den Betrieb empfiehlt sich der Einsatz von [forever](https://github.com/nod
     M!service Server
 
     Examples:
-      node ./mservice.js                                                                Starts server
-      node ./mservice.js -k=/etc/ssl/localcerts/my.key -c=/etc/ssl/localcerts/my.crt    Starts server in SSL mode
-      node ./mservice.js -l=/var/log/mservice/mservice.log                              Starts server with log file
-      node ./mservice.js --verbose-logging | mservice/node_modules/bunyan/bin/bunyan    Starts server for development
+      node ./mservice.js                                                                         Starts server
+      node ./mservice.js -k=/etc/ssl/localcerts/my.key -c=/etc/ssl/localcerts/my.crt             Starts server in SSL mode
+      node ./mservice.js -l=/var/log/mservice/mservice.log                                       Starts server with log file
+      node ./mservice.js --verbose-logging | mservice/node_modules/bunyan/bin/bunyan -o short    Starts server for development
 
     Options:
       -h, --help               Displays this help message
