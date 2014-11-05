@@ -5,7 +5,7 @@ M!service ist ein in JavaScript geschriebener Serverdienst, der eine RESTful JSO
 
 # Inhalt
 
-- [Usage](#user-content-usage)
+- [Betrieb](#user-content-betrieb)
 	- [Command Line Options](#user-content-command-line-options)
 - [API](#user-content-api)
 	- [Allgemeines](#user-content-allgemeines) 
@@ -27,10 +27,10 @@ M!service ist ein in JavaScript geschriebener Serverdienst, der eine RESTful JSO
 	- [Search Threads](#user-content-search-threads)
 	- [User](#user-content-user)
 	- [Latest User](#user-content-latest-user)
-- [License](#user-content-license)
+- [Lizenz](#user-content-lizenz)
 
 
-# <a name="user-content-usage"></a>Usage
+# <a name="user-content-betrieb"></a>Betrieb
 
 Voraussetzung ist `NodeJS` >= v0.10.30 (ältere Versionen wurden nicht getestet)<br/>
 Für den Betrieb empfiehlt sich der Einsatz von [forever](https://github.com/nodejitsu/forever):
@@ -51,14 +51,15 @@ Für den Betrieb empfiehlt sich der Einsatz von [forever](https://github.com/nod
       node ./mservice.js --verbose-logging | mservice/node_modules/bunyan/bin/bunyan    Starts server for development
 
     Options:
-      -h, --help         Displays this help message
-      -p, --port         TCP port                                                     [default: 8080]
-      -u, --maniac-url   URL to maniac-forum                                          [default: "https://maniac-forum.de/forum/pxmboard.php"]
-      -k, --key          Path to ssl key
-      -c, --certificate  Path to ssl certificate
-      --log-file         Output file for log (If false, output goes to stdout)        [default: false]
-      --disable-logging  Disables logging                                             [default: false]
-      --verbose-logging  If enabled all requests are logged (useful for development)  [default: false]
+      -h, --help               Displays this help message
+      -p, --port               TCP port                                                     [default: 8080]
+      -u, --maniac-url         URL to maniac-forum                                          [default: "https://maniac-forum.de/forum/pxmboard.php"]
+      -k, --key                Path to ssl key
+      -c, --certificate        Path to ssl certificate
+      --authority-certificate  Path to ssl authority certificate
+      -l, --log-file           Output file for log (If false, output goes to stdout)        [default: false]
+      --disable-logging        Disables logging                                             [default: false]
+      --verbose-logging        If enabled all requests are logged (useful for development)  [default: false]
 
 
 # <a name="user-content-api"></a>API
@@ -1062,6 +1063,6 @@ Das neuste Mitglied des Forums.
         "username": "Marty"
     }
 
-# <a name="user-content-license"></a>License
+# <a name="user-content-lizenz"></a>Lizenz
 
 M!service ist freie Software und steht unter der [MIT-Lizenz](https://en.wikipedia.org/wiki/MIT_License).

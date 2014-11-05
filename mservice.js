@@ -51,13 +51,14 @@ var mservice = {
         ssl: {
             key: undefined,
             certificate: undefined,
+            ca: undefined
         },
         log: {
             disabled: false,
             verbose: false,
             file: false
         },
-        requestTimeout: 5000
+        requestTimeout: 10000
     },
     /**
      * Start server
@@ -66,6 +67,7 @@ var mservice = {
         mservice.options = mservice.utils.extend(mservice.options, options);
         var key = mservice.options.ssl.key;
         var certificate = mservice.options.ssl.certificate;
+        var ca = mservice.options.ssl.authorityCertificate;
 
         var log;
         if ( ! mservice.options.log.disabled) {
@@ -80,6 +82,7 @@ var mservice = {
             name: mservice.options.name,
             key: key ? fs.readFileSync(key) : key,
             certificate: certificate ? fs.readFileSync(certificate) : certificate,
+            ca: ca ? fs.readFileSync(ca) : ca,
             log: log
         });
         server.pre(restify.pre.sanitizePath());
@@ -732,7 +735,6 @@ var mservice = {
 
                         var $html = $(html);
                         var title = $html.find('title').text();
-                        console.log(html);
                         if (title !== mservice.errors.maniacBoardTitles.confirm) {
                             var maniacErrorMessage = null;
                             if (title === mservice.errors.maniacBoardTitles.error) {
@@ -796,7 +798,6 @@ var mservice = {
                         var $html = $(html);
                         var title = $html.find('title').text();
                         if (title !== mservice.errors.maniacBoardTitles.confirm) {
-                            console.log(html);
                             var maniacErrorMessage = null;
                             if (title === mservice.errors.maniacBoardTitles.error) {
                                 maniacErrorMessage = $html.find('tr.bg2 td').first().text();
@@ -1092,7 +1093,6 @@ var mservice = {
         };
 
         var checkSSLKeyAndCertificateArg = function (argv) {
-            var error = null;
             var key = argv.key ? argv.key : '';
             var certificate = argv.certificate ? argv.certificate : '';
 
@@ -1107,8 +1107,21 @@ var mservice = {
             }
         };
 
+        var checkAuthorityCertificateFileArg = function (argv) {
+            var key = argv.key ? argv.key : '';
+            var certificate = argv.certificate ? argv.certificate : '';
+            var authorityCertificate = argv.authorityCertificate ? argv.authorityCertificate : '';
+
+            if (authorityCertificate.length > 0) {
+                if (key.length === 0 || certificate.length === 0) {
+                    argError('When setting an authority certificate both key and certificate are required');
+                } else if ( ! fs.existsSync(authorityCertificate)) {
+                    argError('Could not read ssl authority certificate: ' + authorityCertificate);
+                }
+            }
+        };
+
         var checkLogFileArg = function (argv) {
-            var error = null;
             var logFile = argv.logFile ? argv.logFile : false;
             var disableLogging = argv.disableLogging;
 
@@ -1155,8 +1168,11 @@ var mservice = {
             .alias('c', 'certificate')
                 .describe('c', 'Path to ssl certificate')
                 .check(checkSSLKeyAndCertificateArg)
-            .describe('log-file', 'Output file for log (If false, output goes to stdout)')
-                .default('log-file', mservice.options.log.file)
+            .describe('authority-certificate', 'Path to ssl authority certificate')
+                .check(checkAuthorityCertificateFileArg)
+            .alias('l', 'log-file')
+                .describe('l', 'Output file for log (If false, output goes to stdout)')
+                .default('l', mservice.options.log.file)
                 .check(checkLogFileArg)
             .boolean('disable-logging')
                 .describe('disable-logging', 'Disables logging')
@@ -1164,7 +1180,7 @@ var mservice = {
             .boolean('verbose-logging')
                 .describe('verbose-logging', 'If enabled all requests are logged (useful for development)')
                 .default('verbose-logging', mservice.options.log.verbose)
-            .requiresArg(['p', 'u', 'k', 'c'])
+            .requiresArg(['p', 'u', 'k', 'c', 'authority-certificate'])
             .argv;
     }
 };
