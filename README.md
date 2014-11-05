@@ -32,7 +32,7 @@ M!service ist ein in JavaScript geschriebener Serverdienst, der eine RESTful JSO
 
 # <a name="user-content-usage"></a>Usage
 
-Vorraussetzung ist `NodeJS` >= v0.10.30 (ältere Versionen wurden nicht gestestet)<br/>
+Voraussetzung ist `NodeJS` >= v0.10.30 (ältere Versionen wurden nicht getestet)<br/>
 Für den Betrieb empfiehlt sich der Einsatz von [forever](https://github.com/nodejitsu/forever):
 
     $ [sudo] npm install forever -g
@@ -530,7 +530,7 @@ Alternative Möglichkeit den Status der Mailbenachrichtigung einer Message abzuf
 
 ## <a name="user-content-notification"></a>Notification
 
-Schaltet die Mailbenachrichtigung für die übergebene Message ID an oder aus. Die Original API des Maniac Forums bietet leider keine Möglichkeit die Mailbenachrichtigung explizit an oder auszuschalten und gibt auch keine Rückmeldung in welche Richtung der Status geändert wurde. Ist die Mailbenachrichtigung also bereits aktiv schaltet dieser Request sie aus, ist sie nicht aktiv wird sie entspechend aktiviert.
+Schaltet die Mailbenachrichtigung für die übergebene Message ID an oder aus. Die Original API des Maniac Forums bietet leider keine Möglichkeit die Mailbenachrichtigung explizit an oder auszuschalten und gibt auch keine Rückmeldung in welche Richtung der Status geändert wurde. Ist die Mailbenachrichtigung also bereits aktiv schaltet dieser Request sie aus, ist sie nicht aktiv wird sie entsprechend aktiviert.
 
 ### HTTP Method: `GET`
 
@@ -1064,4 +1064,4 @@ Das neuste Mitglied des Forums.
 
 # <a name="user-content-license"></a>License
 
-M!service ist freie Software und steht unter der [MIT-Lizenz](#https://en.wikipedia.org/wiki/MIT_License).
+M!service ist freie Software und steht unter der [MIT-Lizenz](https://en.wikipedia.org/wiki/MIT_License).
