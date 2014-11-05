@@ -65,9 +65,10 @@ var mservice = {
      */
     start: function (options) {
         mservice.options = mservice.utils.extend(mservice.options, options);
+
         var key = mservice.options.ssl.key;
         var certificate = mservice.options.ssl.certificate;
-        var ca = mservice.options.ssl.authorityCertificate;
+        var ca = mservice.options.ssl.ca;
 
         var log;
         if ( ! mservice.options.log.disabled) {
@@ -1195,7 +1196,8 @@ mservice.start({
     maniacUrl: argv.maniacUrl,
     ssl: {
         key: argv.key,
-        certificate: argv.certificate
+        certificate: argv.certificate,
+        ca: argv.authorityCertificate
     },
     log: {
         disabled: argv.disableLogging,
