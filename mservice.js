@@ -406,13 +406,12 @@ var mservice = {
              */
             '/': function (req, res, next) {
                 var marked = require('marked');
-
-                fs.readFile('index.html', 'utf8', function (error, data) {
+                fs.readFile(path.resolve(__dirname, 'index.html'), 'utf8', function (error, data) {
                     if (error) {
                         return console.log(error);
                     }
                     var indexHtml = data;
-                    fs.readFile('README.md', 'utf8', function (error, data) {
+                    fs.readFile(path.resolve(__dirname, 'README.md'), 'utf8', function (error, data) {
                         if (error) {
                             return console.log(error);
                         }
