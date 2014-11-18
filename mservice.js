@@ -360,8 +360,7 @@ var mservice = {
 
             var image = $html.find('tr.bg2 td img').first().attr('src');
             if (image != 'images/empty.gif') {
-                // Use http instead of https for the image URI, because iOS7.1 on iPhone doesn't accept the maniac servers SSL certificate
-                // Fun fact: iOS7.1 on iPad does accept it, no problems on iOS8, too.
+                // Use http instead of https for the image URI, because iOS7.1 doesn't accept the maniac servers SSL cert
                 data.push(mservice.utils.domainFromUri(mservice.options.maniacUrl, 'http') + '/forum/' +image);
             } else {
                 data.push('');
@@ -391,6 +390,46 @@ var mservice = {
                 userId: userId,
                 username: username
             };
+        },
+
+        privateMessageStatus: function (html) {
+            var newPrivateMessagesString = $(html).find('a[href^="pxmboard.php?mode=privatemessagelist"]').text();
+            var newPrivateMessagesCount = mservice.utils.toInt(/(\d+).+/.exec(newPrivateMessagesString)[1]);
+
+            return {
+                newPrivateMessagesCount: newPrivateMessagesCount
+            };
+        },
+
+        privateMessageList: function (html) {
+            var pms = [];
+
+            $(html).find('table:nth-child(2) tr.bg2').each(function () {
+                var $tds = $(this).find('td');
+
+                var $subjectA = $($tds[0]).find('a');
+                var hrefInfo = /pxmboard.php\?mode=privatemessage&type=(inbox|outbox)&msgid=(.+)/.exec($subjectA.attr('href'));
+
+                var $userSpan = $($tds[1]).find('span');
+                var user = $userSpan.text().trim();
+                var userIsMod = $userSpan.hasClass('highlight');
+
+                var pm = {};
+                pm.id = mservice.utils.toInt(hrefInfo[2]);
+                pm.date = mservice.utils.datetimeStringToISO8601($($tds[2]).text());
+                pm.subject = $subjectA.text();
+                if (hrefInfo[1] === 'inbox') {
+                    pm.sender = user;
+                    pm.senderIsMod = userIsMod;
+                } else {
+                    pm.receiver = user;
+                    pm.receiverIsMod = userIsMod;
+                }
+
+                pms.push(pm);
+            });
+
+            return pms;
         }
     },
     /**
@@ -635,6 +674,49 @@ var mservice = {
                 mservice.request.get(res, next, url, function (html) {
                     var data = mservice.parse.latestUser(html);
                     mservice.response.json(res, data, null, next);
+                });
+            },
+            /**
+             * Fetches number of unread private messages
+             */
+            '/private-messages-status/': function (req, res, next) {
+                mservice.request.authenticate(req, res, next, function (jar, loginPageHtml) {
+                    var data = mservice.parse.privateMessageStatus(loginPageHtml);
+                    mservice.response.json(res, data, null, next);
+                });
+            },
+            /**
+             * Fetches list of private messages in users inbox
+             */
+            '/private-messages-inbox/': function (req, res, next) {
+                mservice.request.authenticate(req, res, next, function (jar) {
+                    var url = mservice.options.maniacUrl + '?mode=privatemessagelist&type=inbox';
+                    var options = {
+                        uri: url,
+                        jar: jar
+                    };
+
+                    mservice.request.get(res, next, options, function (html) {
+                        var data = mservice.parse.privateMessageList(html);
+                        mservice.response.json(res, data, null, next);
+                    });
+                });
+            },
+            /**
+             * Fetches list of private messages in users outbox
+             */
+            '/private-messages-outbox/': function (req, res, next) {
+                mservice.request.authenticate(req, res, next, function (jar) {
+                    var url = mservice.options.maniacUrl + '?mode=privatemessagelist&type=outbox';
+                    var options = {
+                        uri: url,
+                        jar: jar
+                    };
+
+                    mservice.request.get(res, next, options, function (html) {
+                        var data = mservice.parse.privateMessageList(html);
+                        mservice.response.json(res, data, null, next);
+                    });
                 });
             }
         },
@@ -887,7 +969,7 @@ var mservice = {
                         var jar = request.jar();
                         jar.setCookie(cookie, mservice.options.maniacUrl);
 
-                        fnSuccess(jar);
+                        fnSuccess(jar, html);
                     } else {
                         mservice.response.json(res, null, null, next);
                     }
