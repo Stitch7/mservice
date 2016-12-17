@@ -1,0 +1,29 @@
+{
+  "name": "M!service",
+  "version": "1.1.0",
+  "description": "Middleware providing maniac forum data as RESTful web service",
+  "author": "Christopher Reitz <christopher@reitz.re>",
+  "scripts": {
+    "start": "node mservice.js --verbose-logging",
+    "start-dev": "node mservice.js --verbose-logging | ./node_modules/.bin/bunyan"
+  },
+  "bin" : {
+    "mservice" : "./mservice.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Stitch7/mservice/"
+  },
+  "bugs": {
+    "url": "https://github.com/Stitch7/mservice/issues"
+  },
+  "dependencies": {
+    "yargs": "6.5.x",
+    "restify": "4.3.x",
+    "request": "2.79.x",
+    "cheerio": "0.22.x",
+    "marked": "0.3.x"
+  },
+  "preferGlobal": true,
+  "license": "MIT"
+}
