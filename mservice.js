@@ -116,14 +116,13 @@ var mservice = {
 
         // Dispatch routes
         var routes = mservice.routes;
-        var routePrefix = 'mservice';
         for (var httpMethod in routes) {
             for (var route in routes[httpMethod]) {
-                server[httpMethod](routePrefix + route, routes[httpMethod][route]);
+                server[httpMethod](route, routes[httpMethod][route]);
             }
         }
         server.get('/', function (req, res, next) {
-            res.header('Location', routePrefix);
+            res.header('Location', 'doc');
             res.send(302);
         });
 
@@ -406,7 +405,7 @@ var mservice = {
             /**
              * index action
              */
-            '/': function (req, res, next) {
+            '/doc': function (req, res, next) {
                 var marked = require('marked');
                 fs.readFile(path.resolve(__dirname, 'index.html'), 'utf8', function (error, data) {
                     if (error) {
