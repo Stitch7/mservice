@@ -145,7 +145,9 @@ var mservice = {
                 var $idAndTitleA = $tr.find('td:nth-child(2) a');
 
                 var board = {};
-                board.id = mservice.utils.toInt(/\?mode=board&brdid=(.+)/.exec($idAndTitleA.attr('href'))[1]);
+                var regexResult = /\?mode=board&brdid=(.+)/.exec($idAndTitleA.attr('href'))
+                var idStr = regexResult !== null ? regexResult[1] : "6"
+                board.id = mservice.utils.toInt(idStr);
                 board.name = $idAndTitleA.text();
                 board.topic = $tr.find('td:nth-child(3)').text();
                 board.lastMessage = mservice.utils.datetimeStringToISO8601($tr.find('td:nth-child(4)').text());
