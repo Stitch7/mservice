@@ -1,6 +1,10 @@
 M!service
 ========
 
+[![Build Status](https://travis-ci.org/Stitch7/mservice.svg?branch=v1.1)](https://travis-ci.org/Stitch7/mservice)
+[![Dependency Status](https://david-dm.org/Stitch7/mservice.svg)](https://david-dm.org/Stitch7/mservice)
+[![devDependency Status](https://david-dm.org/Stitch7/mservice/dev-status.svg)](https://david-dm.org/Stitch7/mservice#info=devDependencies)
+
 M!service ist ein in JavaScript geschriebener Serverdienst, der eine RESTful JSON API für das Man!ac Forum bereitstellt.
 
 # Inhalt
