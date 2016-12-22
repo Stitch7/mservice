@@ -8,7 +8,7 @@
 var $ = require('cheerio');
 var utils = require('./../utils.js');
 
-module.exports = function (userId, html) {
+module.exports = function (maniacUrl, userId, html) {
     var profile = {
         userId: undefined,
         username: undefined,
@@ -42,13 +42,13 @@ module.exports = function (userId, html) {
     /**
      * TODO: check if this is obsolete
      */
-    // if (image != 'images/empty.gif') {
-    //     // Use http instead of https for the image URI, because iOS7.1 on iPhone doesn't accept the maniac servers SSL certificate
-    //     // Fun fact: iOS7.1 on iPad does accept it, no problems on iOS8, too.
-    //     data.push(utils.domainFromUri(mservice.options.maniacUrl, 'http') + '/forum/' +image);
-    // } else {
+    if (image != 'images/empty.gif') {
+        // Use http instead of https for the image URI, because iOS7.1 on iPhone doesn't accept the maniac servers SSL certificate
+        // Fun fact: iOS7.1 on iPad does accept it, no problems on iOS8, too.
+        data.push(utils.domainFromUri(maniacUrl, 'http') + '/forum/' + image);
+    } else {
         data.push('');
-    // }
+    }
 
     $html.find('tr.bg2').each(function (key, value) {
         data.push($($(this).find('td').get(1)).text().replace(/\n/g, '').replace(/\s+/g,' ').trim());

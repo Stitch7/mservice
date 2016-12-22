@@ -20,8 +20,9 @@ describe('userScraper', function() {
                 expect(errorHtml).to.be.null;
                 expect(errorJson).to.be.null;
 
+                var maniacUrl = 'https://maniac-forum.de/forum/pxmboard.php';
                 var userId = 2615;
-                var user = scrapers.user(userId, html);
+                var user = scrapers.user(maniacUrl, userId, html);
                 expect(user).to.eql(JSON.parse(json));
 
                 done();

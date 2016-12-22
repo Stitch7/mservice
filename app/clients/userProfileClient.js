@@ -15,7 +15,7 @@ module.exports = function(httpClient, scrapers) {
             if (scrapers.title(html) === httpClient.errors.maniacBoardTitles.error) {
                 error = 'userId';
             } else {
-                data = scrapers.user(userId, html);
+                data = scrapers.user(httpClient.baseUrl, userId, html);
             }
 
             fn(data, error);
