@@ -15,7 +15,7 @@ module.exports = function (html) {
     var text = $text.text().trim();
     var textHtml = $text.html().replace(removeLinkBracesRegExp, '$1').trim();
 
-    $text.find('font[face="Courier New"] > a').replaceWith(utils.embedImages);
+    $text.find('font[face="Courier New"] > a').replaceWith(utils.embedImages($));
     var textHtmlWithEmbeddedImages = $text.html().replace(removeLinkBracesRegExp, '$1').trim();
 
     return {
