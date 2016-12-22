@@ -17,7 +17,7 @@
   "scripts": {
     "start": "node mservice.js --verbose-logging",
     "start-dev": "node mservice.js --verbose-logging | ./node_modules/.bin/bunyan",
-    "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -s 500 -- -R spec"
+    "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- -R spec"
   },
   "preferGlobal": true,
   "dependencies": {
