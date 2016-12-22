@@ -33,12 +33,11 @@ M!service ist ein in JavaScript geschriebener Serverdienst, der eine RESTful JSO
 
 # <a name="user-content-betrieb"></a>Betrieb
 
-Voraussetzung ist `NodeJS` >= v0.10.30 (ältere Versionen wurden nicht getestet)<br/>
-Für den Betrieb empfiehlt sich der Einsatz von [forever](https://github.com/nodejitsu/forever):
-
-    $ [sudo] npm install forever -g
-    $ forever start -c mservice.js [OPTIONS]
-
+Momentan werden folgende Node Versionen unterstützt:
+- 7.2.1
+- 6
+- 6.1
+- 5.11
 
 ### <a name="user-content-command-line-options"></a>Command Line Options
 
