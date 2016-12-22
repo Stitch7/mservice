@@ -1,0 +1,23 @@
+<html>
+<head>
+	<title>-= board: error =-</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link rel="stylesheet" type="text/css" href="css/pxmboard.css"/>
+</head>
+<body>
+<center>
+<table cellspacing="0" cellpadding="5" border="0">
+<tr class="bg1">
+	<td align="center" id="header">forum : fehler</td>
+</tr>
+<tr class="bg2">
+	<td id="norm">Board id fehlt</td>
+</tr>
+<tr class="bg1">
+	<td align="center" id="norm"><a href="mailto:webmaster@maniac-forum.de">mail webmaster</a></td>
+</tr>
+</table>
+</center>
+
+</body>
+</html>

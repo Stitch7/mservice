@@ -49,18 +49,20 @@ module.exports = {
             ':' + pad(tzo % 60)
         ;
     },
-    embedImages: function () {
-        var replacement;
-        // TODO: Insert href as function param
-        var href = $(this).attr('href');
+    embedImages: function ($) {
+        return function() {
+            var replacement;
+            // TODO: Insert href as function param
+            var href = $(this).attr('href');
 
-        if (href.match(/.+\.(jpg|jpeg|gif|png)$/) !== null) {
-            replacement = '<a href="' + href + '"><img src="' + href + '"/></a>';
-        } else {
-            replacement = '<a href="' + href + '">' + href + '</a>';
+            if (href.match(/.+\.(jpg|jpeg|gif|png)$/) !== null) {
+                replacement = '<a href="' + href + '"><img src="' + href + '"/></a>';
+            } else {
+                replacement = '<a href="' + href + '">' + href + '</a>';
+            }
+
+            return replacement;
         }
-
-        return replacement;
     },
     now: function () {
         var now = new Date();

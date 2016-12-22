@@ -13,16 +13,16 @@ var scrapers = helpers.scrapers;
 var loadHtmlRessource = helpers.loadHtmlRessource;
 var loadJsonRessource = helpers.loadJsonRessource;
 
-describe('userScraper', function() {
-    it('it should parse html and return a user model', function(done) {
-        loadHtmlRessource('user', function (errorHtml, html) {
-            loadJsonRessource('user', function (errorJson, json) {
+describe('messageScraper', function() {
+    it('it should parse html and return a user a message', function(done) {
+        loadHtmlRessource('message', function (errorHtml, html) {
+            loadJsonRessource('message', function (errorJson, json) {
                 expect(errorHtml).to.be.null;
                 expect(errorJson).to.be.null;
 
-                var userId = 2615;
-                var user = scrapers.user(userId, html);
-                expect(user).to.eql(JSON.parse(json));
+                var messageId = 3320238;
+                var message = scrapers.message(scrapers, messageId, html);
+                expect(message).to.eql(JSON.parse(json));
 
                 done();
             });
