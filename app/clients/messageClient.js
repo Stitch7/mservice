@@ -7,7 +7,7 @@
 
 module.exports = function(httpClient, scrapers) {
     return function(res, boardId, messageId, fn) {
-        var url = httpClient.baseUrl + '?mode=message&brdid=' + boardId + '&msgid=' + messageId;            
+        var url = httpClient.baseUrl + '?mode=message&brdid=' + boardId + '&msgid=' + messageId;
         var options = url;
         if (res.jar) {
             options = {
@@ -24,11 +24,11 @@ module.exports = function(httpClient, scrapers) {
                 var maniacErrorMessage = scrapers.errorMessage(html);
                 if (httpClient.errors.maniacMessages[maniacErrorMessage] !== undefined) {
                     error = httpClient.errors.maniacMessages[maniacErrorMessage];
-                }                    
-            } else {                    
+                }
+            } else {
                 data = scrapers.message(scrapers, messageId, html);
             }
-            
+
             fn(data, error);
         });
     };

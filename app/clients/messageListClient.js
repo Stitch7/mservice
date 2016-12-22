@@ -11,12 +11,12 @@ module.exports = function(httpClient, scrapers) {
         httpClient.get(res, url, function (html) {
             var data = null;
             var error = null;
-            
+
             if (scrapers.title(html) === httpClient.errors.maniacBoardTitles.error) {
                 error = 'boardId';
-            } else if (scrapers.emptyPage(html)) {                    
+            } else if (scrapers.emptyPage(html)) {
                 error = 'threadId';
-            } else {                    
+            } else {
                 data = scrapers.messageList(html);
             }
 

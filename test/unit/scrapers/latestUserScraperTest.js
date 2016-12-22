@@ -20,8 +20,8 @@ describe('latestUserScraper', function() {
             expect(error).to.be.null;
             expect(latestUser).to.have.property('userId', 56065);
             expect(latestUser).to.have.property('username', 'Doktor_Dose');
-            
+
             done();
-        });        
+        });
     });
 });

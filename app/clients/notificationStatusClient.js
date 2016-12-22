@@ -15,14 +15,14 @@ module.exports = function(httpClient, scrapers) {
         httpClient.get(res, options, function (html) {
             var data = null;
             var error = null;
-            
+
             if (scrapers.title(html) === httpClient.errors.maniacBoardTitles.error) {
                 error = 'unknown';
                 var maniacErrorMessage = scrapers.errorMessage(html);
                 if (httpClient.errors.maniacMessages[maniacErrorMessage] !== undefined) {
                     error = httpClient.errors.maniacMessages[maniacErrorMessage];
-                }                    
-            } else {                    
+                }
+            } else {
                 data = scrapers.notificationStatus(html);
             }
 

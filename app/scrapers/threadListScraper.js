@@ -10,7 +10,7 @@ var utils = require('./../utils.js');
 var thread = require('./../models/thread.js');
 
 module.exports = function(html) {
-    var threads = [];                
+    var threads = [];
 
     var threadEntriesChained = html;
     var body = $(html).find('body p');

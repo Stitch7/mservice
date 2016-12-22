@@ -9,7 +9,7 @@ var fs = require('fs');
 var path = require('path');
 
 module.exports = function (httpClient, scrapers) {
-    var clients = {};    
+    var clients = {};
     fs.readdirSync(__dirname).forEach(function(file) {
         if (file == 'index.js') { return; }
         clients[file.replace('Client.js', '')] = require('./' + file)(httpClient, scrapers);

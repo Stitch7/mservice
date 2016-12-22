@@ -11,12 +11,12 @@ var board = require('./../models/board.js');
 
 module.exports = function (html) {
     var boards = [];
-    
+
     $(html).find('div > table table:nth-child(3) tr.bg2').each(function () {
         var $tr = $(this);
-        var $idAndTitleA = $tr.find('td:nth-child(2) a');            
+        var $idAndTitleA = $tr.find('td:nth-child(2) a');
         var regexResult = /\?mode=board&brdid=(.+)/.exec($idAndTitleA.attr('href'));
-        var idStr = regexResult !== null ? regexResult[1] : "6";        
+        var idStr = regexResult !== null ? regexResult[1] : "6";
         var id = utils.toInt(idStr);
         var name = $idAndTitleA.text();
         var topic = $tr.find('td:nth-child(3)').text();

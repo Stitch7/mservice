@@ -25,7 +25,7 @@ module.exports = function(httpClient, scrapers) {
                 var maniacErrorMessage = scrapers.errorMessage(html);
                 if (httpClient.errors.maniacMessages[maniacErrorMessage] !== undefined) {
                     error = httpClient.errors.maniacMessages[maniacErrorMessage];
-                }                    
+                }
             } else {
                 data = scrapers.preview(html);
             }

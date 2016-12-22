@@ -14,7 +14,7 @@ module.exports = function(client, responses) {
         /**
          * Index action
          */
-        index: function (req, res, next) {        
+        index: function (req, res, next) {
             fs.readFile(path.resolve(__dirname, '../views/doc.html'), 'utf8', function (error, data) {
                 if (error) {
                     req.log.error({ req: req }, error);

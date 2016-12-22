@@ -9,7 +9,7 @@ module.exports = function(client, responses) {
     return {
         /**
          * Message list
-         */    
+         */
         index: function (req, res, next) {
             client.messageList(res, req.params.boardId, req.params.threadId, function (messages, error) {
                 responses.json(res, messages, error, next);
@@ -25,7 +25,7 @@ module.exports = function(client, responses) {
         },
         /**
          * Quote Message
-         */    
+         */
         quote: function (req, res, next) {
             client.quoteMessage(res, req.params.boardId, req.params.messageId, function (quote, error) {
                 responses.json(res, quote, error, next);
@@ -33,7 +33,7 @@ module.exports = function(client, responses) {
         },
         /**
          * Get notification status
-         */    
+         */
         notificationStatus: function (req, res, next) {
             if (res.jar === undefined) {
                 // TODO
@@ -57,7 +57,7 @@ module.exports = function(client, responses) {
         },
         /**
          * Preview Message Text
-         */    
+         */
         preview: function (req, res, next) {
             var text = req.params.text;
             if (text === undefined) {
@@ -72,21 +72,21 @@ module.exports = function(client, responses) {
         /**
          * Creates a reply
          */
-        create: function (req, res, next) {             
+        create: function (req, res, next) {
             if (req.params.subject === undefined || req.params.text === undefined) {
                 responses.json(res, null, 'httpBadRequest');
                 return;
             }
 
             client.createMessage(
-                res, 
-                req.params.boardId, 
-                req.params.messageId, 
-                req.authorization.basic.username, 
-                req.authorization.basic.password, 
-                req.params.subject, 
-                req.params.text, 
-                req.params.notification, 
+                res,
+                req.params.boardId,
+                req.params.messageId,
+                req.authorization.basic.username,
+                req.authorization.basic.password,
+                req.params.subject,
+                req.params.text,
+                req.params.notification,
                 function (data, error) {
                     responses.json(res, data, error, next);
                 }
@@ -94,7 +94,7 @@ module.exports = function(client, responses) {
         },
         /**
          * Edit a message
-         */    
+         */
         update: function (req, res, next) {
             if (res.jar === undefined) {
                 // TODO

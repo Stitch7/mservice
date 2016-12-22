@@ -23,7 +23,7 @@ module.exports = function(httpClient, scrapers) {
             var error = null;
 
             var title = scrapers.title(html);
-            if (title !== httpClient.errors.maniacBoardTitles.confirm) {                    
+            if (title !== httpClient.errors.maniacBoardTitles.confirm) {
                 error = 'unknown';
                 if (title === httpClient.errors.maniacBoardTitles.error) {
                     var maniacErrorMessage = scrapers.errorMessage(html);
@@ -35,12 +35,12 @@ module.exports = function(httpClient, scrapers) {
                     if (httpClient.errors.maniacMessages[maniacErrorMessage2] !== undefined) {
                         error = httpClient.errors.maniacMessages[maniacErrorMessage2];
                     }
-                }                    
+                }
             } else {
                 data = scrapers.preview(html);
             }
 
             fn(data, error);
-        });                        
+        });
     };
 };

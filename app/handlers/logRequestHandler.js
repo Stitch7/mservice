@@ -6,7 +6,7 @@
 'use strict';
 
 module.exports = function () {
-    return function (req, res, next) {       
+    return function (req, res, next) {
         if (req.log) {
             req.log.info({ req: req, res: res }, 'REQUEST');
         }

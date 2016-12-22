@@ -10,9 +10,9 @@ var utils = require('./../utils.js');
 module.exports = function(httpClient, scrapers) {
     return function(res, boardId, phrase, fn) {
         var url = utils.domainFromUri(httpClient.baseUrl) + '/forum/include/Ajax/threadfilter.php';
-        var options = {                
+        var options = {
             uri: url,
-            form: {                    
+            form: {
                 boardid: boardId,
                 phrase: phrase
             },
@@ -25,10 +25,10 @@ module.exports = function(httpClient, scrapers) {
         httpClient.post(res, options, function (html, response) {
             var data = null;
             var error = null;
-            
+
             if (scrapers.title(html) === httpClient.errors.maniacBoardTitles.error) {
                 error = 'boardId';
-            } else {                    
+            } else {
                 data = scrapers.threadList(html);
             }
 

@@ -13,11 +13,11 @@ module.exports = {
     loadHtmlRessource: function (filename, completionHandler) {
         fs.readFile(path.resolve(__dirname, './ressources/html/' + filename + '.html'), 'utf8', function (error, html) {
             completionHandler(error, html);
-        });        
+        });
     },
     loadJsonRessource: function (filename, completionHandler) {
         fs.readFile(path.resolve(__dirname, './ressources/json/' + filename + '.json'), 'utf8', function (error, html) {
             completionHandler(error, html);
-        });        
+        });
     }
 };

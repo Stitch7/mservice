@@ -15,15 +15,15 @@ module.exports = function(client, responses) {
         },
         /**
          * Show user profile
-         */        
-        profile: function (req, res, next) {            
+         */
+        profile: function (req, res, next) {
             client.userProfile(res, req.params.userId, function (userProfile, error) {
                 responses.json(res, userProfile, error, next);
             });
         },
         /**
          * Fetch latest user
-         */    
+         */
         latest: function (req, res, next) {
             client.latestUser(res, function (latestUser, error) {
                 responses.json(res, latestUser, error, next);

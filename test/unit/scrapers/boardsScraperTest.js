@@ -16,16 +16,16 @@ var loadJsonRessource = helpers.loadJsonRessource;
 describe('boardsScraper', function() {
     it('it should parse html and return all boards', function(done) {
         loadHtmlRessource('boardList', function (errorHtml, html) {
-            loadJsonRessource('boards', function (errorJson, json) {              
+            loadJsonRessource('boards', function (errorJson, json) {
                 expect(errorHtml).to.be.null;
                 expect(errorJson).to.be.null;
 
-                var boards = scrapers.boards(html);                
+                var boards = scrapers.boards(html);
                 expect(boards).to.have.lengthOf(8);
-                expect(boards).to.eql(JSON.parse(json));                
+                expect(boards).to.eql(JSON.parse(json));
 
                 done();
-            });        
+            });
         });
     });
 });

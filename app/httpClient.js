@@ -10,10 +10,10 @@ var request = require('request');
 var responses = require('./responses.js');
 var utils = require('./utils.js');
 
-module.exports = function (serverOptions, errors) {        
+module.exports = function (serverOptions, errors) {
     this.baseUrl = serverOptions.maniacUrl;
     this.errors = errors;
-    
+
     var httpSend = function (res, method, options, fn) {
         if ((typeof options === 'string')) {
             options = { uri: options };

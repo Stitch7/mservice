@@ -9,9 +9,9 @@ module.exports = function(client, responses) {
     return {
         /**
          * Index action
-         */    
+         */
         index: function (req, res, next) {
-            client.boardList(res, function (boards) {                
+            client.boardList(res, function (boards) {
                 responses.json(res, boards, null, next);
             });
         }

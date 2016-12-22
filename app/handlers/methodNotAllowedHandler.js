@@ -6,7 +6,7 @@
 'use strict';
 
 module.exports = function (client, responses) {
-    return function (req, res, next) {       
+    return function (req, res, next) {
         if (req.log) {
             req.log.warn({ req: req }, 'MethodNotAllowed');
         }

@@ -6,7 +6,7 @@
 'use strict';
 
 module.exports = function (client) {
-    return function (req, res, next) {       
+    return function (req, res, next) {
         if (req.authorization.basic === undefined) {
             return next();
         }

@@ -18,21 +18,21 @@ describe('loginScraper', function() {
         loadHtmlRessource('boardList', function (error, html) {
             expect(error).to.be.null;
 
-            var login = scrapers.login(html);                
+            var login = scrapers.login(html);
             expect(login).to.be.false;
 
-            done();            
+            done();
         });
     });
-    
+
     it('it should parse html and return login status = true when user is logged in', function(done) {
         loadHtmlRessource('boardListLoggedIn', function (error, html) {
             expect(error).to.be.null;
 
-            var login = scrapers.login(html);                
+            var login = scrapers.login(html);
             expect(login).to.be.true;
 
-            done();            
+            done();
         });
     });
 });

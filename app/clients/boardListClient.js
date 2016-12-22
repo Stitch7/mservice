@@ -5,8 +5,8 @@
  */
 'use strict';
 
-module.exports = function(httpClient, scrapers) {    
-    return function(res, fn) {        
+module.exports = function(httpClient, scrapers) {
+    return function(res, fn) {
         httpClient.get(res, {}, function (html) {
             fn(scrapers.boards(html));
         });
