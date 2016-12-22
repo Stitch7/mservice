@@ -5,6 +5,9 @@
  */
 'use strict';
 
+// Set timezone for date helper
+process.env.TZ = 'Europe/Berlin';
+
 module.exports = {
     domainFromUri: function (uri, replaceProtocol) {
         var parts = uri.split('/');
