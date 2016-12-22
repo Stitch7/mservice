@@ -7,12 +7,13 @@ M!service ist ein in JavaScript geschriebener Serverdienst, der eine RESTful JSO
 
 - [Betrieb](#user-content-betrieb)
 	- [Command Line Options](#user-content-command-line-options)
+    - [Docker](#user-content-docker)
 - [API](#user-content-api)
-	- [Allgemeines](#user-content-allgemeines) 
+	- [Allgemeines](#user-content-allgemeines)
 		- [Parameter](#user-content-parameter)
 		- [Authentifizierung](#user-content-authentifizierung)
 		- [Responses](#user-content-responses)
-	- [Test Login](#user-content-test-login)	
+	- [Test Login](#user-content-test-login)
 	- [Boards](#user-content-boards)
 	- [Threads](#user-content-threads)
 	- [Thread](#user-content-thread)
@@ -61,6 +62,9 @@ Für den Betrieb empfiehlt sich der Einsatz von [forever](https://github.com/nod
       --disable-logging        Disables logging                                             [default: false]
       --verbose-logging        If enabled all requests are logged (useful for development)  [default: false]
 
+### <a name="user-content-docker"></a>Docker
+
+    docker run -it -p 8080:8080 stitch/mservice:latest
 
 # <a name="user-content-api"></a>API
 

@@ -1,0 +1,5 @@
+{
+    "expr": true,
+    "node": true,
+    "mocha": true    
+}
