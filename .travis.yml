@@ -5,3 +5,5 @@ node_js:
   - "6.1"
   - "5.11"
   - "iojs"
+after_success:
+  - codecov

@@ -17,7 +17,7 @@
   "scripts": {
     "start": "node mservice.js --verbose-logging",
     "start-dev": "node mservice.js --verbose-logging | ./node_modules/.bin/bunyan",
-    "test": "./node_modules/.bin/mocha"
+    "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- -R spec"
   },
   "preferGlobal": true,
   "dependencies": {
@@ -28,7 +28,9 @@
     "marked": "0.3.x"
   },
   "devDependencies": {
-    "chai": "^3.5.0",
-    "mocha": "^3.2.0"
+    "chai": "3.5.x",
+    "codecov": "1.0.x",
+    "istanbul": "0.4.x",
+    "mocha": "3.2.x"
   }
 }
