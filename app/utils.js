@@ -64,8 +64,8 @@ module.exports = {
             return replacement;
         }
     },
-    now: function () {
-        var now = new Date();
+    now: function (now) {
+        var now = now || new Date();
 
         var dd = now.getDate();
         if (dd < 10) {
