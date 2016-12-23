@@ -52,9 +52,7 @@ module.exports = {
     embedImages: function ($) {
         return function() {
             var replacement;
-            // TODO: Insert href as function param
             var href = $(this).attr('href');
-
             if (href.match(/.+\.(jpg|jpeg|gif|png)$/) !== null) {
                 replacement = '<a href="' + href + '"><img src="' + href + '"/></a>';
             } else {
@@ -62,10 +60,10 @@ module.exports = {
             }
 
             return replacement;
-        }
+        };
     },
     now: function (now) {
-        var now = now || new Date();
+        now = now || new Date();
 
         var dd = now.getDate();
         if (dd < 10) {

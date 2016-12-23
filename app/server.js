@@ -66,6 +66,6 @@ module.exports = function () {
             if (!log) { return; }
             log.info(options.name + ' started listening at ' + server.url);
         });
-    }
+    };
     return self;
 };
