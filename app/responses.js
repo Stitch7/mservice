@@ -21,6 +21,10 @@ module.exports = {
         res.contentType = 'application/json';
         res.charSet('utf-8');
         res.send(json);
+
+        if (typeof next === 'function') {
+            next();
+        }
     },
     html: function (res, html, error, next) {
         res.writeHead(200, {
