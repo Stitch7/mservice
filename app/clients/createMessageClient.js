@@ -23,7 +23,6 @@ module.exports = function(httpClient, scrapers) {
         }
 
         httpClient.post(res, options, function (html, response) {
-            var data = null;
             var error = null;
 
             var title = scrapers.title(html);
@@ -40,11 +39,9 @@ module.exports = function(httpClient, scrapers) {
                         error = httpClient.errors.maniacMessages[maniacErrorMessage2];
                     }
                 }
-            } else {
-                data = scrapers.message(html);
             }
 
-            fn(data, error);
+            fn(null, error);
         });
     };
 };
