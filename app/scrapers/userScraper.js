@@ -45,7 +45,7 @@ module.exports = function (maniacUrl, userId, html) {
     if (image != 'images/empty.gif') {
         // Use http instead of https for the image URI, because iOS7.1 on iPhone doesn't accept the maniac servers SSL certificate
         // Fun fact: iOS7.1 on iPad does accept it, no problems on iOS8, too.
-        data.push(maniacUrl + '/forum/' + image);
+        data.push(utils.domainFromUri(maniacUrl, 'https') + '/forum/' + image);
     } else {
         data.push('');
     }
