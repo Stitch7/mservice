@@ -37,7 +37,7 @@ module.exports = function(httpClient, scrapers) {
                     }
                 }
             } else {
-                data = scrapers.preview(html);
+                data = scrapers.message(html);
             }
 
             fn(data, error);
