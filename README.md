@@ -133,7 +133,8 @@ Daten der Startseite / Boardübersicht.
 | Feld              | Typ       | Beschreibung                        |
 | ----------------- | --------- | ----------------------------------- |
 | board             | Object    | Board                               |
-| board.id          | Number    | Board - ID                          |
+| board.closed      | Boolean   | Board - Closed Status               |
+| board.id          | Number    | Board - ID *(null wenn closed)*     |
 | board.name        | String    | Board - Name                        |
 | board.topic       | String    | Board - Thema                       |
 | board.lastMessage | Date      | Board - Datum der letzten Nachricht |
@@ -145,6 +146,7 @@ Daten der Startseite / Boardübersicht.
     {
         [
             {
+                "closed": false,
                 "id": 1,
                 "name": "Smalltalk",
                 "topic": "Diskussionen rund um die Welt der Videospiele.",
@@ -157,6 +159,7 @@ Daten der Startseite / Boardübersicht.
                 ]
             },
             {
+                "closed": false,
                 "id": 2,
                 "name": "For Sale",
                 "topic": "Private Kleinanzeigen: An- und Verkauf gebrauchter Spiele",
@@ -170,6 +173,7 @@ Daten der Startseite / Boardübersicht.
                 ]
             },
             {
+                "closed": false,
                 "id": 4,
                 "name": "Retro'n'Tech",
                 "topic": "Retro-Themen, Umbau-Lösungen, Anschluss-Probleme, Computerprobleme, Spielehilfen",
@@ -182,6 +186,7 @@ Daten der Startseite / Boardübersicht.
                 ]
             },
             {
+                "closed": false,
                 "id": 6,
                 "name": "OT",
                 "topic": "Ohne Tiefgang - der tägliche Schwachsinn",
@@ -194,6 +199,7 @@ Daten der Startseite / Boardübersicht.
                 ]
             },
             {
+                "closed": false,
                 "id": 26,
                 "name": "Filme & Serien",
                 "topic": "Alles wofür 24 fps reichen",
@@ -206,6 +212,7 @@ Daten der Startseite / Boardübersicht.
                 ]
             },
             {
+                "closed": false,
                 "id": 8,
                 "name": "Online-Gaming",
                 "topic": "Alles rund um Onlinespiele",
@@ -213,6 +220,17 @@ Daten der Startseite / Boardübersicht.
                 "mods": [
                     "Andi",
                     "Rocco",
+                    "Leviathan",
+                    "Slapshot"
+                ]
+            },
+            {
+                "closed": true,
+                "id": null,
+                "name": "E3",
+                "topic": "14.-16. Juni",
+                "lastMessage": "2016-06-23T14:40:00+02:00",
+                "mods": [
                     "Leviathan",
                     "Slapshot"
                 ]

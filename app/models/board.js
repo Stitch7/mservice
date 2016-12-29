@@ -4,8 +4,9 @@
  * MIT Licensed
  */
 'use strict';
-module.exports = function(id, name, topic, lastMessage, mods) {
+module.exports = function(id, closed, name, topic, lastMessage, mods) {
     this.id = id;
+    this.closed = closed;
     this.name = name;
     this.topic = topic;
     this.lastMessage = lastMessage;
