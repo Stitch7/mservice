@@ -5,20 +5,32 @@
  */
 'use strict';
 
-module.exports = function(httpClient, scrapers) {
+module.exports = function(log, httpClient, cache, scrapers) {
     return function(res, boardId, fn) {
         var url = httpClient.baseUrl + '?mode=threadlist&brdid=' + boardId;
-        httpClient.get(res, url, function (html) {
-            var data = null;
-            var error = null;
+        var cacheKey = 'threadList/' + boardId;
+        var cacheTtl = 300; // 5 minutes
+        try {
+            var threadList = cache.get(cacheKey, true);
+            fn(threadList);
+        } catch(error) {
+            httpClient.get(res, url, function (html) {
+                var data = null;
+                var error = null;
 
-            if (scrapers.title(html) === httpClient.errors.maniacBoardTitles.error) {
-                error = 'boardId';
-            } else {
-                data = scrapers.threadList(html);
-            }
+                if (scrapers.title(html) === httpClient.errors.maniacBoardTitles.error) {
+                    error = 'boardId';
+                } else {
+                    data = scrapers.threadList(html);
+                }
 
-            fn(data, error);
-        });
+                cache.set(cacheKey, data, function(cacheErr, success) {
+                    if (error || !success) {
+                        log.error('Failed to cache data for key: ' + cacheKey);
+                    }
+                });
+                fn(data, error);
+            });
+        }
     };
 };

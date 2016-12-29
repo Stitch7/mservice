@@ -6,6 +6,7 @@
 'use strict';
 
 var restify = require('restify');
+var nodeCache = require('node-cache');
 var bunyan = require('bunyan');
 
 var errors = require('./errors.js');
@@ -49,7 +50,8 @@ module.exports = function () {
         server.use(restify.bodyParser());
         server.use(restify.gzipResponse());
 
-        var client = require('./clients/')(new httpClient(options, errors), scrapers);
+        var cache = new nodeCache();
+        var client = require('./clients/')(log, new httpClient(options, errors), cache, scrapers);
         var handler = require('./handlers/')(client, responses);
         server.on('uncaughtException', handler.exception);
         server.on('NotFound', handler.notFound);

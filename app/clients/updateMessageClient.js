@@ -5,7 +5,7 @@
  */
 'use strict';
 
-module.exports = function(httpClient, scrapers) {
+module.exports = function(log, httpClient, cache, scrapers) {
     return function(res, boardId, messageId, subject, text, fn) {
         var options = {
             jar: res.jar,

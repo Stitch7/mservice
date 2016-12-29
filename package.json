@@ -21,11 +21,12 @@
   },
   "preferGlobal": true,
   "dependencies": {
-    "yargs": "6.5.x",
-    "restify": "4.3.x",
-    "request": "2.79.x",
     "cheerio": "0.22.x",
-    "marked": "0.3.x"
+    "marked": "0.3.x",
+    "node-cache": "^4.1.1",
+    "request": "2.79.x",
+    "restify": "4.3.x",
+    "yargs": "6.5.x"
   },
   "devDependencies": {
     "chai": "3.5.x",

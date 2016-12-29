@@ -7,7 +7,7 @@
 
 var utils = require('./../utils.js');
 
-module.exports = function(httpClient, scrapers) {
+module.exports = function(log, httpClient, cache, scrapers) {
     return function(res, boardId, phrase, fn) {
         var url = utils.domainFromUri(httpClient.baseUrl) + '/forum/include/Ajax/threadfilter.php';
         var options = {

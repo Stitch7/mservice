@@ -5,7 +5,7 @@
  */
 'use strict';
 
-module.exports = function(httpClient, scrapers) {
+module.exports = function(log, httpClient, cache, scrapers) {
     return function(res, fn) {
         httpClient.get(res, {}, function (html) {
             fn(scrapers.latestUser(html));

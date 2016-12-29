@@ -9,7 +9,7 @@ var request = require('request');
 
 var responses = require('./../responses.js');
 
-module.exports = function(httpClient, scrapers) {
+module.exports = function(log, httpClient, cache, scrapers) {
     return function(res, username, password, fn) {
         var options = {
             form: {

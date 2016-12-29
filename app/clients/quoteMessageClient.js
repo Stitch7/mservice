@@ -5,7 +5,7 @@
  */
 'use strict';
 
-module.exports = function(httpClient, scrapers) {
+module.exports = function(log, httpClient, cache, scrapers) {
     return function(res, boardId, messageId, fn) {
         var url = httpClient.baseUrl + '?mode=messageform&brdid=' + boardId + '&msgid=' + messageId;
         httpClient.get(res, url, function (html) {
