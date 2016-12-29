@@ -29,6 +29,7 @@ module.exports = function(log, httpClient, cache, scrapers) {
                         log.error('Failed to cache data for key: ' + cacheKey);
                     }
                 });
+
                 fn(data, error);
             });
         }
