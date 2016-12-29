@@ -4,6 +4,7 @@
  * MIT Licensed
  */
 'use strict';
+
 module.exports = function(
     id,
     messageId,

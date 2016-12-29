@@ -44,11 +44,11 @@ module.exports = function(html) {
         var regExpResult = mainRegExp.exec($(threadEntries[i]).text().trim().replace(/(\n|\t)/g, ''));
 
         if (regExpResult !== null) {
-            subject     = regExpResult[1];
-            username    = regExpResult[2];
-            date        = utils.datetimeStringToISO8601(regExpResult[3]);
+            subject = regExpResult[1];
+            username = regExpResult[2];
+            date = utils.datetimeStringToISO8601(regExpResult[3]);
             answerCount = utils.toInt(regExpResult[4]);
-            answerDate  = utils.datetimeStringToISO8601(regExpResult[5]);
+            answerDate = utils.datetimeStringToISO8601(regExpResult[5]);
         }
 
         // Add thread to list
