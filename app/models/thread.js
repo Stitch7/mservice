@@ -14,8 +14,9 @@ module.exports = function(
     mod,
     subject,
     date,
-    answerCount,
-    answerDate
+    messageCount,
+    lastMessageId,
+    lastMessageDate
 ) {
     this.id = id;
     this.messageId = messageId;
@@ -25,6 +26,7 @@ module.exports = function(
     this.mod = mod;
     this.subject = subject;
     this.date = date;
-    this.answerCount = answerCount;
-    this.answerDate = answerDate;
+    this.messageCount = messageCount;
+    this.lastMessageId = lastMessageId;
+    this.lastMessageDate = lastMessageDate;
 };
