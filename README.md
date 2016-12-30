@@ -257,19 +257,20 @@ Liste der Threads (Daten des oberen Frames) eines Boards.
 
 ### Response Data
 
-| Feld               | Typ       | Beschreibung                                          |
-| ------------------ | --------- | ----------------------------------------------------- |
-| thread             | Object    | Thread                                                |
-| thread.id          | Number    | Thread - ID                                           |
-| thread.messageId   | Number    | Thread - Message ID des Eingangspostings              |
-| thread.sticky      | Boolean   | Thread - Thread ist sticky                            |
-| thread.closed      | Boolean   | Thread - Thread ist geschlossen _(Hinweis beachten!)_ |
-| thread.author      | String    | Thread - Benutzername des Threadersteller             |
-| thread.mod         | String    | Thread - Threadersteller ist ein Moderator            |
-| thread.subject     | String    | Thread - Betreff                                      |
-| thread.date        | Date      | Thread - Erstellungsdatum                             |
-| thread.answerCount | Number    | Thread - Anzahl der Antworten                         |
-| thread.answerDate  | Date      | Thread - Datum der letzten Antwort                    |
+| Feld                   | Typ       | Beschreibung                                          |
+| ---------------------- | --------- | ----------------------------------------------------- |
+| thread                 | Object    | Thread                                                |
+| thread.id              | Number    | Thread - ID                                           |
+| thread.messageId       | Number    | Thread - Message ID des Eingangspostings              |
+| thread.sticky          | Boolean   | Thread - Thread ist sticky                            |
+| thread.closed          | Boolean   | Thread - Thread ist geschlossen _(Hinweis beachten!)_ |
+| thread.author          | String    | Thread - Benutzername des Threadersteller             |
+| thread.mod             | String    | Thread - Threadersteller ist ein Moderator            |
+| thread.subject         | String    | Thread - Betreff                                      |
+| thread.date            | Date      | Thread - Erstellungsdatum                             |
+| thread.messageCount    | Number    | Thread - Anzahl der Postings                         |
+| thread.lastMessageId   | Number    | Thread - messageId des letzten Postings                    |
+| thread.lastMessageDate | Date      | Thread - Datum des letzten Postings
 
 
 **Hinweis:**<br/>
@@ -290,8 +291,9 @@ Ob ein Sticky Thread geschlossen ist kann nicht aus dem HTML des Man!ac Forums e
                 "mod": false,
                 "subject": "Der Apple Thread Nr 44 - Bigger than Bigger",
                 "date": "2014-09-09T21:08:00+02:00",
-                "answerCount": 925,
-                "answerDate": "2014-10-10T14:19:00+02:00"
+                "messageCount": 925,
+                "lastMessageId": 3567282,
+                "lastMessageDate": "2014-10-10T14:19:00+02:00"
             },
             {
                 "id": 152011,
@@ -302,8 +304,9 @@ Ob ein Sticky Thread geschlossen ist kann nicht aus dem HTML des Man!ac Forums e
                 "mod": true,
                 "subject": "Was ich noch sagen wollte... Thread Nr. 201b",
                 "date": "2014-09-15T21:29:00+02:00",
-                "answerCount": 670,
-                "answerDate": "2014-10-10T22:32:00+02:00"
+                "messageCount": 670,
+                "lastMessageId": 3571293,
+                "lastMessageDate": "2014-10-10T22:32:00+02:00"
             },
             {
                 "id": 150258,
@@ -314,8 +317,9 @@ Ob ein Sticky Thread geschlossen ist kann nicht aus dem HTML des Man!ac Forums e
                 "mod": false,
                 "subject": "Die besten Filmchen aller Zeiten - Teil 25",
                 "date": "2014-05-24T23:24:00+02:00",
-                "answerCount": 416,
-                "answerDate": "2014-10-10T22:29:00+02:00"
+                "messageCount": 416,
+                "lastMessageId": 3497479,
+                "lastMessageDate": "2014-10-10T22:29:00+02:00"
             },
             ...
         ]

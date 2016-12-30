@@ -26,9 +26,11 @@ module.exports = function(html) {
     for (var i in threadEntries) {
         // fishing threadId from ld function call in onclick attribute
         var $messageHref = $('a', threadEntries[i]).first();
-        //console.log($messageHref);
+        var $lastMessageHref = $('a', threadEntries[i]).last();
+
         var id = utils.toInt(/ld\((\w.+),0\)/.exec($messageHref.attr('onclick'))[1]);
         var messageId = utils.toInt(/(.+)msgid=(.+)/.exec($messageHref.attr('href'))[2]);
+        var lastMessageId = utils.toInt(/ld\((\w.+),\d*\)/.exec($lastMessageHref.attr('onclick'))[1]);
 
         var image = $('img', threadEntries[i]).attr('src').split('/').reverse()[0];
         // Sticky threads have pin image
@@ -40,15 +42,15 @@ module.exports = function(html) {
         var mod = $('span', threadEntries[i]).hasClass('highlight');
 
         // Fishing other thread data via easy regexp from line freed of html
-        var subject, username, date, answerCount, answerDate;
+        var subject, username, date, messageCount, lastMessageDate;
         var regExpResult = mainRegExp.exec($(threadEntries[i]).text().trim().replace(/(\n|\t)/g, ''));
 
         if (regExpResult !== null) {
             subject = regExpResult[1];
             username = regExpResult[2];
             date = utils.datetimeStringToISO8601(regExpResult[3]);
-            answerCount = utils.toInt(regExpResult[4]);
-            answerDate = utils.datetimeStringToISO8601(regExpResult[5]);
+            messageCount = utils.toInt(regExpResult[4]);
+            lastMessageDate = utils.datetimeStringToISO8601(regExpResult[5]);
         }
 
         // Add thread to list
@@ -61,8 +63,9 @@ module.exports = function(html) {
             mod,
             subject,
             date,
-            answerCount,
-            answerDate
+            messageCount,
+            lastMessageId,
+            lastMessageDate
         ));
     }
 
