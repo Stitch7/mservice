@@ -37,6 +37,11 @@ module.exports = function(log, httpClient, cache, scrapers) {
                 }
             }
 
+            if (!error) {
+                var cacheKey = 'message/' + messageId;
+                cache.del(cacheKey);
+            }
+
             fn(null, error);
         });
     };

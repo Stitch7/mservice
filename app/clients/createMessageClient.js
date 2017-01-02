@@ -41,6 +41,11 @@ module.exports = function(log, httpClient, cache, scrapers) {
                 }
             }
 
+            if (!error) {
+                var cacheKey = 'threadList/' + boardId;
+                cache.del(cacheKey);
+            }
+
             fn(null, error);
         });
     };
