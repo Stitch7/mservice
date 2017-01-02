@@ -81,6 +81,7 @@ module.exports = function(client, responses) {
             client.createMessage(
                 res,
                 req.params.boardId,
+                req.params.threadId,
                 req.params.messageId,
                 req.authorization.basic.username,
                 req.authorization.basic.password,
@@ -107,9 +108,17 @@ module.exports = function(client, responses) {
                 return;
             }
 
-            client.updateMessage(res, req.params.boardId, req.params.messageId, subject, text, function (data, error) {
-                responses.json(res, data, error, next);
-            });
+            client.updateMessage(
+                res,
+                req.params.boardId,
+                req.params.threadId,
+                req.params.messageId,
+                subject,
+                text,
+                function (data, error) {
+                    responses.json(res, data, error, next);
+                }
+            );
         }
     };
 };

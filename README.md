@@ -767,6 +767,7 @@ Erzeugt eine Antwort zur übergebenen Message ID.
 | Parameter | Beschreibung |
 | --------- | ------------ |
 | boardId   | Board ID     |
+| threadId  | Thread ID    |
 | messageId | Message ID   |
 
 ### Data Params
@@ -828,6 +829,7 @@ Editiert die Message mit der übergebenen Message ID. Dies ist nur möglich sofe
 | Parameter | Beschreibung |
 | --------- | ------------ |
 | boardId   | Board ID     |
+| threadId  | Thread ID    |
 | messageId | Message ID   |
 
 ### Data Params

@@ -6,7 +6,7 @@
 'use strict';
 
 module.exports = function(log, httpClient, cache, scrapers) {
-    return function(res, boardId, messageId, username, password, subject, text, notification, fn) {
+    return function(res, boardId, threadId, messageId, username, password, subject, text, notification, fn) {
         var options = {
             form: {
                 mode: 'messagesave',
@@ -42,8 +42,8 @@ module.exports = function(log, httpClient, cache, scrapers) {
             }
 
             if (!error) {
-                var cacheKey = 'threadList/' + boardId;
-                cache.del(cacheKey);
+                cache.del('messageList/' + threadId);
+                cache.del('threadList/' + boardId);
             }
 
             fn(null, error);
