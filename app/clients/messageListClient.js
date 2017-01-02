@@ -26,7 +26,7 @@ module.exports = function(log, httpClient, cache, scrapers) {
                     data = scrapers.messageList(html);
                 }
 
-                cache.set(cacheKey, data, function(cacheErr, success) {
+                cache.set(cacheKey, data, cacheTtl, function(cacheErr, success) {
                     if (error || !success) {
                         log.error('Failed to cache data for key: ' + cacheKey);
                     }
