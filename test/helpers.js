@@ -8,6 +8,12 @@
 var fs = require('fs');
 var path = require('path');
 
+var responses = require('./../app/responses.js');
+var routes = require('./../app/routes.js');
+var client = require('./../app/clients/')(null, null, null, null);
+var controller = require('./../app/controllers/')(null, null);
+var handler = require('./../app/handlers/')(null, null);
+
 module.exports = {
     scrapers: require('./../app/scrapers/'),
     loadHtmlRessource: function (filename, completionHandler) {
