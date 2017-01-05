@@ -1,8 +1,8 @@
 M!service
 ========
 
-[![Build Status](https://travis-ci.org/Stitch7/mservice.svg?branch=v1.1)](https://travis-ci.org/Stitch7/mservice)
-[![Code Coverage](https://codecov.io/gh/stitch7/mservice/branch/v1.1/graph/badge.svg)](https://codecov.io/gh/stitch7/mservice)
+[![Build Status](https://travis-ci.org/Stitch7/mservice.svg)](https://travis-ci.org/Stitch7/mservice)
+[![Code Coverage](https://codecov.io/gh/stitch7/mservice/branch/master/graph/badge.svg)](https://codecov.io/gh/stitch7/mservice)
 [![Dependency Status](https://david-dm.org/stitch7/mservice.svg)](https://david-dm.org/stitch7/mservice)
 [![devDependency Status](https://david-dm.org/stitch7/mservice/dev-status.svg)](https://david-dm.org/stitch7/mservice#info=devDependencies)
 
