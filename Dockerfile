@@ -10,4 +10,6 @@ ADD . .
 
 EXPOSE 8080
 
+ENV TZ="Europe/Berlin"
+
 CMD ["pm2-docker", "--raw", "mservice.js", "--verbose-logging"]
