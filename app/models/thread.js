@@ -8,25 +8,31 @@
 module.exports = function(
     id,
     messageId,
+    isRead,
     sticky,
     closed,
     username,
     mod,
     subject,
     date,
-    messageCount,
+    messagesCount,
+    messagesRead,
     lastMessageId,
+    lastMessageIsRead,
     lastMessageDate
 ) {
     this.id = id;
     this.messageId = messageId;
+    this.isRead = isRead;
     this.sticky = sticky;
     this.closed = closed;
     this.username = username;
     this.mod = mod;
     this.subject = subject;
     this.date = date;
-    this.messageCount = messageCount;
+    this.messagesCount = messagesCount;
+    this.messagesRead = messagesRead;
     this.lastMessageId = lastMessageId;
+    this.lastMessageIsRead = lastMessageIsRead;
     this.lastMessageDate = lastMessageDate;
 };

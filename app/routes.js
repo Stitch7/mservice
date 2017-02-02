@@ -20,16 +20,18 @@ module.exports = function(server, handler, controller) {
      * Threads
      */
     server.get('/board/:boardId/threads', controller.threads.index);
-    server.post('/board/:boardId/search-threads', controller.threads.search);
-    server.post('/board/:boardId/message', controller.threads.create); // TODO: Does auth manually atm
+    server.get('/board/:boardId/thread/:threadId/mark-as-read', handler.auth, controller.threads.markAsRead);
+    server.post('/board/:boardId/search-threads', handler.optionalAuth, controller.threads.search);
+    server.post('/board/:boardId/message', controller.threads.create); // Does auth manually
 
     /**
      * Messages
      */
-    server.get('/board/:boardId/thread/:threadId', controller.messages.index);
-    server.get('/board/:boardId/message/:messageId', handler.optionalAuth, controller.messages.show);
+    server.get('/board/:boardId/thread/:threadId', handler.optionalAuth, controller.messages.index);
+    server.get('/board/:boardId/thread/:threadId/message/:messageId', handler.optionalAuth, controller.messages.show);
+    server.get('/board/:boardId/thread/:threadId/message/:messageId/mark-as-read', handler.auth, controller.messages.markAsRead);
     server.post('/board/:boardId/message/preview', controller.messages.preview);
-    server.post('/board/:boardId/message/:messageId', controller.messages.create); // TODO: Does auth manually atm
+    server.post('/board/:boardId/message/:messageId', controller.messages.create); // Does auth manually
     server.put('/board/:boardId/message/:messageId', handler.auth, controller.messages.update);
     server.get('/board/:boardId/quote/:messageId', controller.messages.quote);
     server.get('/board/:boardId/notification-status/:messageId', handler.auth, controller.messages.notificationStatus);
@@ -41,4 +43,5 @@ module.exports = function(server, handler, controller) {
     server.get('/test-login', handler.auth, controller.users.login);
     server.get('/user/:userId', controller.users.profile);
     server.get('/latest-user/', controller.users.latest);
+    server.post('/read-list', handler.auth, controller.users.importReadList);
 };

@@ -1,6 +1,6 @@
 {
   "name": "mservice",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Middleware providing maniac forum data as RESTful web service",
   "author": "Christopher Reitz <christopher@reitz.re>",
   "license": "MIT",
@@ -23,6 +23,7 @@
   "dependencies": {
     "cheerio": "0.22.x",
     "marked": ">=0.3.6",
+    "mongodb": "2.2.x",
     "node-cache": "^4.1.1",
     "request": "2.79.x",
     "restify": "4.3.x",

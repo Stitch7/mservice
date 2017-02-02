@@ -28,9 +28,22 @@ module.exports = function(html) {
         var $messageHref = $('a', threadEntries[i]).first();
         var $lastMessageA = $('a', threadEntries[i]).last();
 
-        var id = utils.toInt(/ld\((\w.+),0\)/.exec($messageHref.attr('onclick'))[1]);
-        var messageId = utils.toInt(/(.+)msgid=(.+)/.exec($messageHref.attr('href'))[2]);
-        var lastMessageId = utils.toInt($lastMessageA.attr('href').replace('pxmboard.php?mode=message&brdid=6&msgid=', ''));
+        var idRegExResult = /ld\((\w.+),0\)/.exec($messageHref.attr('onclick'));
+        if (!idRegExResult) {
+            continue;
+        }
+
+        var id = utils.toInt(idRegExResult[1]);
+
+        var messageIdRegExResult = /(.+)msgid=(.+)/.exec($messageHref.attr('href'));
+        var messageId = utils.toInt(messageIdRegExResult[2]);
+
+        var lastMessageId;
+        var lastMessageIdRegEx = new RegExp('.*msgid=(\\d+)', 'g');
+        var lastMessageIdRegExResult = lastMessageIdRegEx.exec($lastMessageA.attr('href'));
+        if (lastMessageIdRegExResult) {
+            lastMessageId = utils.toInt(lastMessageIdRegExResult[1]);
+        }
 
         var image = $('img', threadEntries[i]).attr('src').split('/').reverse()[0];
         // Sticky threads have pin image
@@ -42,14 +55,14 @@ module.exports = function(html) {
         var mod = $('span', threadEntries[i]).hasClass('highlight');
 
         // Fishing other thread data via easy regexp from line freed of html
-        var subject, username, date, messageCount, lastMessageDate;
+        var subject, username, date, messagesCount, lastMessageDate;
         var regExpResult = mainRegExp.exec($(threadEntries[i]).text().trim().replace(/(\n|\t)/g, ''));
 
         if (regExpResult !== null) {
             subject = regExpResult[1];
             username = regExpResult[2];
             date = utils.datetimeStringToISO8601(regExpResult[3]);
-            messageCount = utils.toInt(regExpResult[4]);
+            messagesCount = utils.toInt(regExpResult[4]);
             lastMessageDate = utils.datetimeStringToISO8601(regExpResult[5]);
         }
 
@@ -57,14 +70,17 @@ module.exports = function(html) {
         threads.push(new thread(
             id,
             messageId,
+            null,
             sticky,
             closed,
             username,
             mod,
             subject,
             date,
-            messageCount,
+            messagesCount,
+            null,
             lastMessageId,
+            null,
             lastMessageDate
         ));
     }

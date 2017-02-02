@@ -9,7 +9,7 @@ var fs = require('fs');
 var path = require('path');
 var marked = require('marked');
 
-module.exports = function(client, responses) {
+module.exports = function(log, client, db, responses) {
     return {
         /**
          * Index action

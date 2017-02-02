@@ -5,7 +5,7 @@
  */
 'use strict';
 
-module.exports = function(client, responses) {
+module.exports = function(log, client, db, responses) {
     return {
         /**
          * Index action

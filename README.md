@@ -248,6 +248,8 @@ Liste der Threads (Daten des oberen Frames) eines Boards.
 
     mservice/board/:boardId/threads
 
+**`OPTIONAL AUTHENTICATION`**
+
 ### URI Params
 
 | Parameter | Beschreibung |
@@ -257,24 +259,27 @@ Liste der Threads (Daten des oberen Frames) eines Boards.
 
 ### Response Data
 
-| Feld                   | Typ       | Beschreibung                                          |
-| ---------------------- | --------- | ----------------------------------------------------- |
-| thread                 | Object    | Thread                                                |
-| thread.id              | Number    | Thread - ID                                           |
-| thread.messageId       | Number    | Thread - Message ID des Eingangspostings              |
-| thread.sticky          | Boolean   | Thread - Thread ist sticky                            |
-| thread.closed          | Boolean   | Thread - Thread ist geschlossen _(Hinweis beachten!)_ |
-| thread.author          | String    | Thread - Benutzername des Threadersteller             |
-| thread.mod             | String    | Thread - Threadersteller ist ein Moderator            |
-| thread.subject         | String    | Thread - Betreff                                      |
-| thread.date            | Date      | Thread - Erstellungsdatum                             |
-| thread.messageCount    | Number    | Thread - Anzahl der Postings                         |
-| thread.lastMessageId   | Number    | Thread - messageId des letzten Postings                    |
-| thread.lastMessageDate | Date      | Thread - Datum des letzten Postings
+| Feld                      | Typ       | Beschreibung                                          |
+| ------------------------- | --------- | ----------------------------------------------------- |
+| thread                    | Object    | Thread                                                |
+| thread.id                 | Number    | Thread - ID                                           |
+| thread.messageId          | Number    | Thread - Message ID des Eingangspostings              |
+| thread.isRead             | Boolean   | Thread - Eingangsposting ist gelesen _[1]_            |
+| thread.sticky             | Boolean   | Thread - Thread ist sticky                            |
+| thread.closed             | Boolean   | Thread - Thread ist geschlossen _[2]_                 |
+| thread.author             | String    | Thread - Benutzername des Threadersteller             |
+| thread.mod                | String    | Thread - Threadersteller ist ein Moderator            |
+| thread.subject            | String    | Thread - Betreff                                      |
+| thread.date               | Date      | Thread - Erstellungsdatum                             |
+| thread.messagesCount      | Number    | Thread - Anzahl der Postings                          |
+| thread.messagesRead       | Number    | Thread - Anzahl der gelesenen Postings _[1]_          |
+| thread.lastMessageId      | Number    | Thread - messageId des letzten Postings               |
+| thread.lastMessageIsRead  | Boolean   | Thread - letzte Posting ist gelesen _[1]_             |
+| thread.lastMessageDate    | Date      | Thread - Datum des letzten Postings                   |
 
-
-**Hinweis:**<br/>
-Wenn `sticky` = `TRUE`, ist `closed` immer `FALSE`.<br/>
+**Hinweise:**<br/>
+[1]: Ohne Authentifizierung ist dieses Feld `null`
+[2]: Wenn `sticky` = `TRUE`, ist `closed` immer `FALSE`.<br/>
 Ob ein Sticky Thread geschlossen ist kann nicht aus dem HTML des Man!ac Forums entnommen werden.
 
 ### Example Success Response
@@ -285,40 +290,49 @@ Ob ein Sticky Thread geschlossen ist kann nicht aus dem HTML des Man!ac Forums e
             {
                 "id": 151906,
                 "messageId": 3567281,
+                "isRead": true,
                 "sticky": false,
                 "closed": false,
                 "author": "Stitch",
                 "mod": false,
                 "subject": "Der Apple Thread Nr 44 - Bigger than Bigger",
                 "date": "2014-09-09T21:08:00+02:00",
-                "messageCount": 925,
+                "messagesCount": 925,
+                "messagesRead": 925,
                 "lastMessageId": 3567282,
+                "lastMessageIsRead": true,
                 "lastMessageDate": "2014-10-10T14:19:00+02:00"
             },
             {
                 "id": 152011,
                 "messageId": 3571292,
+                "isRead": true,
                 "sticky": false,
                 "closed": false,
                 "author": "Andi",
                 "mod": true,
                 "subject": "Was ich noch sagen wollte... Thread Nr. 201b",
                 "date": "2014-09-15T21:29:00+02:00",
-                "messageCount": 670,
+                "messagesCount": 670,
+                "messagesRead": 207,
                 "lastMessageId": 3571293,
+                "lastMessageIsRead": false,
                 "lastMessageDate": "2014-10-10T22:32:00+02:00"
             },
             {
                 "id": 150258,
                 "messageId": 3497478,
+                "isRead": false,
                 "sticky": false,
                 "closed": false,
                 "author": "TOM",
                 "mod": false,
                 "subject": "Die besten Filmchen aller Zeiten - Teil 25",
                 "date": "2014-05-24T23:24:00+02:00",
-                "messageCount": 416,
+                "messagesCount": 416,
+                "messagesRead": 0,
                 "lastMessageId": 3497479,
+                "lastMessageIsRead": false,
                 "lastMessageDate": "2014-10-10T22:29:00+02:00"
             },
             ...
@@ -357,12 +371,15 @@ Liste der Messages (Daten des mittleren Frames) eines Threads.
 | ------------------ | --------- | ------------------------------------------------- |
 | message            | Object    | Message                                           |
 | message.id         | Number    | Message - ID                                      |
+| message.isRead     | Boolean   | Message - Posting ist gelesen _[1]_               |
 | message.level      | Number    | Message - Grad der Einrückung in der Baumstruktur |
 | message.subject    | String    | Message - Betreff                                 |
 | message.mod        | String    | Message - Messageersteller ist ein Moderator      |
 | message.username   | String    | Message - Benutzername                            |
 | message.date       | Date      | Message - Erstellungsdatum                        |
 
+**Hinweise:**<br/>
+[1]: Ohne Authentifizierung ist dieses Feld `null`
 
 ### Example Success Response
 
@@ -371,6 +388,7 @@ Liste der Messages (Daten des mittleren Frames) eines Threads.
         [
             {
                 "messageId": 3567281,
+                "isRead": true,
                 "level": 0,
                 "subject": "Der Apple Thread Nr 44 - Bigger than Bigger",
                 "mod": false,
@@ -379,6 +397,7 @@ Liste der Messages (Daten des mittleren Frames) eines Threads.
             },
             {
                 "messageId": 3585057,
+                "isRead": false,
                 "level": 1,
                 "subject": "2 Wochen mit dem iPhone 6",
                 "mod": false,
@@ -387,6 +406,7 @@ Liste der Messages (Daten des mittleren Frames) eines Threads.
             },
             {
                 "messageId": 3585192,
+                "isRead": true,
                 "level": 2,
                 "subject": "Re:2 Wochen mit dem iPhone 6",
                 "mod": false,
@@ -395,6 +415,7 @@ Liste der Messages (Daten des mittleren Frames) eines Threads.
             },
             {
                 "messageId": 3585540,
+                "isRead": true,
                 "level": 3,
                 "subject": "Re:2 Wochen mit dem iPhone 6",
                 "mod": false,
@@ -403,6 +424,7 @@ Liste der Messages (Daten des mittleren Frames) eines Threads.
             },
             {
                 "messageId": 3585158,
+                "isRead": false,
                 "level": 2,
                 "subject": "Mir ist in 15 Jahren mein Handy fast nie...",
                 "mod": false,
@@ -411,6 +433,7 @@ Liste der Messages (Daten des mittleren Frames) eines Threads.
             },
             {
                 "messageId": 3586454,
+                "isRead": false,
                 "level": 3,
                 "subject": "Re:Mir ist in 15 Jahren mein Handy fast nie...",
                 "mod": false,
@@ -445,7 +468,7 @@ Daten des unteren Frames, eine Message.
 
 ### HTTP Method: `GET`
 
-    mservice/board/:boardId/message/:messageId
+    mservice/board/:boardId/thread/:threadId/message/:messageId
 
 **`OPTIONAL AUTHENTICATION`**
 
@@ -454,6 +477,7 @@ Daten des unteren Frames, eine Message.
 | Parameter | Beschreibung |
 | --------- | ------------ |
 | boardId   | Board ID     |
+| threadId  | Thread ID    |
 | messageId | Message ID   |
 
 ### Response Data
@@ -468,11 +492,10 @@ Daten des unteren Frames, eine Message.
 | text               | String           | Message Body als Plain Text                           |
 | textHtml           | String           | Message Body als HTML                                 |
 | textHtmlWithImages | String           | Message Body als HTML Images in IMG-Tags              |
-| notification       | Boolean \| Null  | Status der Mailbenachrichtigung _(Hinweis beachten!)_ |
+| notification       | Boolean \| Null  | Status der Mailbenachrichtigung _[1]_ |
 
-**Hinweis:**<br/>
-Diese Ressource benötigt normalerweise keine Authentifizierung, möchte man das Feld `notification` verwenden ist aber eine Authentifizierung erforderlich. Dies macht nur Sinn, wenn man vorher schon sicherstellen kann, dass die Message von dem gleichen User erstellt wurde wie der dessen Username man zur Authentifizierung mitsendet. Dies sollte man aus Performance-Gründen auch nur in diesem Fall tun. Weiß man in bestimmten Fällen nicht im Vorfeld von welchem User die Message erstellt wurde, kann man den Status der Mailbenachrichtigung auch über die Ressource `notification-status` separat abfragen.<br/>
-Wenn keine Authentifizierung mitgesendet wird oder der Username nicht mit den Authentifizierungsdaten übereinstimmt ist das Feld `notification` = `NULL`.
+**Hinweise:**<br/>
+[1]: Ohne Authentifizierung ist dieses Feld `null`
 
 ### Example Success Response
 

@@ -9,6 +9,7 @@ var restify = require('restify');
 var nodeCache = require('node-cache');
 var bunyan = require('bunyan');
 
+var db = require('./db.js');
 var errors = require('./errors.js');
 var httpClient = require('./httpClient.js');
 var responses = require('./responses.js');
@@ -25,7 +26,12 @@ var defaultOptions = {
         verbose: true,
         file: false
     },
-    requestTimeout: 10000
+    requestTimeout: 10000,
+    db: {
+        host: process.env.MSERVICEDB_PORT_27017_TCP_ADDR || 'localhost',
+        port: process.env.MSERVICEDB_PORT_27017_TCP_PORT || '27017',
+        name: '/mservice'
+    }
 };
 
 module.exports = function () {
@@ -41,32 +47,48 @@ module.exports = function () {
                 serializers: bunyan.stdSerializers
             });
         }
-        var server = restify.createServer({
-            name: options.name,
-            log: log
-        });
-        server.pre(restify.pre.sanitizePath());
-        server.use(restify.authorizationParser());
-        server.use(restify.bodyParser());
-        server.use(restify.gzipResponse());
 
-        var cache = new nodeCache();
-        var client = require('./clients/')(log, new httpClient(options, errors), cache, scrapers);
-        var handler = require('./handlers/')(client, responses);
-        server.on('uncaughtException', handler.exception);
-        server.on('NotFound', handler.notFound);
-        server.on('MethodNotAllowed', handler.methodNotAllowed);
-        if (options.log.verbose) {
-            server.on('after', handler.logRequest);
-        }
+        db.connect(options.db, function(err) {
+            if (err) {
+                if (log) {
+                    log.error('Unable to connect to database! Error:', err);
+                }
+                process.exit(1);
+            } else {
+                if (log) {
+                    log.info('Database connection established to', db.url);
+                }
 
-        // Dispatch routes
-        var controller = require('./controllers/')(client, responses);
-        routes(server, handler, controller);
+                var server = restify.createServer({
+                    name: options.name,
+                    log: log
+                });
+                server.pre(restify.pre.sanitizePath());
+                server.use(restify.authorizationParser());
+                server.use(restify.bodyParser());
+                server.use(restify.gzipResponse());
 
-        server.listen(options.port, function () {
-            if (!log) { return; }
-            log.info(options.name + ' started listening at ' + server.url);
+                var cache = new nodeCache();
+                var client = require('./clients/')(log, new httpClient(options, errors), cache, scrapers);
+                var handler = require('./handlers/')(client, responses);
+                server.on('uncaughtException', handler.exception);
+                server.on('NotFound', handler.notFound);
+                server.on('MethodNotAllowed', handler.methodNotAllowed);
+                if (options.log.verbose) {
+                    server.on('after', handler.logRequest);
+                }
+
+                // Dispatch routes
+                var controller = require('./controllers/')(log, client, db, responses);
+                routes(server, handler, controller);
+
+                server.listen(options.port, function () {
+                    if (!log) {
+                        return;
+                    }
+                    log.info(options.name + ' started listening at ' + server.url);
+                });
+            }
         });
     };
     return self;
