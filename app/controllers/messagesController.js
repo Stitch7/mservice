@@ -119,6 +119,14 @@ module.exports = function(client, responses) {
                     responses.json(res, data, error, next);
                 }
             );
+        },
+        /**
+         * Get Responses on Messages
+         */
+        responses: function (req, res, next) {
+            client.messageResponses(res, req.params.userId, function (user, error) {
+                responses.json(res, user, error, next);
+            });
         }
     };
 };
