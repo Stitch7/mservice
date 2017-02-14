@@ -124,7 +124,7 @@ module.exports = function(client, responses) {
          * Get Responses on Messages
          */
         responses: function (req, res, next) {
-            client.messageResponses(res, req.params.userId, function (user, error) {
+            client.messageResponses(res, req.params.username, function (user, error) {
                 responses.json(res, user, error, next);
             });
         }

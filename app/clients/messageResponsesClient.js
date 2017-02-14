@@ -10,7 +10,7 @@ var _ = require('underscore');
 var response = require('./../models/response.js');
 
 module.exports = function(log, httpClient, cache, scrapers) {
-    return function(res, userId, fn) {
+    return function(res, username, fn) {
 
         var responses = [];
 
@@ -21,9 +21,6 @@ module.exports = function(log, httpClient, cache, scrapers) {
         log.debug("Searching responses in cached message lists: " + cachedMessageLists);
 
         var messages = [];
-
-        //TODO Use the numerical userId instead of the user name itself
-        var username = userId;
 
         function getParentBoardId(threadId) {
             var boardList = cache.get("boardList");
@@ -58,10 +55,8 @@ module.exports = function(log, httpClient, cache, scrapers) {
                             responses.push(new response(parentBoardId, parentThreadId, m.messageId, m.subject, m.username, m.date ));
                         }
                     }
-
             });
         });
-
 
         fn(responses, null);
     };
