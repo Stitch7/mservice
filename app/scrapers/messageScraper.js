@@ -30,6 +30,7 @@ module.exports = function (scrapers, messageId, html) {
 
     return new message(
         utils.toInt(messageId),
+        null,
         userId,
         username,
         subject,

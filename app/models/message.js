@@ -7,6 +7,7 @@
 
 module.exports = function(
     messageId,
+    isRead,
     userId,
     username,
     subject,
@@ -17,6 +18,7 @@ module.exports = function(
     notification
 ) {
     this.messageId = messageId;
+    this.isRead = isRead;
     this.userId = userId;
     this.username = username;
     this.subject = subject;

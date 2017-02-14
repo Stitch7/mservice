@@ -5,22 +5,86 @@
  */
 'use strict';
 
-module.exports = function(client, responses) {
+module.exports = function(log, client, db, responses) {
     return {
         /**
          * Message list
          */
         index: function (req, res, next) {
             client.messageList(res, req.params.boardId, req.params.threadId, function (messages, error) {
-                responses.json(res, messages, error, next);
+                if (req.authorization.basic === undefined) {
+                    responses.json(res, messages, error, next);
+                    return;
+                }
+
+                var username = req.authorization.basic.username;
+                var readlist = db.get().collection('readlist');
+                readlist.find({username: username, threadId: req.params.threadId}).toArray(function (err, result) {
+                    if (err) {
+                        log.error(err);
+                    } else if (result.length) {
+                        var messageIds = result[0].messages ? result[0].messages : [];
+                        messages.forEach(function (message) {
+                            message.isRead = messageIds.indexOf(message.messageId.toString()) >= 0;
+                        });
+                    } else {
+                        messages.forEach(function (message) {
+                            message.isRead = false;
+                        });
+                    }
+
+                    responses.json(res, messages, error, next);
+                });
             });
         },
         /**
          * Show Message
          */
         show: function (req, res, next) {
-            client.message(res, req.params.boardId, req.params.messageId, function (messages, error) {
-                responses.json(res, messages, error, next);
+            client.message(res, req.params.boardId, req.params.messageId, function (message, error) {
+                responses.json(res, message, error, next);
+
+                if (req.authorization.basic === undefined) {
+                    return;
+                }
+
+                req.on('end', function() {
+                    var username = req.authorization.basic.username;
+                    var threadId = req.params.threadId;
+                    var messageId = req.params.messageId;
+
+                    var readlist = db.get().collection('readlist');
+                    var query = {username: username, threadId: threadId};
+
+                    readlist.find(query).toArray(function (err, result) {
+                        if (err) {
+                            log.error(err);
+                        } else if (result.length === 0) {
+                            var newEntry = {username: username, threadId: threadId, messages: [messageId]};
+                            readlist.insert([newEntry], function (err, result) {
+                                if (err) {
+                                    log.error(err);
+                                } else {
+                                    log.info('User %s marked Message %d in Thread %d as read', username, messageId, threadId);
+                                }
+                            });
+                        } else {
+                            var messages = result[0].messages;
+                            if (messages.indexOf(messageId) === -1) {
+                                messages.push(messageId);
+                                readlist.update(query, {$set: {messages: messages}}, function (err, numUpdated) {
+                                    if (err) {
+                                        log.error(err);
+                                    } else if (numUpdated) {
+                                        log.info('User %s marked Message %d in Thread %d as read', username, messageId, threadId);
+                                    } else {
+                                        log.warn('No document found with query:', query);
+                                    }
+                                });
+                            }
+                        }
+                    });
+                });
             });
         },
         /**
@@ -126,6 +190,51 @@ module.exports = function(client, responses) {
         responses: function (req, res, next) {
             client.messageResponses(res, req.params.username, function (user, error) {
                 responses.json(res, user, error, next);
+
+            });
+        },
+        /**
+         * Mark as read action
+         */
+        markAsRead: function (req, res, next) {
+            responses.json(res, 'Ok', null, next);
+
+            req.on('end', function() {
+                var username = req.authorization.basic.username;
+                var threadId = req.params.threadId;
+                var messageId = req.params.messageId;
+
+                var readlist = db.get().collection('readlist');
+                var query = {username: username, threadId: threadId};
+
+                readlist.find(query).toArray(function (err, result) {
+                    if (err) {
+                        log.error(err);
+                    } else if (result.length === 0) {
+                        var newEntry = {username: username, threadId: threadId, messages: [messageId]};
+                        readlist.insert([newEntry], function (err, result) {
+                            if (err) {
+                                log.error(err);
+                            } else {
+                                log.info('User %s marked Message %d in Thread %d as read', username, messageId, threadId);
+                            }
+                        });
+                    } else {
+                        var messages = result[0].messages;
+                        if (messages.indexOf(messageId) === -1) {
+                            messages.push(messageId);
+                            readlist.update(query, {$set: {messages: messages}}, function (err, numUpdated) {
+                                if (err) {
+                                    log.error(err);
+                                } else if (numUpdated) {
+                                    log.info('User %s marked Message %d in Thread %d as read', username, messageId, threadId);
+                                } else {
+                                    log.warn('No document found with query:', query);
+                                }
+                            });
+                        }
+                    }
+                });
             });
         }
     };
