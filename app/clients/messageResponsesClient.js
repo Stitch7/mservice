@@ -35,7 +35,7 @@ module.exports = function(log, httpClient, cache, scrapers) {
 
 
         function getParentThreadId(messageId) {
-            return messageId.split("/")[1];
+            return parseInt(messageId.split("/")[1]);
         }
 
         _.each(cachedMessageLists, function(cachedMessage,i) {
