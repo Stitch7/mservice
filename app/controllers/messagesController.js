@@ -185,6 +185,15 @@ module.exports = function(log, client, db, responses) {
             );
         },
         /**
+         * Get Responses on Messages
+         */
+        responses: function (req, res, next) {
+            client.messageResponses(res, req.params.username, function (user, error) {
+                responses.json(res, user, error, next);
+
+            });
+        },
+        /**
          * Mark as read action
          */
         markAsRead: function (req, res, next) {
