@@ -24,12 +24,13 @@ module.exports = function(log, httpClient, cache, scrapers) {
 
         function getParentBoardId(threadId) {
             var boardList = cache.get("boardList");
-            return _.find(boardList, function(m,i) {
+            var parentBoard = _.find(boardList, function(m,i) {
                 log.debug("Getting: threadList/" + m.id + " in the search for threadId " + threadId);
                 var threadList = cache.get("threadList/"+m.id);
                 var index = _.findIndex(threadList, {'id': parseInt(threadId)});
                 return index > -1;
-            }).id;
+            });
+            return (parentBoard) ? (parentBoard.id) : -1
         }
 
 
