@@ -33,6 +33,7 @@ M!service ist ein in JavaScript geschriebener Serverdienst, der eine RESTful JSO
 	- [Search Threads](#user-content-search-threads)
 	- [User](#user-content-user)
 	- [Latest User](#user-content-latest-user)
+	- [Responses](#user-content-responses-service)
 - [Lizenz](#user-content-lizenz)
 
 
@@ -1116,6 +1117,96 @@ Das neuste Mitglied des Forums.
     {
         "userId": 52917,
         "username": "Marty"
+    }
+
+# <a name="user-content-responses-service"></a>Responses
+
+Liste aller Antworten, die ein Benutzer auf seine Beiträge erhalten hat. Die Liste wird aus dem Cache berechnet und erfolgt ohne Zugriff auf das Maniac Forum.
+
+### HTTP Method: `GET`
+
+    mservice/user/:username/responses
+
+### URI Params
+
+| Parameter | Beschreibung |
+| --------- | ------------ |
+| username  | Benutzername |
+
+### Example Success Response
+
+    HTTP/1.1 200 OK
+    {
+      "boardId": 1,
+      "threadId": "164473",
+      "messageId": 4072381,
+      "subject": "Re:Süß",
+      "username": "bubbabenali",
+      "date": "2017-02-12T10:17:00+01:00"
+    },
+    {
+      "boardId": 1,
+      "threadId": "164473",
+      "messageId": 4072501,
+      "subject": "Re:Süß",
+      "username": "Signor Rossi",
+      "date": "2017-02-12T16:24:00+01:00"
+    },
+    {
+      "boardId": 1,
+      "threadId": "164473",
+      "messageId": 4068621,
+      "subject": "Re:Ich hab schon eine ... aus Papier",
+      "username": "PaulBearer",
+      "date": "2017-02-05T10:45:00+01:00"
+    },
+    {
+      "boardId": 1,
+      "threadId": "164473",
+      "messageId": 4068493,
+      "subject": "Re:Ich hab schon eine ... aus Papier",
+      "username": "JPS",
+      "date": "2017-02-04T20:11:00+01:00"
+    },
+    {
+      "boardId": 1,
+      "threadId": "164473",
+      "messageId": 4068278,
+      "subject": "Re:Wo ist denn das Problem mit den Richtungstasten?",
+      "username": "Deadly Engineer",
+      "date": "2017-02-04T09:28:00+01:00"
+    },
+    {
+      "boardId": 1,
+      "threadId": "162067",
+      "messageId": 4055840,
+      "subject": "Re:Kommt das wohl auch als Standalone?",
+      "username": "Proebbel",
+      "date": "2017-01-15T12:34:00+01:00"
+    },
+    {
+      "boardId": 1,
+      "threadId": "162067",
+      "messageId": 4050642,
+      "subject": "Re:Season 4 / Event 3: Finnland - Ergebnisse",
+      "username": "McDee",
+      "date": "2017-01-08T17:32:00+01:00"
+    },
+    {
+      "boardId": 1,
+      "threadId": "162067",
+      "messageId": 4050669,
+      "subject": "Re:Season 4 / Event 3: Finnland - Ergebnisse",
+      "username": "KikjaR",
+      "date": "2017-01-08T18:08:00+01:00"
+    },
+    {
+      "boardId": 1,
+      "threadId": "162067",
+      "messageId": 4046916,
+      "subject": "Ja, auf jeden Fall!",
+      "username": "musashi",
+      "date": "2017-01-01T16:03:00+01:00"
     }
 
 # <a name="user-content-lizenz"></a>Lizenz
