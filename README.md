@@ -1133,12 +1133,27 @@ Liste aller Antworten, die ein Benutzer auf seine Beiträge erhalten hat. Die Li
 | --------- | ------------ |
 | username  | Benutzername |
 
+### Response Data
+
+| Feld               | Typ       | Beschreibung        |
+| ------------------ | --------- | --------------------|
+| response           | Object    | Antwort             |
+| response.boardId   | Number    | Board-Id _[1]_      |
+| response.threadId  | Number    | Thread-Id           |
+| response.messageId | Number    | Antwort Message-Id  |
+| response.subject   | String    | Betreff der Antwort |
+| response.username  | String    | Antwortender        |
+| response.date      | Date      | Datum der Antwort   |
+
+**Hinweise:**<br/>
+[1]: Falls das entsprechende Board nicht mehr im Cache ist und dadurch nicht mehr ermittelt werden kann, ist dieser Wert `-1`.
+
 ### Example Success Response
 
     HTTP/1.1 200 OK
     {
       "boardId": 1,
-      "threadId": "164473",
+      "threadId": 164473,
       "messageId": 4072381,
       "subject": "Re:Süß",
       "username": "bubbabenali",
@@ -1146,7 +1161,7 @@ Liste aller Antworten, die ein Benutzer auf seine Beiträge erhalten hat. Die Li
     },
     {
       "boardId": 1,
-      "threadId": "164473",
+      "threadId": 164473,
       "messageId": 4072501,
       "subject": "Re:Süß",
       "username": "Signor Rossi",
@@ -1154,7 +1169,7 @@ Liste aller Antworten, die ein Benutzer auf seine Beiträge erhalten hat. Die Li
     },
     {
       "boardId": 1,
-      "threadId": "164473",
+      "threadId": 164473,
       "messageId": 4068621,
       "subject": "Re:Ich hab schon eine ... aus Papier",
       "username": "PaulBearer",
@@ -1162,7 +1177,7 @@ Liste aller Antworten, die ein Benutzer auf seine Beiträge erhalten hat. Die Li
     },
     {
       "boardId": 1,
-      "threadId": "164473",
+      "threadId": 164473,
       "messageId": 4068493,
       "subject": "Re:Ich hab schon eine ... aus Papier",
       "username": "JPS",
@@ -1170,7 +1185,7 @@ Liste aller Antworten, die ein Benutzer auf seine Beiträge erhalten hat. Die Li
     },
     {
       "boardId": 1,
-      "threadId": "164473",
+      "threadId": 164473,
       "messageId": 4068278,
       "subject": "Re:Wo ist denn das Problem mit den Richtungstasten?",
       "username": "Deadly Engineer",
@@ -1178,7 +1193,7 @@ Liste aller Antworten, die ein Benutzer auf seine Beiträge erhalten hat. Die Li
     },
     {
       "boardId": 1,
-      "threadId": "162067",
+      "threadId": 162067,
       "messageId": 4055840,
       "subject": "Re:Kommt das wohl auch als Standalone?",
       "username": "Proebbel",
@@ -1186,7 +1201,7 @@ Liste aller Antworten, die ein Benutzer auf seine Beiträge erhalten hat. Die Li
     },
     {
       "boardId": 1,
-      "threadId": "162067",
+      "threadId": 162067,
       "messageId": 4050642,
       "subject": "Re:Season 4 / Event 3: Finnland - Ergebnisse",
       "username": "McDee",
@@ -1194,7 +1209,7 @@ Liste aller Antworten, die ein Benutzer auf seine Beiträge erhalten hat. Die Li
     },
     {
       "boardId": 1,
-      "threadId": "162067",
+      "threadId": 162067,
       "messageId": 4050669,
       "subject": "Re:Season 4 / Event 3: Finnland - Ergebnisse",
       "username": "KikjaR",
@@ -1202,7 +1217,7 @@ Liste aller Antworten, die ein Benutzer auf seine Beiträge erhalten hat. Die Li
     },
     {
       "boardId": 1,
-      "threadId": "162067",
+      "threadId": 162067,
       "messageId": 4046916,
       "subject": "Ja, auf jeden Fall!",
       "username": "musashi",
