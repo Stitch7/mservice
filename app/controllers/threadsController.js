@@ -45,7 +45,7 @@ module.exports = function(log, client, db, responses) {
          * Index action
          */
         index: function (req, res, next) {
-            client.threadList(res, req.params.boardId, function (threadList, error) {
+            client.threadList(res, db, req.params.boardId, function (threadList, error) {
                 if (req.authorization.basic === undefined) {
                     responses.json(res, threadList, error, next);
                     return;

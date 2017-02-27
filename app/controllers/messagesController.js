@@ -11,7 +11,7 @@ module.exports = function(log, client, db, responses) {
          * Message list
          */
         index: function (req, res, next) {
-            client.messageList(res, req.params.boardId, req.params.threadId, function (messages, error) {
+            client.messageList(res, db, req.params.boardId, req.params.threadId, function (messages, error) {
                 if (req.authorization.basic === undefined) {
                     responses.json(res, messages, error, next);
                     return;
@@ -188,9 +188,8 @@ module.exports = function(log, client, db, responses) {
          * Get Responses on Messages
          */
         responses: function (req, res, next) {
-            client.messageResponses(res, req.params.username, function (user, error) {
-                responses.json(res, user, error, next);
-
+            client.messageResponses(res, db, req.params.username, function (messageResponses, error) {
+                responses.json(res, messageResponses, error, next);
             });
         },
         /**

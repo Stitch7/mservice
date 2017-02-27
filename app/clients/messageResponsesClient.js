@@ -6,59 +6,69 @@
  */
 'use strict';
 
-var _ = require('underscore');
 var response = require('./../models/response.js');
 
 module.exports = function(log, httpClient, cache, scrapers) {
-    return function(res, username, fn) {
-
+    return function(res, db, username, fn) {
         var responses = [];
 
-        var cachedMessageLists = cache.keys().filter(function(word) {
-                return /^messageList/.test(word);
-        });
+        var readlistCollection = db.get().collection('readlist');
+        var threadlistCollection = db.get().collection('threadlist');
+        var messagelistCollection = db.get().collection('messagelist');
 
-        log.debug("Searching responses in cached message lists: " + cachedMessageLists);
+        messagelistCollection.find().toArray(function (err, messagelists) {
+            var counter = 0;
+            messagelists.forEach(function(messagelist, i) {
+                var boardId = messagelist.boardId;
+                var threadId = messagelist.threadId;
 
-        var messages = [];
-
-        function getParentBoardId(threadId) {
-            var boardList = cache.get("boardList");
-            var parentBoard = _.find(boardList, function(m,i) {
-                log.debug("Getting: threadList/" + m.id + " in the search for threadId " + threadId);
-                var threadList = cache.get("threadList/"+m.id);
-                var index = _.findIndex(threadList, {'id': parseInt(threadId)});
-                return index > -1;
-            });
-            return (parentBoard) ? (parentBoard.id) : -1
-        }
-
-
-        function getParentThreadId(messageId) {
-            return parseInt(messageId.split("/")[1]);
-        }
-
-        _.each(cachedMessageLists, function(cachedMessage,i) {
-
-            messages = cache.get(cachedMessage);
-            _.each(messages, function(m,i) {
-
-                    if (i>0)
-                    {
-                        var previousMessage = messages[i-1];
-
-                        if (previousMessage.level +1 == m.level &&
-                            previousMessage.username == username)
-                        {
-                            var parentThreadId = getParentThreadId(cachedMessage);
-                            var parentBoardId = getParentBoardId(parentThreadId);
-
-                            responses.push(new response(parentBoardId, parentThreadId, m.messageId, m.subject, m.username, m.date ));
-                        }
+                var readlistQuery = {
+                    username: username,
+                    threadId: threadId.toString()
+                };
+                readlistCollection.findOne(readlistQuery, function (err, readlist) {
+                    if (err) {
+                        log.error(err);
                     }
+
+                    var threadlistQuery = {
+                        id: threadId
+                    };
+                    threadlistCollection.findOne(threadlistQuery, function (err, thread) {
+                        if (err) {
+                            log.error(err);
+                        }
+
+                        var readMessageIds = readlist ? readlist.messages : [];
+                        messagelist.messages.forEach(function(message, i) {
+                            if (i <= 0) {
+                                return;
+                            }
+
+                            var previousMessage = messagelist.messages[i-1];
+                            if (previousMessage.level +1 == message.level &&
+                                previousMessage.username == username)
+                            {
+                                var threadSubject = thread.subject;
+                                var isRead = readMessageIds.indexOf(message.messageId.toString()) >= 0;
+                                responses.push(new response(boardId,
+                                                            threadId,
+                                                            threadSubject,
+                                                            message.messageId,
+                                                            message.subject,
+                                                            message.username,
+                                                            message.date,
+                                                            isRead));
+                            }
+                        });
+
+                        if (counter == messagelists.length - 1) {
+                            fn(responses, null);
+                        }
+                        counter++;
+                    });
+                });
             });
         });
-
-        fn(responses, null);
     };
 };

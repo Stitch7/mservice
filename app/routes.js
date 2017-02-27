@@ -38,7 +38,6 @@ module.exports = function(server, handler, controller) {
     server.get('/board/:boardId/notification/:messageId', handler.auth, controller.messages.notification);
     server.get('/user/:username/responses', controller.messages.responses);
 
-
     /**
      * Users
      */
