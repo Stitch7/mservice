@@ -115,6 +115,7 @@ module.exports = function(log, client, db, responses) {
                 res,
                 req.params.boardId,
                 null,
+                null,
                 req.authorization.basic.username,
                 req.authorization.basic.password,
                 req.params.subject,

@@ -42,8 +42,10 @@ module.exports = function(log, httpClient, cache, scrapers) {
             }
 
             if (!error) {
-                cache.del('messageList/' + threadId);
                 cache.del('threadList/' + boardId);
+                if (threadId) {
+                    cache.del('messageList/' + threadId);
+                }
             }
 
             fn(null, error);
