@@ -6,14 +6,14 @@
 'use strict';
 
 module.exports = function(log, httpClient, cache, scrapers) {
-    return function(res, db, boardId, fn) {
-        var url = httpClient.baseUrl + '?mode=threadlist&brdid=' + boardId;
+    return function(req, res, boardId, fn) {
         var cacheKey = 'threadList/' + boardId;
         var cacheTtl = 300; // 5 minutes
         try {
             var threadList = cache.get(cacheKey, true);
             fn(threadList);
         } catch(error) {
+            var url = httpClient.baseUrl + '?mode=threadlist&brdid=' + boardId;
             httpClient.get(res, url, function (html) {
                 var data = null;
                 var error = null;
@@ -24,31 +24,15 @@ module.exports = function(log, httpClient, cache, scrapers) {
                     data = scrapers.threadList(html);
                 }
 
-                cache.set(cacheKey, data, cacheTtl, function(cacheErr, success) {
-                    if (error || !success) {
-                        log.error('Failed to cache data for key: ' + cacheKey);
-                    }
-                });
+                fn(data, error);
 
-                var threadlist = db.get().collection('threadlist');
-                data.forEach(function(thread) {
-                    var query = {
-                        threadId: parseInt(thread.id),
-                    };
-                    threadlist.find(query).toArray(function (err, result) {
-                        if (err) {
-                            log.error(err);
-                        } else if (result.length === 0) {
-                            threadlist.insert([thread], function (err, result) {
-                                if (err) {
-                                    log.error(err);
-                                }
-                            });
+                req.on('end', function() {
+                    cache.set(cacheKey, data, cacheTtl, function(cacheErr, success) {
+                        if (error || !success) {
+                            log.error('Failed to cache data for key: ' + cacheKey);
                         }
                     });
                 });
-
-                fn(data, error);
             });
         }
     };

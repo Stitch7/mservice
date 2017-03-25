@@ -11,7 +11,7 @@ module.exports = function(log, client, db, responses) {
          * Message list
          */
         index: function (req, res, next) {
-            client.messageList(res, db, req.params.boardId, req.params.threadId, function (messages, error) {
+            client.messageList(req, res, db, client.threadList, req.params.boardId, req.params.threadId, function (messages, error) {
                 if (req.authorization.basic === undefined) {
                     responses.json(res, messages, error, next);
                     return;
@@ -188,8 +188,49 @@ module.exports = function(log, client, db, responses) {
          * Get Responses on Messages
          */
         responses: function (req, res, next) {
-            client.messageResponses(res, db, req.params.username, function (messageResponses, error) {
-                responses.json(res, messageResponses, error, next);
+            var username = req.params.username;
+            client.messageResponses(res, db, username, function (messageResponses, error) {
+                var readlist = db.get().collection('readlist');
+
+                var threadIds = [];
+                messageResponses.forEach(function (message, key) {
+                    var threadId = message.threadId.toString();
+                    if(threadIds.indexOf(threadId) == -1)
+                    threadIds.push(threadId);
+                });
+
+                var query = {};
+                query.username = username;
+                query.$or = [];
+                threadIds.forEach(function (threadId) {
+                    query.$or.push({'threadId': threadId});
+                });
+
+                readlist.find(query).toArray(function (err, results) {
+                    if (err) {
+                        log.error(err);
+                    }
+
+                    var readListEntries = {};
+                    if (results && results.length) {
+                        results.forEach(function (result) {
+                            readListEntries[result.threadId] = result.messages;
+                        });
+                    }
+
+                    messageResponses.forEach(function (message, key) {
+                        message.isRead = false;
+                        var query = {
+                            username: username,
+                            threadId: message.threadId.toString()
+                        };
+
+                        var messageIds = readListEntries[message.threadId] || [];
+                        message.isRead = messageIds.indexOf(message.messageId.toString()) >= 0;
+                    });
+
+                    responses.json(res, messageResponses, error, next);
+                });
             });
         },
         /**

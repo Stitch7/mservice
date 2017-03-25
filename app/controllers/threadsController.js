@@ -45,7 +45,7 @@ module.exports = function(log, client, db, responses) {
          * Index action
          */
         index: function (req, res, next) {
-            client.threadList(res, db, req.params.boardId, function (threadList, error) {
+            client.threadList(req, res, req.params.boardId, function (threadList, error) {
                 if (req.authorization.basic === undefined) {
                     responses.json(res, threadList, error, next);
                     return;
@@ -61,7 +61,7 @@ module.exports = function(log, client, db, responses) {
          */
         markAsRead: function (req, res, next) {
             var threadId = req.params.threadId;
-            client.messageList(res, req.params.boardId, threadId, function (messages, error) {
+            client.messageList(req, res, db, client.threadList, req.params.boardId, threadId, function (messages, error) {
                 responses.json(res, 'Ok', null, next);
 
                 req.on('end', function() {

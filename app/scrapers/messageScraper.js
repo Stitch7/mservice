@@ -22,9 +22,23 @@ module.exports = function (scrapers, messageId, html) {
     var $text = $html.find('body table tr.bg2 td > font');
     var text = $text.text().trim();
     var textHtml = $text.html().replace(removeLinkBracesRegExp, '$1').trim();
+    var $contentContainer = $('<p>').append($('<div>').attr('id', 'content'));
+
+    var $textHtml = $contentContainer.clone();
+    $textHtml.find('#content').append(textHtml);
 
     $text.find('font[face="Courier New"] > a').replaceWith(utils.embedImages($));
+    $text.find('img').each(function () {
+        var $img = $(this);
+        $img.attr('alt', $img.attr('src'));
+    });
+    $text.find('button').each(function () {
+        var $button = $(this);
+        $button.html('SPOILER');
+    });
     var textHtmlWithEmbeddedImages = $text.html().replace(removeLinkBracesRegExp, '$1').trim();
+    var $textHtmlWithEmbeddedImages = $contentContainer.clone();
+    $textHtmlWithEmbeddedImages.find('#content').append(textHtmlWithEmbeddedImages);
 
     var notification = scrapers.notificationStatus(html).notification;
 
@@ -36,8 +50,8 @@ module.exports = function (scrapers, messageId, html) {
         subject,
         date,
         text,
-        textHtml,
-        textHtmlWithEmbeddedImages,
+        $textHtml.html(),
+        $textHtmlWithEmbeddedImages.html(),
         notification
     );
 };

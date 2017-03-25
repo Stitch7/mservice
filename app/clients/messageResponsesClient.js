@@ -7,68 +7,70 @@
 'use strict';
 
 var response = require('./../models/response.js');
+var moment = require('moment');
 
 module.exports = function(log, httpClient, cache, scrapers) {
     return function(res, db, username, fn) {
-        var responses = [];
+        var cacheKey = 'responses/' + username;
+        var cacheTtl = 120; // 2 minutes
+        try {
+            var messageList = cache.get(cacheKey, true);
+            fn(messageList);
+        } catch(error) {
+            var data = [];
+            var messagelistCollection = db.get().collection('messagelist');
+            var oneMonthAgo = moment().subtract(14, 'days').format('YYYYMMDD');
 
-        var readlistCollection = db.get().collection('readlist');
-        var threadlistCollection = db.get().collection('threadlist');
-        var messagelistCollection = db.get().collection('messagelist');
-
-        messagelistCollection.find().toArray(function (err, messagelists) {
-            var counter = 0;
-            messagelists.forEach(function(messagelist, i) {
-                var boardId = messagelist.boardId;
-                var threadId = messagelist.threadId;
-
-                var readlistQuery = {
-                    username: username,
-                    threadId: threadId.toString()
-                };
-                readlistCollection.findOne(readlistQuery, function (err, readlist) {
-                    if (err) {
-                        log.error(err);
+            messagelistCollection.find().toArray(function (err, messagelists) {
+                var counter = 0;
+                messagelists.forEach(function(messagelist, i) {
+                    if (!messagelist.messages) {
+                        return;
                     }
 
-                    var threadlistQuery = {
-                        id: threadId
-                    };
-                    threadlistCollection.findOne(threadlistQuery, function (err, thread) {
-                        if (err) {
-                            log.error(err);
+                    var boardId = messagelist.boardId;
+                    var threadId = messagelist.threadId;
+                    var threadSubject = messagelist.threadSubject;
+
+                    messagelist.messages.forEach(function(message, key) {
+                        if (message.username !== username ||
+                            moment(message.date).format('YYYYMMDD') <= oneMonthAgo
+                        ) {
+                            return;
                         }
 
-                        var readMessageIds = readlist ? readlist.messages : [];
-                        messagelist.messages.forEach(function(message, i) {
-                            if (i <= 0) {
-                                return;
+                        var goDeeper;
+                        do {
+                            goDeeper = false;
+                            var nextMessage = messagelist.messages[++key];
+                            if (nextMessage && nextMessage.level > message.level) {
+                                goDeeper = true;
+                                if (nextMessage.level == message.level + 1 &&
+                                    nextMessage.username !== username
+                                ) {
+                                    data.push(new response(
+                                        boardId,
+                                        threadId,
+                                        threadSubject,
+                                        nextMessage.messageId,
+                                        nextMessage.subject,
+                                        nextMessage.username,
+                                        nextMessage.date,
+                                        null
+                                    ));
+                                }
                             }
-
-                            var previousMessage = messagelist.messages[i-1];
-                            if (previousMessage.level +1 == message.level &&
-                                previousMessage.username == username)
-                            {
-                                var threadSubject = thread.subject;
-                                var isRead = readMessageIds.indexOf(message.messageId.toString()) >= 0;
-                                responses.push(new response(boardId,
-                                                            threadId,
-                                                            threadSubject,
-                                                            message.messageId,
-                                                            message.subject,
-                                                            message.username,
-                                                            message.date,
-                                                            isRead));
-                            }
-                        });
-
-                        if (counter == messagelists.length - 1) {
-                            fn(responses, null);
-                        }
-                        counter++;
+                        } while (goDeeper);
                     });
                 });
+
+                cache.set(cacheKey, data, cacheTtl, function(error, success) {
+                    if (error || !success) {
+                        log.error('Failed to cache data for key: ' + cacheKey);
+                    }
+                });
+                fn(data, null);
             });
-        });
+        }
     };
 };
