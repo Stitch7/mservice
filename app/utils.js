@@ -96,5 +96,8 @@ module.exports = {
     },
     toInt: function (string) {
         return parseInt(string, 10);
+    },
+    isNumeric: function (n) {
+        return !isNaN(parseFloat(n)) && isFinite(n);
     }
 };

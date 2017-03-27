@@ -17,6 +17,13 @@ module.exports = function(server, handler, controller) {
     server.get('/boards', controller.boards.index);
 
     /**
+     * Favorites
+     */
+    server.get('/favorites', handler.auth, controller.favorites.index);
+    server.post('/favorites/:threadId', handler.auth, controller.favorites.add);
+    server.del('/favorites/:threadId', handler.auth, controller.favorites.remove);
+
+    /**
      * Threads
      */
     server.get('/board/:boardId/threads', controller.threads.index);

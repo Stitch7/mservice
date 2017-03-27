@@ -14,7 +14,9 @@ module.exports = {
 
         if (error) {
             status = errors.codes[error];
-            json  = { error: errors.messages[error] };
+            if (!json) {
+                json  = { error: errors.messages[error] };
+            }
         }
 
         res.status(status);

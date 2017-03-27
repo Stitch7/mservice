@@ -78,7 +78,7 @@ module.exports = function(log, client, db, responses) {
                                     } else if (numUpdated) {
                                         log.info('User %s marked Message %d in Thread %d as read', username, messageId, threadId);
                                     } else {
-                                        log.warn('No document found with query:', query);
+                                        log.warn('No readlist entry found with query:', query);
                                     }
                                 });
                             }
