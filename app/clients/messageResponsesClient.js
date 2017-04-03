@@ -34,7 +34,7 @@ module.exports = function(log, httpClient, cache, scrapers) {
 
                     messagelist.messages.forEach(function(message, key) {
                         if (message.username !== username ||
-                            moment(message.date).format('YYYYMMDD') <= oneMonthAgo
+                            (message.level > 0 && moment(message.date).format('YYYYMMDD') <= oneMonthAgo)
                         ) {
                             return;
                         }
