@@ -66,7 +66,7 @@ module.exports = function(log, httpClient, cache, scrapers) {
                                     }
                                 });
                             } else {
-                                messagelist.update(query, {$set: {messages: data}}, function (err, numUpdated) {
+                                messagelist.update(query, { $set: { thread: correspondingThread, messages: data } }, function(err, numUpdated) {
                                     if (err) {
                                         log.error(err);
                                     }
