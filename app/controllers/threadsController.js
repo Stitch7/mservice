@@ -8,34 +8,49 @@
 var injectReadStatus = function(log, db, req, threadList, callback) {
     var username = req.authorization.basic.username;
     var readlist = db.get().collection('readlist');
-    threadList.forEach( function (thread, key) {
-        readlist.find({username: username, threadId: thread.id.toString()}).toArray(function (err, result) {
-            if (err) {
-                log.error(err);
-            }
+    var threadIds = threadList.map(function(thread) {
+        return thread.id.toString();
+    });
 
+    readlist.find({ username: username, threadId: { $in: threadIds } }).toArray(function(err, result) {
+        if (err) {
+            log.error(err);
+            callback(threadList);
+            return;
+        }
+
+        if (!result) {
+            callback(threadList);
+            return;
+        }
+
+        threadList.forEach(function(thread, key) {
             var isRead = false;
             var lastMessageIsRead = false;
             var messagesRead = 0;
 
-            if (result.length) {
-                var messageIds = result[0].messages || [];
-                isRead = messageIds.indexOf(thread.messageId.toString()) >= 0;
-                lastMessageIsRead = messageIds.indexOf(thread.lastMessageId.toString()) >= 0;
-                messagesRead = messageIds.length;
-                if (isRead) {
-                    messagesRead -= 1;
+            var readlistEntries = result.filter(function(readlistEntry) {
+                return readlistEntry.threadId == thread.id;
+            });
+
+            if (readlistEntries.length > 0) {
+                var messageIds = readlistEntries[0].messages;
+                if (messageIds) {
+                    isRead = messageIds.indexOf(thread.messageId.toString()) >= 0;
+                    lastMessageIsRead = messageIds.indexOf(thread.lastMessageId.toString()) >= 0;
+                    messagesRead = messageIds.length;
+                    if (isRead) {
+                        messagesRead -= 1;
+                    }
                 }
             }
 
             thread.isRead = isRead;
             thread.lastMessageIsRead = lastMessageIsRead;
             thread.messagesRead = messagesRead;
-
-            if (key == threadList.length - 1) {
-                callback(threadList);
-            }
         });
+
+        callback(threadList);
     });
 };
 
@@ -44,14 +59,14 @@ module.exports = function(log, client, db, responses) {
         /**
          * Index action
          */
-        index: function (req, res, next) {
-            client.threadList(req, res, req.params.boardId, function (threadList, error) {
+        index: function(req, res, next) {
+            client.threadList(req, res, req.params.boardId, function(threadList, error) {
                 if (req.authorization.basic === undefined) {
                     responses.json(res, threadList, error, next);
                     return;
                 }
 
-                injectReadStatus(log, db, req, threadList, function (threadList) {
+                injectReadStatus(log, db, req, threadList, function(threadList) {
                     responses.json(res, threadList, error, next);
                 });
             });
@@ -59,28 +74,28 @@ module.exports = function(log, client, db, responses) {
         /**
          * Mark as read action
          */
-        markAsRead: function (req, res, next) {
+        markAsRead: function(req, res, next) {
             var threadId = req.params.threadId;
-            client.messageList(req, res, db, client.threadList, req.params.boardId, threadId, function (messages, error) {
+            client.messageList(req, res, db, client.threadList, req.params.boardId, threadId, function(messages, error) {
                 responses.json(res, 'Ok', null, next);
 
                 req.on('end', function() {
                     var username = req.authorization.basic.username;
 
                     var messageIds = [];
-                    messages.forEach( function (message, key) {
+                    messages.forEach(function(message, key) {
                         messageIds.push(message.messageId.toString());
                     });
 
                     var readlist = db.get().collection('readlist');
-                    var query = {username: username, threadId: threadId};
+                    var query = { username: username, threadId: threadId };
 
-                    readlist.find(query).toArray(function (err, result) {
+                    readlist.find(query).toArray(function(err, result) {
                         if (err) {
                             log.error(err);
                         } else if (result.length === 0) {
-                            var newEntry = {username: username, threadId: threadId, messages: messageIds};
-                            readlist.insert([newEntry], function (err, result) {
+                            var newEntry = { username: username, threadId: threadId, messages: messageIds };
+                            readlist.insert([newEntry], function(err, result) {
                                 if (err) {
                                     log.error(err);
                                 } else {
@@ -88,7 +103,7 @@ module.exports = function(log, client, db, responses) {
                                 }
                             });
                         } else {
-                            readlist.update(query, {$set: {messages: messageIds}}, function (err, numUpdated) {
+                            readlist.update(query, { $set: { messages: messageIds } }, function(err, numUpdated) {
                                 if (err) {
                                     log.error(err);
                                 } else if (numUpdated) {
@@ -105,7 +120,7 @@ module.exports = function(log, client, db, responses) {
         /**
          * Create action
          */
-        create: function (req, res, next) {
+        create: function(req, res, next) {
             if (req.params.subject === undefined || req.params.text === undefined) {
                 responses.json(res, null, 'httpBadRequest');
                 return;
@@ -121,7 +136,7 @@ module.exports = function(log, client, db, responses) {
                 req.params.subject,
                 req.params.text,
                 req.params.notification,
-                function (data, error) {
+                function(data, error) {
                     responses.json(res, data, error, next);
                 }
             );
@@ -129,20 +144,20 @@ module.exports = function(log, client, db, responses) {
         /**
          * Search action
          */
-        search: function (req, res, next) {
+        search: function(req, res, next) {
             var phrase = req.params.phrase;
             if (phrase === undefined) {
                 responses.json(res, null, 'httpBadRequest');
                 return;
             }
 
-            client.searchThreads(res, req.params.boardId, phrase, function (threadList, error) {
+            client.searchThreads(res, req.params.boardId, phrase, function(threadList, error) {
                 if (req.authorization.basic === undefined) {
                     responses.json(res, threadList, error, next);
                     return;
                 }
 
-                injectReadStatus(log, db, req, threadList, function (threadList) {
+                injectReadStatus(log, db, req, threadList, function(threadList) {
                     responses.json(res, threadList, error, next);
                 });
             });

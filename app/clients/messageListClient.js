@@ -39,9 +39,11 @@ module.exports = function(log, httpClient, cache, scrapers) {
 
                     threadListClient(req, res, req.params.boardId, function (threadList, error) {
                         var threadSubject = '';
+                        var correspondingThread;
                         threadList.forEach(function(thread) {
                             if (thread.id == threadId) {
                                 threadSubject = thread.subject;
+                                correspondingThread = thread;
                             }
                         });
 
@@ -56,6 +58,7 @@ module.exports = function(log, httpClient, cache, scrapers) {
                             } else if (result.length === 0) {
                                 var newEntry = query;
                                 newEntry.threadSubject = threadSubject;
+                                newEntry.thread = correspondingThread;
                                 newEntry.messages = data;
                                 messagelist.insert([newEntry], function (err, result) {
                                     if (err) {
