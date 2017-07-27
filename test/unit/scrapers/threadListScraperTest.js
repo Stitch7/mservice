@@ -15,12 +15,13 @@ var loadJsonRessource = helpers.loadJsonRessource;
 
 describe('thradListScraper', function() {
     it('it should parse html and return an array of threads', function(done) {
-        loadHtmlRessource('threadList', function (errorHtml, html) {
-            loadJsonRessource('threadList', function (errorJson, json) {
+        loadHtmlRessource('threadList', function(errorHtml, html) {
+            loadJsonRessource('threadList', function(errorJson, json) {
                 expect(errorHtml).to.be.null;
                 expect(errorJson).to.be.null;
 
-                var threadList = scrapers.threadList(html);
+                var boardId = 6;
+                var threadList = scrapers.threadList(html, boardId);
                 expect(threadList).to.eql(JSON.parse(json));
 
                 done();

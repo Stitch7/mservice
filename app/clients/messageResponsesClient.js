@@ -16,12 +16,12 @@ module.exports = function(log, httpClient, cache, scrapers) {
         try {
             var messageList = cache.get(cacheKey, true);
             fn(messageList);
-        } catch(error) {
+        } catch (error) {
             var data = [];
             var messagelistCollection = db.get().collection('messagelist');
             var oneMonthAgo = moment().subtract(14, 'days').format('YYYYMMDD');
 
-            messagelistCollection.find().toArray(function (err, messagelists) {
+            messagelistCollection.find().toArray(function(err, messagelists) {
                 var counter = 0;
                 messagelists.forEach(function(messagelist, i) {
                     if (!messagelist.messages) {
@@ -30,7 +30,7 @@ module.exports = function(log, httpClient, cache, scrapers) {
 
                     var boardId = messagelist.boardId;
                     var threadId = messagelist.threadId;
-                    var threadSubject = messagelist.threadSubject;
+                    var threadSubject = messagelist.threadSubject ? messagelist.threadSubject : '';
 
                     messagelist.messages.forEach(function(message, key) {
                         if (message.username !== username ||

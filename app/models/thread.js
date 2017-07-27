@@ -7,8 +7,10 @@
 
 module.exports = function(
     id,
+    boardId,
     messageId,
     isRead,
+    isFavorite,
     sticky,
     closed,
     username,
@@ -22,8 +24,10 @@ module.exports = function(
     lastMessageDate
 ) {
     this.id = id;
+    this.boardId = boardId;
     this.messageId = messageId;
     this.isRead = isRead;
+    this.isFavorite = isFavorite;
     this.sticky = sticky;
     this.closed = closed;
     this.username = username;

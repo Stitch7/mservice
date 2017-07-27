@@ -19,7 +19,9 @@ module.exports = function(log, httpClient, cache, scrapers) {
             }
         };
 
-        httpClient.post(res, options, function (html, response) {
+        log.info(options);
+
+        httpClient.post(res, options, function(html, response) {
             var validLogin = scrapers.login(html);
             if (!validLogin) {
                 responses.json(res, null, 'login', null);

@@ -14,9 +14,9 @@ module.exports = function(log, httpClient, cache, scrapers) {
         try {
             var messageList = cache.get(cacheKey, true);
             fn(messageList);
-        } catch(error) {
+        } catch (error) {
             var url = httpClient.baseUrl + '?mode=thread&brdid=' + boardId + '&thrdid=' + threadId;
-            httpClient.get(res, url, function (html) {
+            httpClient.get(res, url, function(html) {
                 var data = null;
                 var error = null;
 
@@ -37,12 +37,10 @@ module.exports = function(log, httpClient, cache, scrapers) {
                         }
                     });
 
-                    threadListClient(req, res, req.params.boardId, function (threadList, error) {
-                        var threadSubject = '';
+                    threadListClient(req, res, req.params.boardId, function(threadList, error) {
                         var correspondingThread;
                         threadList.forEach(function(thread) {
                             if (thread.id == threadId) {
-                                threadSubject = thread.subject;
                                 correspondingThread = thread;
                             }
                         });
@@ -52,15 +50,15 @@ module.exports = function(log, httpClient, cache, scrapers) {
                             boardId: utils.toInt(boardId),
                             threadId: utils.toInt(threadId),
                         };
-                        messagelist.find(query).toArray(function (err, result) {
+                        messagelist.find(query).toArray(function(err, result) {
                             if (err) {
                                 log.error(err);
                             } else if (result.length === 0) {
                                 var newEntry = query;
-                                newEntry.threadSubject = threadSubject;
+                                newEntry.threadSubject = correspondingThread.subject;
                                 newEntry.thread = correspondingThread;
                                 newEntry.messages = data;
-                                messagelist.insert([newEntry], function (err, result) {
+                                messagelist.insert([newEntry], function(err, result) {
                                     if (err) {
                                         log.error(err);
                                     }

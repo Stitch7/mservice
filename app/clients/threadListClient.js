@@ -12,16 +12,16 @@ module.exports = function(log, httpClient, cache, scrapers) {
         try {
             var threadList = cache.get(cacheKey, true);
             fn(threadList);
-        } catch(error) {
+        } catch (error) {
             var url = httpClient.baseUrl + '?mode=threadlist&brdid=' + boardId;
-            httpClient.get(res, url, function (html) {
+            httpClient.get(res, url, function(html) {
                 var data = null;
                 var error = null;
 
                 if (scrapers.title(html) === httpClient.errors.maniacBoardTitles.error) {
                     error = 'boardId';
                 } else {
-                    data = scrapers.threadList(html);
+                    data = scrapers.threadList(html, boardId);
                 }
 
                 fn(data, error);

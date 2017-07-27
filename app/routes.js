@@ -32,6 +32,13 @@ module.exports = function(server, handler, controller) {
     server.post('/board/:boardId/message', controller.threads.create); // Does auth manually
 
     /**
+     * Threads Killfile
+     */
+    server.get('/killfile/threads', handler.auth, controller.threadKillfile.index);
+    server.post('/killfile/threads/:threadId', handler.auth, controller.threadKillfile.add);
+    server.del('/killfile/threads/:threadId', handler.auth, controller.threadKillfile.remove);
+
+    /**
      * Messages
      */
     server.get('/board/:boardId/thread/:threadId', handler.optionalAuth, controller.messages.index);

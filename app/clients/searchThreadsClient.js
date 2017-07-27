@@ -17,7 +17,7 @@ module.exports = function(log, httpClient, cache, scrapers) {
         try {
             var searchResult = cache.get(cacheKey, true);
             fn(searchResult);
-        } catch(error) {
+        } catch (error) {
             var options = {
                 uri: url,
                 form: {
@@ -30,14 +30,14 @@ module.exports = function(log, httpClient, cache, scrapers) {
                 }
             };
 
-            httpClient.post(res, options, function (html, response) {
+            httpClient.post(res, options, function(html, response) {
                 var data = null;
                 var error = null;
 
                 if (scrapers.title(html) === httpClient.errors.maniacBoardTitles.error) {
                     error = 'boardId';
                 } else {
-                    data = scrapers.threadList(html);
+                    data = scrapers.threadList(html, boardId);
                     cache.set(cacheKey, data, cacheTtl, function(cacheErr, success) {
                         if (error || !success) {
                             log.error('Failed to cache data for key: ' + cacheKey);

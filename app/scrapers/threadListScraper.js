@@ -9,7 +9,7 @@ var $ = require('cheerio');
 var utils = require('./../utils.js');
 var thread = require('./../models/thread.js');
 
-module.exports = function(html) {
+module.exports = function(html, boardId) {
     var threads = [];
 
     var threadEntriesChained = html;
@@ -69,7 +69,9 @@ module.exports = function(html) {
         // Add thread to list
         threads.push(new thread(
             id,
+            boardId,
             messageId,
+            null,
             null,
             sticky,
             closed,
