@@ -22,17 +22,18 @@ module.exports = function(log, client, db, responses) {
                 readlist.find({username: username, threadId: req.params.threadId}).toArray(function (err, result) {
                     if (err) {
                         log.error(err);
-                    } else if (result.length) {
-                        var messageIds = result[0].messages ? result[0].messages : [];
-                        messages.forEach(function (message) {
-                            message.isRead = messageIds.indexOf(message.messageId.toString()) >= 0;
-                        });
-                    } else {
-                        messages.forEach(function (message) {
-                            message.isRead = false;
-                        });
+                    } else if (messages !== null) {
+                        if (result.length) {
+                            var messageIds = result[0].messages ? result[0].messages : [];
+                            messages.forEach(function(message) {
+                                message.isRead = messageIds.indexOf(message.messageId.toString()) >= 0;
+                            });
+                        } else {
+                            messages.forEach(function(message) {
+                                message.isRead = false;
+                            });
+                        }
                     }
-
                     responses.json(res, messages, error, next);
                 });
             });

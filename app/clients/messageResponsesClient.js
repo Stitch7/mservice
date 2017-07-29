@@ -30,7 +30,7 @@ module.exports = function(log, httpClient, cache, scrapers) {
 
                     var boardId = messagelist.boardId;
                     var threadId = messagelist.threadId;
-                    var threadSubject = messagelist.threadSubject;
+                    var threadSubject = messagelist.threadSubject ? messagelist.threadSubject : '';
 
                     messagelist.messages.forEach(function(message, key) {
                         if (message.username !== username ||
