@@ -5,13 +5,13 @@
  */
 'use strict';
 
-module.exports = function(client, responses) {
-    return function(req, res, next) {
+module.exports = function (client, responses) {
+    return function (req, res, next) {
         if (req.authorization.basic === undefined) {
             return responses.json(res, null, 'login', null);
         }
 
-        var username = req.authorization.basic.username.replace('##COLON##', ':');
+        var username = req.authorization.basic.username.replace('--COLON--', ':');
         var password = req.authorization.basic.password;
         client.login(res, username, password, function (res) {
             next();

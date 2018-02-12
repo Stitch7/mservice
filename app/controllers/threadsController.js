@@ -5,6 +5,7 @@
  */
 'use strict';
 
+var utils = require('./../utils.js');
 var injectReadlist = require('./../injectors/readlistInjector.js');
 var injectFavorites = require('./../injectors/favoritesInjector.js');
 var removeThreadsFromKillfile = require('./../injectors/threadsKillfileInjector.js');
@@ -74,6 +75,42 @@ module.exports = function(log, client, db, responses) {
                         }
                     });
                 });
+            });
+        },
+        /**
+         * Get threadId for message
+         */
+        threadForMessage: function(req, res, next) {
+            client.message(res, req.params.boardId, req.params.messageId, function (message, error) {
+
+                if (error) {
+                    log.error(error);
+                    responses.json(res, null, error, next);
+                    return;
+                } else if (!message) {
+                    responses.json(res, null, error, next);
+                    return;
+                }
+
+                var messagelist = db.get().collection('messagelist');
+                var query = {
+                    threadId: utils.toInt(message.threadId),
+                };
+                messagelist.find(query).toArray(function(err, result) {
+                    if (err) {
+                        log.error(err);
+                    } else if (result.length === 0) {
+
+                    } else {
+                        var data = result[0].thread || {};
+                        data.threadId = message.threadId;
+
+                        // data = { threadId: message.threadId };
+                        responses.json(res, data, error, next);
+
+                    }
+                });
+
             });
         },
         /**

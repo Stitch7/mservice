@@ -28,6 +28,7 @@ module.exports = function(server, handler, controller) {
      */
     server.get('/board/:boardId/threads', controller.threads.index);
     server.get('/board/:boardId/thread/:threadId/mark-as-read', handler.auth, controller.threads.markAsRead);
+    server.get('/board/:boardId/thread-for-message/:messageId', controller.threads.threadForMessage);
     server.post('/board/:boardId/search-threads', handler.optionalAuth, controller.threads.search);
     server.post('/board/:boardId/message', controller.threads.create); // Does auth manually
 
@@ -50,13 +51,14 @@ module.exports = function(server, handler, controller) {
     server.get('/board/:boardId/quote/:messageId', controller.messages.quote);
     server.get('/board/:boardId/notification-status/:messageId', handler.auth, controller.messages.notificationStatus);
     server.get('/board/:boardId/notification/:messageId', handler.auth, controller.messages.notification);
-    server.get('/user/:username/responses', controller.messages.responses);
 
     /**
      * Users
      */
     server.get('/test-login', handler.auth, controller.users.login);
     server.get('/user/:userId', controller.users.profile);
+    server.get('/user/:username/responses', controller.messages.responses);
+    server.get('/user/:username/mark-unread-responses-as-read', handler.auth, controller.messages.markUnreadResponsesAsRead);
     server.get('/latest-user/', controller.users.latest);
     server.post('/read-list', handler.auth, controller.users.importReadList);
 };

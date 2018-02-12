@@ -11,7 +11,7 @@ module.exports = function (client) {
             return next();
         }
 
-        var username = req.authorization.basic.username;
+        var username = req.authorization.basic.username.replace('--COLON--', ':');
         var password = req.authorization.basic.password;
         client.login(res, username, password, function (res) {
             next();

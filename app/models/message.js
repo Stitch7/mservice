@@ -7,6 +7,7 @@
 
 module.exports = function(
     messageId,
+    threadId,
     isRead,
     userId,
     username,
@@ -18,6 +19,7 @@ module.exports = function(
     notification
 ) {
     this.messageId = messageId;
+    this.threadId = threadId;
     this.isRead = isRead;
     this.userId = userId;
     this.username = username;

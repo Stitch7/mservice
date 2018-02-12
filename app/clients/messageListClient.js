@@ -45,6 +45,13 @@ module.exports = function(log, httpClient, cache, scrapers) {
                             }
                         });
 
+                        if (!correspondingThread) {
+                            console.log("############################################################");
+                            console.log("## !! CORESPONDING THREAD (" + threadId + ") NOT FOUND !! ##");
+                            console.log("############################################################");
+                            return;
+                        }
+
                         var messagelist = db.get().collection('messagelist');
                         var query = {
                             boardId: utils.toInt(boardId),
@@ -61,12 +68,15 @@ module.exports = function(log, httpClient, cache, scrapers) {
                                 messagelist.insert([newEntry], function(err, result) {
                                     if (err) {
                                         log.error(err);
+                                        return;
                                     }
+                                    console.log("INSERTTED DA DING");
                                 });
                             } else {
                                 messagelist.update(query, { $set: { thread: correspondingThread, messages: data } }, function(err, numUpdated) {
                                     if (err) {
                                         log.error(err);
+                                        return;
                                     }
                                 });
                             }

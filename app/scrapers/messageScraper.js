@@ -24,6 +24,14 @@ module.exports = function (scrapers, messageId, html) {
     var textHtml = $text.html().replace(removeLinkBracesRegExp, '$1').trim();
     var $contentContainer = $('<p>').append($('<div>').attr('id', 'content'));
 
+    var threadid = null;
+    var $flatViewAs = $html.find('a').filter(function(){
+        return $(this).attr('target') == 'flatview';
+    });
+    if ($flatViewAs.length > 0) {
+        threadid = utils.toInt(/pxmboard.php\?mode=messagelist&brdid=\d+&thrdid=(\d+)/.exec($flatViewAs.first().attr('href'))[1]);
+    }
+
     var $textHtml = $contentContainer.clone();
     $textHtml.find('#content').append(textHtml);
 
@@ -44,6 +52,7 @@ module.exports = function (scrapers, messageId, html) {
 
     return new message(
         utils.toInt(messageId),
+        threadid,
         null,
         userId,
         username,
