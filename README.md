@@ -34,6 +34,7 @@ M!service ist ein in JavaScript geschriebener Serverdienst, der eine RESTful JSO
 	- [User](#user-content-user)
 	- [Latest User](#user-content-latest-user)
 	- [Responses](#user-content-responses-service)
+    - [Who's online](#user-content-whos-online)
 - [Lizenz](#user-content-lizenz)
 
 
@@ -1222,6 +1223,33 @@ Liste aller Antworten, die ein Benutzer auf seine Beiträge erhalten hat. Die Li
       "subject": "Ja, auf jeden Fall!",
       "username": "musashi",
       "date": "2017-01-01T16:03:00+01:00"
+    }
+
+## <a name="user-content-whos-online"></a>Who's online
+
+Übersicht über die aktuell eingeloggten User.
+
+### HTTP Method: `GET`
+
+    mservice/users/online
+
+### Example Success Response
+
+    HTTP/1.1 200 OK
+    {
+        "count":  {
+            "hidden": 24,
+            "total": 26,
+            "visible": 2
+        },
+        "users": {
+            "userId": 2615,
+            "username": "Stitch"
+        },
+        {
+            "userId": 29472,
+            "username": "K!M"
+        }
     }
 
 # <a name="user-content-lizenz"></a>Lizenz

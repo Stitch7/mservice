@@ -61,4 +61,5 @@ module.exports = function(server, handler, controller) {
     server.get('/user/:username/mark-unread-responses-as-read', handler.auth, controller.messages.markUnreadResponsesAsRead);
     server.get('/latest-user/', controller.users.latest);
     server.post('/read-list', handler.auth, controller.users.importReadList);
+    server.get('/users/online', controller.users.online);
 };

@@ -92,6 +92,14 @@ module.exports = function(log, client, db, responses) {
             }
 
             responses.json(res, 'Ok', null, next);
+        },
+        /**
+         * Whos online
+         */
+        online: function (req, res, next) {
+            client.whosOnline(res, function (whosOnline, error) {
+                responses.json(res, whosOnline, error, next);
+            });
         }
     };
 };
