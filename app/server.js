@@ -67,6 +67,7 @@ module.exports = function () {
                 server.use(restify.authorizationParser());
                 server.use(restify.bodyParser());
                 server.use(restify.gzipResponse());
+                server.use(restify.CORS());
 
                 var cache = new nodeCache();
                 var client = require('./clients/')(log, new httpClient(options, errors), cache, scrapers);
