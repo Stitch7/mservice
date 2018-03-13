@@ -133,8 +133,8 @@ module.exports = function(log, client, db, responses) {
 
                 if (result) {
                     var threadIds = result.threadIds;
-                    var index = threadIds.indexOf(5);
-                    if (threadIds.indexOf(threadId) === -1) {
+                    var index = threadIds.indexOf(threadId);
+                    if (index === -1) {
                         responses.json(res, null, 'threadId', next);
                     } else {
                         threadIds.splice(index, 1);
