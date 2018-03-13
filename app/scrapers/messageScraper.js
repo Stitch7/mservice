@@ -12,12 +12,22 @@ var message = require('./../models/message.js');
 
 module.exports = function (scrapers, messageId, html) {
     var $html = $(html);
-    var $bg1TRs = $html.find('body table tr.bg1 td');
-    var $userA = $($bg1TRs.get(5)).find('a').first();
-    var userId = utils.toInt(/pxmboard.php\?mode=userprofile&brdid=\d+&usrid=(\d+)/.exec($userA.attr('href'))[1]);
+    var $bg1TDs = $html.find('body table tr.bg1 td');
+
+    var $userA = $($html.find('a').get(1));
+    var userIdRegExp = /pxmboard.php\?mode=userprofile&brdid=\d+&usrid=(\d+)/.exec($userA.attr('href'));
+    var userId = userIdRegExp !== null ? utils.toInt(userIdRegExp[1]) : null;
+
     var username = $userA.text();
-    var subject = $($bg1TRs.get(2)).find('b').text();
-    var date = utils.datetimeStringToISO8601($($bg1TRs.get(7)).html());
+    var subject = $($bg1TDs.get(2)).find('b').text();
+
+    var dateString = $($bg1TDs.get(7)).text();
+    if (dateString === 'Datum:') {
+         // User is administrator which has an additional td
+        dateString = $($bg1TDs.get(8)).text();
+    }
+    var date = utils.datetimeStringToISO8601(dateString);
+
     var removeLinkBracesRegExp = /\[(<a.+>.+<\/a>)\]/g;
     var $text = $html.find('body table tr.bg2 td > font');
     var text = $text.text().trim();
