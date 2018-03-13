@@ -48,6 +48,7 @@ module.exports = function(server, handler, controller) {
     server.post('/board/:boardId/message/preview', controller.messages.preview);
     server.post('/board/:boardId/message/:messageId', controller.messages.create); // Does auth manually
     server.put('/board/:boardId/message/:messageId', handler.auth, controller.messages.update);
+    server.get('/board/:boardId/edit-text/:messageId', handler.auth, controller.messages.editText);
     server.get('/board/:boardId/quote/:messageId', controller.messages.quote);
     server.get('/board/:boardId/notification-status/:messageId', handler.auth, controller.messages.notificationStatus);
     server.get('/board/:boardId/notification/:messageId', handler.auth, controller.messages.notification);

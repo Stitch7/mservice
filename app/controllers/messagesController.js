@@ -157,6 +157,14 @@ module.exports = function(log, client, db, responses) {
             });
         },
         /**
+         * Text for edit Message
+         */
+        editText: function (req, res, next) {
+            client.editTextMessage(res, req.params.boardId, req.params.messageId, function (quote, error) {
+                responses.json(res, quote, error, next);
+            });
+        },
+        /**
          * Quote Message
          */
         quote: function (req, res, next) {
