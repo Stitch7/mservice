@@ -30,6 +30,10 @@ module.exports = function (scrapers, messageId, html) {
 
     var removeLinkBracesRegExp = /\[(<a.+>.+<\/a>)\]/g;
     var $text = $html.find('body table tr.bg2 td > font');
+    $text.find('img').replaceWith(function() {
+        var src = $(this).attr('src');
+        return $('<a href="' + src + '">' + src + '</a>');
+    });
     var text = $text.text().trim();
     var textHtml = $text.html().replace(removeLinkBracesRegExp, '$1').trim();
     var $contentContainer = $('<p>').append($('<div>').attr('id', 'content'));
