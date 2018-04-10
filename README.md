@@ -494,7 +494,10 @@ Daten des unteren Frames, eine Message.
 | text               | String           | Message Body als Plain Text                           |
 | textHtml           | String           | Message Body als HTML                                 |
 | textHtmlWithImages | String           | Message Body als HTML Images in IMG-Tags              |
-| notification       | Boolean \| Null  | Status der Mailbenachrichtigung _[1]_ |
+| isRead             | Boolean \| Null  | Posting ist gelesen _[1]_                             |
+| notification       | Boolean \| Null  | Status der Mailbenachrichtigung _[1]_                 |
+| userBlockedByYou   | Boolean \| Null  | Der Benutzer wurde von dir blockiert _[1]_            |
+| userBlockedYou     | Boolean \| Null  | Du wurdest von dem Benutzer blockiert _[1]_           |
 
 **Hinweise:**<br/>
 [1]: Ohne Authentifizierung ist dieses Feld `null`

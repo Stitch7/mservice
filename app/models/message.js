@@ -16,7 +16,9 @@ module.exports = function(
     text,
     textHtml,
     textHtmlWithEmbeddedImages,
-    notification
+    notification,
+    userBlockedByYou,
+    userBlockedYou
 ) {
     this.messageId = messageId;
     this.threadId = threadId;
@@ -29,4 +31,6 @@ module.exports = function(
     this.textHtml = textHtml;
     this.textHtmlWithImages = textHtmlWithEmbeddedImages;
     this.notification = notification;
+    this.userBlockedByYou = userBlockedByYou;
+    this.userBlockedYou = userBlockedYou;
 };

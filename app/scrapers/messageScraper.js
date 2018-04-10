@@ -19,6 +19,16 @@ module.exports = function (scrapers, messageId, html) {
     var userId = userIdRegExp !== null ? utils.toInt(userIdRegExp[1]) : null;
 
     var username = $userA.text();
+
+    var userBlockedByYou = null;
+    var userBlockedYou = null;
+    var $userBlockedI = $userA.next();
+    if ($userBlockedI.length > 0 && $userBlockedI.prop('tagName') === 'I') {
+        var userBlockedIText = $userBlockedI.text();
+        userBlockedByYou = userBlockedIText === '(durch dich blockiert)';
+        userBlockedYou = userBlockedIText === '(blockiert dich)';
+    }
+
     var subject = $($bg1TDs.get(2)).find('b').text();
 
     var dateString = $($bg1TDs.get(7)).text();
@@ -75,6 +85,8 @@ module.exports = function (scrapers, messageId, html) {
         text,
         $textHtml.html(),
         $textHtmlWithEmbeddedImages.html(),
-        notification
+        notification,
+        userBlockedByYou,
+        userBlockedYou
     );
 };

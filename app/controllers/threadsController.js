@@ -81,7 +81,7 @@ module.exports = function(log, client, db, responses) {
          * Get threadId for message
          */
         threadForMessage: function(req, res, next) {
-            client.message(res, req.params.boardId, req.params.messageId, function (message, error) {
+            client.message(res, false, req.params.boardId, req.params.messageId, function (message, error) {
 
                 if (error) {
                     log.error(error);

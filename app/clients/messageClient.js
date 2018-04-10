@@ -6,9 +6,12 @@
 'use strict';
 
 module.exports = function(log, httpClient, cache, scrapers) {
-    return function(res, boardId, messageId, fn) {
+    return function(res, username, boardId, messageId, fn) {
         var url = httpClient.baseUrl + '?mode=message&brdid=' + boardId + '&msgid=' + messageId;
         var cacheKey = 'message/' + messageId;
+        if (username) {
+            cacheKey += '-' + username;
+        }
         var cacheTtl = 120; // 2 minutes
         try {
             var message = cache.get(cacheKey, true);

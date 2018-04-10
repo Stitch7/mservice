@@ -141,19 +141,21 @@ module.exports = function(log, client, db, responses) {
          * Show Message
          */
         show: function (req, res, next) {
-            client.message(res, req.params.boardId, req.params.messageId, function (message, error) {
+            var username = req.authorization.basic !== undefined ? req.authorization.basic.username : false;
+            client.message(res, username, req.params.boardId, req.params.messageId, function (message, error) {
+                if (!username && !error) {
+                    message.userBlockedByYou = null;
+                    message.userBlockedYou = null;
+                }
                 responses.json(res, message, error, next);
 
-                req.on('end', function() {
-                    if (req.authorization.basic === undefined) {
-                        return;
-                    }
-
-                    var username = req.authorization.basic.username;
-                    var threadId = req.params.threadId;
-                    var messageId = req.params.messageId;
-                    markMessagesAsRead(db, log, username, threadId, [messageId]);
-                });
+                if (username) {
+                    req.on('end', function() {
+                        var threadId = req.params.threadId;
+                        var messageId = req.params.messageId;
+                        markMessagesAsRead(db, log, username, threadId, [messageId]);
+                    });
+                }
             });
         },
         /**
