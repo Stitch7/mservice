@@ -289,33 +289,30 @@ module.exports = function(log, client, db, responses) {
          * Mark all unread responses as read action
          */
         markUnreadResponsesAsRead: function (req, res, next) {
-            responses.json(res, 'Ok', null, next);
+            var username = req.params.username;
+            usersResponses(res, client, db, log, username, function (messageResponses, error) {
+                if (error) {
+                    log.error(error);
+                    return;
+                }
 
-            req.on('end', function() {
-                var username = req.params.username;
-                usersResponses(res, client, db, log, username, function (messageResponses, error) {
-                    if (error) {
-                        log.error(error);
+                var threads = {};
+                messageResponses.forEach(function (message) {
+                    if (message.isRead) {
                         return;
                     }
 
-                    var threads = {};
-                    messageResponses.forEach(function (message) {
-                        if (message.isRead) {
-                            return;
-                        }
-
-                        if (!(message.threadId in threads)) {
-                            threads[message.threadId] = [];
-                        }
-                        threads[message.threadId].push(message.messageId);
-                    });
-
-                    for (var threadId in threads) {
-                        // console.log("therad: " + threadId + " -> messages cnt: " + threads[threadId].length);
-                        markMessagesAsRead(db, log, username, threadId, threads[threadId]);
+                    if (!(message.threadId in threads)) {
+                        threads[message.threadId] = [];
                     }
+                    threads[message.threadId].push(message.messageId.toString());
                 });
+
+                for (var threadId in threads) {
+                    // console.log("therad: " + threadId + " -> messages cnt: " + threads[threadId].length);
+                    markMessagesAsRead(db, log, username, threadId, threads[threadId]);
+                }
+                responses.json(res, 'Ok', null, next);
             });
         }
     };
