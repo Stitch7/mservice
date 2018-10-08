@@ -36,7 +36,9 @@ module.exports = function(log, db, req, threadList, callback) {
                 var messageIds = readlistEntries[0].messages;
                 if (messageIds) {
                     isRead = messageIds.indexOf(thread.messageId.toString()) >= 0;
-                    lastMessageIsRead = messageIds.indexOf(thread.lastMessageId.toString()) >= 0;
+                    if (thread.lastMessageId) {
+                        lastMessageIsRead = messageIds.indexOf(thread.lastMessageId.toString()) >= 0;
+                    }
                     messagesRead = messageIds.length;
                     if (isRead) {
                         messagesRead--;
