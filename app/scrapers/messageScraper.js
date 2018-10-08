@@ -20,8 +20,8 @@ module.exports = function (scrapers, messageId, html) {
 
     var username = $userA.text();
 
-    var userBlockedByYou = null;
-    var userBlockedYou = null;
+    var userBlockedByYou = false;
+    var userBlockedYou = false;
     var $userBlockedI = $userA.next();
     if ($userBlockedI.length > 0 && $userBlockedI.prop('tagName') === 'I') {
         var userBlockedIText = $userBlockedI.text();
