@@ -6,7 +6,7 @@
 'use strict';
 
 module.exports = function(log, httpClient, cache, scrapers) {
-    return function(res, boardId, threadId, messageId, subject, text, fn) {
+    return function(res, username, boardId, threadId, messageId, subject, text, fn) {
         var options = {
             jar: res.jar,
             form: {
@@ -39,6 +39,7 @@ module.exports = function(log, httpClient, cache, scrapers) {
 
             if (!error) {
                 cache.del('message/' + messageId);
+                cache.del('message/' + messageId + '-' + username);
                 cache.del('messageList/' + threadId);
                 cache.del('threadList/' + boardId);
             }

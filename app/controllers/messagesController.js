@@ -253,6 +253,7 @@ module.exports = function(log, client, db, responses) {
 
             client.updateMessage(
                 res,
+                req.authorization.basic.username,
                 req.params.boardId,
                 req.params.threadId,
                 req.params.messageId,
