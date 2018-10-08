@@ -18,7 +18,6 @@ module.exports = function (maniacUrl, userId, html) {
         domicile: undefined,
         accountNo: undefined,
         registrationDate: undefined,
-        email: undefined,
         icq: undefined,
         homepage: undefined,
         firstGame: undefined,
@@ -29,7 +28,9 @@ module.exports = function (maniacUrl, userId, html) {
         xboxLiveGamertag: undefined,
         psnId: undefined,
         nintendoFriendcode: undefined,
-        lastUpdate: undefined
+        lastUpdate: undefined,
+
+        email: undefined, // Remove this is if clients <1.5 are dead
     };
 
     var $html = $(html);
@@ -61,6 +62,8 @@ module.exports = function (maniacUrl, userId, html) {
 
     profile.registrationDate = utils.datetimeStringToISO8601(profile.registrationDate);
     profile.lastUpdate = utils.datetimeStringToISO8601(profile.lastUpdate);
+
+    profile.email = '';
 
     return profile;
 };
