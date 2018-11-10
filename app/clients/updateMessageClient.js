@@ -38,8 +38,6 @@ module.exports = function(log, httpClient, cache, scrapers) {
             }
 
             if (!error) {
-                cache.del('message/' + messageId);
-                cache.del('message/' + messageId + '-' + username);
                 cache.del('messageList/' + threadId);
                 cache.del('threadList/' + boardId);
             }

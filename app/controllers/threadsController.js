@@ -100,14 +100,12 @@ module.exports = function(log, client, db, responses) {
                     if (err) {
                         log.error(err);
                     } else if (result.length === 0) {
-
+                        responses.json(res, {}, null, next);
                     } else {
                         var data = result[0].thread || {};
                         data.threadId = message.threadId;
 
-                        // data = { threadId: message.threadId };
                         responses.json(res, data, error, next);
-
                     }
                 });
 
