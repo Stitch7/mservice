@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-## M!Service Backup
+## m!service Backup
 
 # Setup
 BACKUP_DIR="/Backup"

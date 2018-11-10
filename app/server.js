@@ -1,6 +1,6 @@
 /**
- * M!service
- * Copyright(c) 2014-2017 Christopher Reitz.
+ * m!service
+ * Copyright(c) 2014-2018 Christopher Reitz.
  * MIT Licensed
  */
 'use strict';
@@ -21,6 +21,8 @@ var defaultOptions = {
     name: 'M!service',
     port: 8080,
     maniacUrl: 'https://maniac-forum.de/forum/pxmboard.php',
+    // maniacUrl: 'https://maniac-forum.de/forum/pxmboard.php',
+    // maniacUrl: 'https://maniacs.io/forum/pxmboard.php',
     log: {
         disabled: false,
         verbose: true,

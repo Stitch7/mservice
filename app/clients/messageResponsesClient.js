@@ -1,6 +1,6 @@
 /**
- * M!service
- * Copyright(c) 2014-2017 Christopher Reitz.
+ * m!service
+ * Copyright(c) 2014-2018 Christopher Reitz.
  * Copyright(c) 2017 Matthias Kuech.
  * MIT Licensed
  */

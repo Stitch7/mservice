@@ -1,5 +1,5 @@
 /**
- * M!service
+ * m!service
  * Copyright(c) 2017 Matthias Kuech.
  * MIT Licensed
  */

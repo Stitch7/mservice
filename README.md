@@ -1,4 +1,4 @@
-M!service
+m!service
 ========
 
 [![Build Status](https://travis-ci.org/Stitch7/mservice.svg)](https://travis-ci.org/Stitch7/mservice)
