@@ -1,6 +1,6 @@
 {
   "name": "mservice",
-  "version": "1.2.0",
+  "version": "1.6.0",
   "description": "Middleware providing maniac forum data as RESTful web service",
   "author": "Christopher Reitz <christopher@reitz.re>",
   "license": "MIT",
