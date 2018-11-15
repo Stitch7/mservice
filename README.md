@@ -30,6 +30,7 @@ M!service ist ein in JavaScript geschriebener Serverdienst, der eine RESTful JSO
 	- [Create Thread](#user-content-create-thread)
 	- [Create Reply](#user-content-create-reply)
 	- [Edit Message](#user-content-edit-message)
+	- [Search](#user-content-search)
 	- [Search Threads](#user-content-search-threads)
 	- [User](#user-content-user)
 	- [Latest User](#user-content-latest-user)
@@ -922,6 +923,76 @@ Editiert die Message mit der übergebenen Message ID. Dies ist nur möglich sofe
     {
         "error": "Thread is closed"
     }
+
+
+## <a name="user-content-search"></a>Search
+
+Suche nach Postings.
+
+### HTTP Method: `POST`
+
+    mservice/search
+    
+### Data Params
+
+| Parameter       | Beschreibung                                                                     |
+| --------------- | ---------------------------------------------------------------------------------|
+| phrase          | Suchbegriff                                                                      |
+| searchInBody    | Suche in Nachrichtentext: 1 oder 0                                               |
+| searchInSubject | Suche in Betreff: 1 oder 0                                                       |
+| username        | Postings von Benutzer                                                            |
+| board           | BoardID (-1 für alle)                                                            |
+| days            | Suche auf Zeitraum einschränken: 30, 90, 180, 365 oder 0 für komplett            |
+
+### Example Success Response
+
+    HTTP/1.1 200 OK
+    {
+        [
+            {
+		        "boardId": 6,
+		        "date": "2014-03-13T10:52:00+01:00",
+		        "messageId": 3197031,
+		        "subject": "Re:Wo bleibt das neue Ipad?",
+		        "threadId": 142880,
+		        "username": "futzi"
+		    },
+		    {
+		        "boardId": 6,
+		        "date": "2014-03-13T08:06:00+01:00",
+		        "messageId": 3196947,
+		        "subject": "Siehe Antwort unten an DS-Nadine n/t",
+		        "threadId": 142880,
+		        "username": "parademic"
+		    },
+		    {
+		        "boardId": 6,
+		        "date": "2014-03-13T08:04:00+01:00",
+		        "messageId": 3196943,
+		        "subject": "Re:Wann kann man mit einem neuen iPhone rechnen?",
+		        "threadId": 142880,
+		        "username": "parademic"
+		    },
+		    {
+		        "boardId": 6,
+		        "date": "2014-03-13T08:02:00+01:00",
+		        "messageId": 3196940,
+		        "subject": "Re:Wann kann man mit einem neuen iPhone rechnen?",
+		        "threadId": 142880,
+		        "username": "Wurzelgnom"
+		    },
+		    {
+		        "boardId": 6,
+		        "date": "2014-03-13T08:00:00+01:00",
+		        "messageId": 3196938,
+		        "subject": "was soll das bringen?",
+		        "threadId": 142880,
+		        "username": "Wurzelgnom"
+		    },
+            ...
+        ]
+    }
+
 
 
 ## <a name="user-content-search-threads"></a>Search Threads

@@ -310,10 +310,29 @@ module.exports = function(log, client, db, responses) {
                 });
 
                 for (var threadId in threads) {
-                    // console.log("therad: " + threadId + " -> messages cnt: " + threads[threadId].length);
                     markMessagesAsRead(db, log, username, threadId, threads[threadId]);
                 }
                 responses.json(res, 'Ok', null, next);
+            });
+        },
+        /**
+         * Search action
+         */
+        search: function(req, res, next) {
+            var phrase = req.params.phrase || '';
+            var searchInBody = req.params.searchInBody || '0';
+            var searchInSubject = req.params.searchInSubject || '0';
+            var username = req.params.username || '';
+            var board = req.params.board || '-1';
+            var days = req.params.days || '0';
+
+            if (phrase === '' && username === '') {
+                responses.json(res, null, 'httpBadRequest');
+                return;
+            }
+
+            client.search(res, phrase, searchInBody, searchInSubject, username, board, days, function(searchResults, error) {
+                responses.json(res, searchResults, error, next);
             });
         }
     };
