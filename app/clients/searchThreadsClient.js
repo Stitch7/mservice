@@ -7,25 +7,20 @@
 
 var utils = require('./../utils.js');
 
-module.exports = function(log, httpClient, cache, scrapers) {
+module.exports = function(log, httpClient, sharedCache, scrapers) {
     return function(res, boardId, phrase, fn) {
-        var url = utils.domainFromUri(httpClient.baseUrl) + '/forum/include/Ajax/threadfilter.php';
-
         var cacheKey = 'search-threads/' + boardId + '/' + phrase;
         var cacheTtl = 300; // 5 minutes
 
-        try {
-            var searchResult = cache.get(cacheKey, true);
-            fn(searchResult);
-        } catch (error) {
+        sharedCache.getAndReturnOrFetch(cacheKey, cacheTtl, fn, function(fn) {
             var options = {
-                uri: url,
+                uri: utils.domainFromUri(httpClient.baseUrl) + '/forum/include/Ajax/threadfilter.php',
                 form: {
                     boardid: boardId,
                     phrase: phrase
                 },
                 headers: {
-                    'User-Agent': 'M!service',
+                    'User-Agent': 'm!service',
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             };
@@ -38,15 +33,10 @@ module.exports = function(log, httpClient, cache, scrapers) {
                     error = 'boardId';
                 } else {
                     data = scrapers.threadList(html, boardId);
-                    cache.set(cacheKey, data, cacheTtl, function(cacheErr, success) {
-                        if (error || !success) {
-                            log.error('Failed to cache data for key: ' + cacheKey);
-                        }
-                    });
                 }
 
                 fn(data, error);
             });
-        }
+        });
     };
 };

@@ -5,7 +5,7 @@
  */
 'use strict';
 
-module.exports = function(log, httpClient, cache, scrapers) {
+module.exports = function(log, httpClient, sharedCache, scrapers) {
     return function(res, boardId, threadId, messageId, username, password, subject, text, notification, fn) {
         var options = {
             form: {
@@ -42,9 +42,9 @@ module.exports = function(log, httpClient, cache, scrapers) {
             }
 
             if (!error) {
-                cache.del('threadList/' + boardId);
+                sharedCache.del('threadList/' + boardId);
                 if (threadId) {
-                    cache.del('messageList/' + threadId);
+                    sharedCache.del('messageList/' + threadId);
                 }
             }
 

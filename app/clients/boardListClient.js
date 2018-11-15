@@ -5,23 +5,15 @@
  */
 'use strict';
 
-module.exports = function(log, httpClient, cache, scrapers) {
+module.exports = function(log, httpClient, sharedCache, scrapers) {
     return function(res, fn) {
-        var cacheKey = 'boardList';
+        var cacheKey = 'boards';
         var cacheTtl = 86400; // 1 day
-        try {
-            var boardList = cache.get(cacheKey, true);
-            fn(boardList);
-        } catch(error) {
+        sharedCache.getAndReturnOrFetch(cacheKey, cacheTtl, fn, function(fn) {
             httpClient.get(res, {}, function (html) {
-                var boards = scrapers.boards(html)
-                cache.set(cacheKey, boards, cacheTtl, function(error, success) {
-                    if (error || !success) {
-                        log.error('Failed to cache data for key: ' + cacheKey);
-                    }
-                });
+                var boards = scrapers.boards(html);
                 fn(boards);
             });
-        }
+        });
     };
 };

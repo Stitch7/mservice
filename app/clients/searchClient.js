@@ -7,17 +7,14 @@
 
 var utils = require('./../utils.js');
 
-module.exports = function(log, httpClient, cache, scrapers) {
+module.exports = function(log, httpClient, sharedCache, scrapers) {
     return function(res, phrase, searchInBody, searchInSubject, username, board, days, fn) {
         var url = utils.domainFromUri(httpClient.baseUrl) + '/forum/search/search.php';
 
         var cacheKey = 'search/' + phrase + '/' + searchInBody + '/' + searchInSubject + '/' + username + '/' + board + '/' + days;
         var cacheTtl = 900; // 15 minutes
 
-        try {
-            var searchResult = cache.get(cacheKey, true);
-            fn(searchResult);
-        } catch (error) {
+        sharedCache.getAndReturnOrFetch(cacheKey, cacheTtl, fn, function(fn) {
             var options = {
                 uri: url,
                 form: {
@@ -30,17 +27,10 @@ module.exports = function(log, httpClient, cache, scrapers) {
                     suche: 'durchsuchen'
                 }
             };
-
-            httpClient.post(res, options, function(html, response) {
+            httpClient.post(res, options, function(html) {
                 var data = scrapers.search(html);
-                cache.set(cacheKey, data, cacheTtl, function(cacheErr, success) {
-                    if (cacheErr || !success) {
-                        log.error('Failed to cache data for key: ' + cacheKey);
-                    }
-                });
-
                 fn(data, null);
             });
-        }
+        });
     };
 };

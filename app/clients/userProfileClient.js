@@ -5,15 +5,13 @@
  */
 'use strict';
 
-module.exports = function(log, httpClient, cache, scrapers) {
+module.exports = function(log, httpClient, sharedCache, scrapers) {
     return function(res, userId, fn) {
         var url = httpClient.baseUrl + '?mode=userprofile&usrid=' + userId;
         var cacheKey = 'userProfile/' + userId;
         var cacheTtl = 3600; // 1 hour
-        try {
-            var userProfile = cache.get(cacheKey, true);
-            fn(userProfile);
-        } catch(error) {
+
+        sharedCache.getAndReturnOrFetch(cacheKey, cacheTtl, fn, function(fn) {
             httpClient.get(res, url, function (html) {
                 var data = null;
                 var error = null;
@@ -24,13 +22,8 @@ module.exports = function(log, httpClient, cache, scrapers) {
                     data = scrapers.user(httpClient.baseUrl, userId, html);
                 }
 
-                cache.set(cacheKey, data, cacheTtl, function(cacheErr, success) {
-                    if (error || !success) {
-                        log.error('Failed to cache data for key: ' + cacheKey);
-                    }
-                });
                 fn(data, error);
             });
-        }
+        });
     };
 };

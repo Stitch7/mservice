@@ -5,7 +5,7 @@
  */
 'use strict';
 
-module.exports = function(log, httpClient, cache, scrapers) {
+module.exports = function(log, httpClient, sharedCache, scrapers) {
     return function(res, username, boardId, threadId, messageId, subject, text, fn) {
         var options = {
             jar: res.jar,
@@ -38,8 +38,8 @@ module.exports = function(log, httpClient, cache, scrapers) {
             }
 
             if (!error) {
-                cache.del('messageList/' + threadId);
-                cache.del('threadList/' + boardId);
+                sharedCache.del('messageList/' + threadId);
+                sharedCache.del('threadList/' + boardId);
             }
 
             fn(null, error);

@@ -6,9 +6,9 @@
 'use strict';
 
 var restify = require('restify');
-var nodeCache = require('node-cache');
 var bunyan = require('bunyan');
 
+var sharedCache = require('./sharedCache.js');
 var db = require('./db.js');
 var errors = require('./errors.js');
 var httpClient = require('./httpClient.js');
@@ -18,10 +18,9 @@ var scrapers = require('./scrapers/');
 var utils = require('./utils.js');
 
 var defaultOptions = {
-    name: 'M!service',
+    name: 'm!service',
     port: 8080,
     maniacUrl: 'https://maniac-forum.de/forum/pxmboard.php',
-    // maniacUrl: 'https://maniac-forum.de/forum/pxmboard.php',
     // maniacUrl: 'https://maniacs.io/forum/pxmboard.php',
     log: {
         disabled: false,
@@ -29,7 +28,11 @@ var defaultOptions = {
         file: false
     },
     requestTimeout: 10000,
-    db: {
+    redis: {
+        host: process.env.MSERVICECACHE_PORT_6379_TCP_ADDR || 'localhost',
+        port: process.env.MSERVICECACHE_PORT_6379_TCP_PORT || '6379'
+    },
+    mongo: {
         host: process.env.MSERVICEDB_PORT_27017_TCP_ADDR || 'localhost',
         port: process.env.MSERVICEDB_PORT_27017_TCP_PORT || '27017',
         name: '/mservice'
@@ -50,7 +53,9 @@ module.exports = function () {
             });
         }
 
-        db.connect(options.db, function(err) {
+        sharedCache.connect(log, options.redis);
+
+        db.connect(options.mongo, function(err) {
             if (err) {
                 if (log) {
                     log.error('Unable to connect to database! Error:', err);
@@ -71,8 +76,7 @@ module.exports = function () {
                 server.use(restify.gzipResponse());
                 server.use(restify.CORS());
 
-                var cache = new nodeCache();
-                var client = require('./clients/')(log, new httpClient(options, errors), cache, scrapers);
+                var client = require('./clients/')(log, new httpClient(options, errors), sharedCache, scrapers);
                 var handler = require('./handlers/')(client, responses);
                 server.on('uncaughtException', handler.exception);
                 server.on('NotFound', handler.notFound);

@@ -7,14 +7,12 @@
 
 var utils = require('./../utils.js');
 
-module.exports = function(log, httpClient, cache, scrapers) {
+module.exports = function(log, httpClient, sharedCache, scrapers) {
     return function(req, res, db, threadListClient, boardId, threadId, fn) {
         var cacheKey = 'messageList/' + threadId;
         var cacheTtl = 120; // 2 minutes
-        try {
-            var messageList = cache.get(cacheKey, true);
-            fn(messageList);
-        } catch (error) {
+
+        sharedCache.getAndReturnOrFetch(cacheKey, cacheTtl, fn, function(fn) {
             var url = httpClient.baseUrl + '?mode=thread&brdid=' + boardId + '&thrdid=' + threadId;
             httpClient.get(res, url, function(html) {
                 var data = null;
@@ -31,12 +29,6 @@ module.exports = function(log, httpClient, cache, scrapers) {
                 fn(data, error);
 
                 req.on('end', function() {
-                    cache.set(cacheKey, data, cacheTtl, function(error, success) {
-                        if (error || !success) {
-                            log.error('Failed to cache data for key: ' + cacheKey);
-                        }
-                    });
-
                     threadListClient(req, res, req.params.boardId, function(threadList, error) {
                         var correspondingThread;
                         threadList.forEach(function(thread) {
@@ -84,6 +76,6 @@ module.exports = function(log, httpClient, cache, scrapers) {
                     });
                 });
             });
-        }
+        });
     };
 };

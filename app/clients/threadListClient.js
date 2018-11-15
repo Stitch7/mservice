@@ -5,14 +5,12 @@
  */
 'use strict';
 
-module.exports = function(log, httpClient, cache, scrapers) {
+module.exports = function(log, httpClient, sharedCache, scrapers) {
     return function(req, res, boardId, fn) {
         var cacheKey = 'threadList/' + boardId;
         var cacheTtl = 300; // 5 minutes
-        try {
-            var threadList = cache.get(cacheKey, true);
-            fn(threadList);
-        } catch (error) {
+
+        sharedCache.getAndReturnOrFetch(cacheKey, cacheTtl, fn, function(fn) {
             var url = httpClient.baseUrl + '?mode=threadlist&brdid=' + boardId;
             httpClient.get(res, url, function(html) {
                 var data = null;
@@ -25,15 +23,7 @@ module.exports = function(log, httpClient, cache, scrapers) {
                 }
 
                 fn(data, error);
-
-                req.on('end', function() {
-                    cache.set(cacheKey, data, cacheTtl, function(cacheErr, success) {
-                        if (error || !success) {
-                            log.error('Failed to cache data for key: ' + cacheKey);
-                        }
-                    });
-                });
             });
-        }
+        });
     };
 };

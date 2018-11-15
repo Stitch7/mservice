@@ -9,20 +9,17 @@
 var response = require('./../models/response.js');
 var moment = require('moment');
 
-module.exports = function(log, httpClient, cache, scrapers) {
+module.exports = function(log, httpClient, sharedCache, scrapers) {
     return function(res, db, username, fn) {
         var cacheKey = 'responses/' + username;
         var cacheTtl = 120; // 2 minutes
-        try {
-            var messageList = cache.get(cacheKey, true);
-            fn(messageList);
-        } catch (error) {
+
+        sharedCache.getAndReturnOrFetch(cacheKey, cacheTtl, fn, function(fn) {
             var data = [];
             var messagelistCollection = db.get().collection('messagelist');
             var oneMonthAgo = moment().subtract(14, 'days').format('YYYYMMDD');
 
             messagelistCollection.find().toArray(function(err, messagelists) {
-                var counter = 0;
                 messagelists.forEach(function(messagelist, i) {
                     if (!messagelist.messages) {
                         return;
@@ -71,13 +68,8 @@ module.exports = function(log, httpClient, cache, scrapers) {
                     });
                 });
 
-                cache.set(cacheKey, data, cacheTtl, function(error, success) {
-                    if (error || !success) {
-                        log.error('Failed to cache data for key: ' + cacheKey);
-                    }
-                });
                 fn(data, null);
             });
-        }
+        });
     };
 };
