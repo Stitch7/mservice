@@ -1,10 +1,7 @@
 language: node_js
 node_js:
   - "node"
-  - "6"
-  - "6.1"
-  - "5.11"
-  - "iojs"
+  - "10.11"
 before_install:
   - export TZ=Europe/Berlin
 after_success:
