@@ -331,6 +331,11 @@ module.exports = function(log, client, db, responses) {
                 return;
             }
 
+            // Workaround for bug in maniac forum
+            if (phrase === '' && username !== '') {
+                searchInBody = '1';
+            }
+
             client.search(res, phrase, searchInBody, searchInSubject, username, board, days, function(searchResults, error) {
                 responses.json(res, searchResults, error, next);
             });
