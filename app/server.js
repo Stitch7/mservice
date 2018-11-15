@@ -71,10 +71,10 @@ module.exports = function () {
                     log: log
                 });
                 server.pre(restify.pre.sanitizePath());
-                server.use(restify.authorizationParser());
-                server.use(restify.bodyParser());
-                server.use(restify.gzipResponse());
-                server.use(restify.CORS());
+                server.use(restify.plugins.authorizationParser());
+                server.use(restify.plugins.bodyParser({mapParams: true}));
+                server.use(restify.plugins.gzipResponse());
+                // server.use(restify.plugins.CORS()); // TODO
 
                 var client = require('./clients/')(log, new httpClient(options, errors), sharedCache, scrapers);
                 var handler = require('./handlers/')(client, responses);

@@ -12,29 +12,29 @@
     "url": "https://github.com/Stitch7/mservice/"
   },
   "bin": {
-    "mservice": "./mservice.js"
+    "mservice": "./src/app.js"
   },
   "scripts": {
-    "start": "node mservice.js --verbose-logging",
+    "start": "node src/app.js --verbose-logging",
     "start-dev": "node mservice.js --verbose-logging | ./node_modules/.bin/bunyan",
     "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- -R spec"
   },
   "preferGlobal": true,
   "dependencies": {
     "cheerio": "0.22.x",
-    "marked": ">=0.3.6",
+    "marked": "0.5.x",
     "moment": "2.19.x",
     "mongodb": "2.2.x",
     "redis": "2.8.x",
-    "request": "2.79.x",
-    "restify": "4.3.x",
+    "request": "2.88.x",
+    "restify": "7.2.x",
     "underscore": "^1.8.3",
     "yargs": "6.6.x"
   },
   "devDependencies": {
-    "chai": "3.5.x",
-    "codecov": "1.0.x",
+    "chai": "4.2.x",
+    "codecov": "3.1.x",
     "istanbul": "0.4.x",
-    "mocha": "3.2.x"
+    "mocha": "5.2.x"
   }
 }
