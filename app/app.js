@@ -7,7 +7,7 @@
 'use strict';
 
 var argv = require('./argv.js');
-var server = require('./app/server.js');
+var server = require('./server.js');
 
 var mservice = server();
 mservice.run(argv(mservice.defaultOptions));
