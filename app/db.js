@@ -15,13 +15,14 @@ exports.connect = function(options, done) {
     if (state.db) {
         return done();
     }
-    var url = 'mongodb://' + options.host + ':' + options.port + options.name;
+    var url = 'mongodb://' + options.host + ':' + options.port;
     exports.url = url;
-    MongoClient.connect(url, function(err, db) {
+    var connectOptions = { useNewUrlParser: true };
+    MongoClient.connect(url, connectOptions, function(err, client) {
         if (err) {
             return done(err);
         }
-        state.db = db;
+        state.db = client.db(options.name);
         done();
     });
 };

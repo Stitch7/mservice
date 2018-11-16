@@ -83,7 +83,7 @@ module.exports = function(log, client, db, responses) {
 
                 if (!result) {
                     var newEntry = { username: username, threadIds: [threadId] };
-                    favorites.insert([newEntry], function(err, result) {
+                    favorites.insertOne(newEntry, function(err, result) {
                         if (err) {
                             log.error(err);
                         } else {
@@ -95,7 +95,7 @@ module.exports = function(log, client, db, responses) {
                     var threadIds = result.threadIds;
                     if (threadIds.indexOf(threadId) === -1) {
                         threadIds.push(threadId);
-                        favorites.update(query, { $set: { threadIds: threadIds } }, function(err, numUpdated) {
+                        favorites.updateOne(query, { $set: { threadIds: threadIds } }, function(err, numUpdated) {
                             if (err) {
                                 log.error(err);
                             } else if (numUpdated) {
@@ -138,7 +138,7 @@ module.exports = function(log, client, db, responses) {
                         responses.json(res, null, 'threadId', next);
                     } else {
                         threadIds.splice(index, 1);
-                        favorites.update(query, { $set: { threadIds: threadIds } }, function(err, numUpdated) {
+                        favorites.updateOne(query, { $set: { threadIds: threadIds } }, function(err, numUpdated) {
                             if (err) {
                                 log.error(err);
                             } else if (numUpdated) {

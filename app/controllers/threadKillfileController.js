@@ -79,7 +79,7 @@ module.exports = function(log, client, db, responses) {
 
                 if (!result) {
                     var newEntry = { username: username, threadIds: [threadId] };
-                    threadKillfile.insert([newEntry], function(err, result) {
+                    threadKillfile.insertOne(newEntry, function(err, result) {
                         if (err) {
                             log.error(err);
                         } else {
@@ -91,7 +91,7 @@ module.exports = function(log, client, db, responses) {
                     var threadIds = result.threadIds;
                     if (threadIds.indexOf(threadId) === -1) {
                         threadIds.push(threadId);
-                        threadKillfile.update(query, { $set: { threadIds: threadIds } }, function(err, numUpdated) {
+                        threadKillfile.updateOne(query, { $set: { threadIds: threadIds } }, function(err, numUpdated) {
                             if (err) {
                                 log.error(err);
                             } else if (numUpdated) {
@@ -134,7 +134,7 @@ module.exports = function(log, client, db, responses) {
                         responses.json(res, null, 'threadId', next);
                     } else {
                         threadIds.splice(index, 1);
-                        threadKillfile.update(query, { $set: { threadIds: threadIds } }, function(err, numUpdated) {
+                        threadKillfile.updateOne(query, { $set: { threadIds: threadIds } }, function(err, numUpdated) {
                             if (err) {
                                 log.error(err);
                             } else if (numUpdated) {

@@ -35,7 +35,7 @@ var defaultOptions = {
     mongo: {
         host: process.env.MSERVICEDB_PORT_27017_TCP_ADDR || 'localhost',
         port: process.env.MSERVICEDB_PORT_27017_TCP_PORT || '27017',
-        name: '/mservice'
+        name: 'mservice'
     }
 };
 

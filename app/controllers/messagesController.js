@@ -26,7 +26,7 @@ var markMessagesAsRead = function(db, log, username, threadId, messageIds) {
             log.error(err);
         } else if (result.length === 0) {
             var newEntry = {username: username, threadId: threadId, messages: messageIds};
-            readlist.insert([newEntry], function (err, result) {
+            readlist.insertOne(newEntry, function (err, result) {
                 if (err) {
                     log.error(err);
                 } else {
@@ -45,7 +45,7 @@ var markMessagesAsRead = function(db, log, username, threadId, messageIds) {
                 existingMessageIds = existingMessageIds.concat(newMessageIds).unique();
             }
 
-            readlist.update(query, {$set: {messages: existingMessageIds}}, function (err, numUpdated) {
+            readlist.updateOne(query, {$set: {messages: existingMessageIds}}, function (err, numUpdated) {
                 if (err) {
                     log.error(err);
                 } else if (numUpdated) {

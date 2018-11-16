@@ -57,15 +57,14 @@ module.exports = function(log, httpClient, sharedCache, scrapers) {
                                 newEntry.threadSubject = correspondingThread.subject;
                                 newEntry.thread = correspondingThread;
                                 newEntry.messages = data;
-                                messagelist.insert([newEntry], function(err, result) {
+                                messagelist.insertOne(newEntry, function(err, result) {
                                     if (err) {
                                         log.error(err);
                                         return;
                                     }
-                                    console.log("INSERTTED DA DING");
                                 });
                             } else {
-                                messagelist.update(query, { $set: { thread: correspondingThread, messages: data } }, function(err, numUpdated) {
+                                messagelist.updateOne(query, { $set: { thread: correspondingThread, messages: data } }, function(err, numUpdated) {
                                     if (err) {
                                         log.error(err);
                                         return;

@@ -55,7 +55,7 @@ module.exports = function(log, client, db, responses) {
                             log.error(err);
                         } else if (result.length === 0) {
                             var newEntry = { username: username, threadId: threadId, messages: messageIds };
-                            readlist.insert([newEntry], function(err, result) {
+                            readlist.insertOne(newEntry, function(err, result) {
                                 if (err) {
                                     log.error(err);
                                 } else {
@@ -63,7 +63,7 @@ module.exports = function(log, client, db, responses) {
                                 }
                             });
                         } else {
-                            readlist.update(query, { $set: { messages: messageIds } }, function(err, numUpdated) {
+                            readlist.updateOne(query, { $set: { messages: messageIds } }, function(err, numUpdated) {
                                 if (err) {
                                     log.error(err);
                                 } else if (numUpdated) {
