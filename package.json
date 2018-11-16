@@ -23,7 +23,7 @@
   "dependencies": {
     "cheerio": "0.22.x",
     "marked": "0.5.x",
-    "moment": "2.19.x",
+    "moment": "2.22.x",
     "mongodb": "2.2.x",
     "redis": "2.8.x",
     "request": "2.88.x",
