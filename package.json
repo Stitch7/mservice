@@ -12,11 +12,11 @@
     "url": "https://github.com/Stitch7/mservice/"
   },
   "bin": {
-    "mservice": "./src/app.js"
+    "mservice": "./app/app.js"
   },
   "scripts": {
-    "start": "node src/app.js --verbose-logging",
-    "start-dev": "node mservice.js --verbose-logging | ./node_modules/.bin/bunyan",
+    "start": "node app/app.js --verbose-logging",
+    "start-dev": "node app/app.js --verbose-logging | ./node_modules/.bin/bunyan",
     "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- -R spec"
   },
   "preferGlobal": true,
