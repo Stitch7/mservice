@@ -43,7 +43,7 @@ module.exports = function (defaultOptions) {
 
     return yargs
         .strict()
-        .usage('M!service Server')
+        .usage('m!service')
         .example('$0', 'Starts server')
         .example('$0 -l=/var/log/mservice/mservice.log', 'Starts server with log file')
         .example('$0 --verbose-logging | mservice/node_modules/bunyan/bin/bunyan -o short', 'Starts server for development')

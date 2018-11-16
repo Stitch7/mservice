@@ -6,7 +6,7 @@ m!service
 [![Dependency Status](https://david-dm.org/stitch7/mservice.svg)](https://david-dm.org/stitch7/mservice)
 [![devDependency Status](https://david-dm.org/stitch7/mservice/dev-status.svg)](https://david-dm.org/stitch7/mservice#info=devDependencies)
 
-M!service ist ein in JavaScript geschriebener Serverdienst, der eine RESTful JSON API für das Man!ac Forum bereitstellt.
+m!service ist ein in JavaScript geschriebener Serverdienst, der eine RESTful JSON API für das Man!ac Forum bereitstellt.
 
 # Inhalt
 
@@ -44,16 +44,13 @@ M!service ist ein in JavaScript geschriebener Serverdienst, der eine RESTful JSO
 
 # <a name="user-content-betrieb"></a>Betrieb
 
-Momentan werden folgende Node Versionen unterstützt:
-- 7.2.1
-- 6
-- 6.1
-- 5.11
+Es wird Node.js in Version 10.11.0 vorausgesetzt. Für die Datenhaltung wird eine MongoDB Instanz ab Version 3+ und für das Caching Redis 5.x benötigt.
+
 
 ### <a name="user-content-command-line-options"></a>Command Line Options
 
     $ ./mservice.js --help
-    M!service Server
+    m!service
 
     Examples:
       node ./mservice.js                                                                         Starts server
@@ -74,7 +71,10 @@ Momentan werden folgende Node Versionen unterstützt:
 
 ### <a name="user-content-docker"></a>Docker
 
-    docker run -it -p 8080:8080 stitch/mservice:latest
+	mkdir -p /var/mservice/db/
+	docker run -itd -v /var/mservice/db/:/data/db --name mservicedb -d mongo
+	docker run -it --name mservicecache -d redis
+	docker run -it --name mservice --link mservicecache:mservicecache --link mservicedb:mservicedb -p 8080:8080 stitch/mservice
 
 # <a name="user-content-api"></a>API
 
