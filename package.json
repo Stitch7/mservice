@@ -28,6 +28,7 @@
     "redis": "2.8.x",
     "request": "2.88.x",
     "restify": "7.2.x",
+    "restify-cors-middleware": "1.1.x",
     "underscore": "^1.8.3",
     "yargs": "12.0.x"
   },

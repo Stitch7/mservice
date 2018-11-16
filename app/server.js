@@ -7,7 +7,7 @@
 
 var restify = require('restify');
 var bunyan = require('bunyan');
-
+var corsMiddleware = require('restify-cors-middleware');
 var sharedCache = require('./sharedCache.js');
 var db = require('./db.js');
 var errors = require('./errors.js');
@@ -70,11 +70,17 @@ module.exports = function () {
                     name: options.name,
                     log: log
                 });
+
                 server.pre(restify.pre.sanitizePath());
                 server.use(restify.plugins.authorizationParser());
                 server.use(restify.plugins.bodyParser({mapParams: true}));
                 server.use(restify.plugins.gzipResponse());
-                // server.use(restify.plugins.CORS()); // TODO
+
+                var cors = corsMiddleware({
+                    origins: ['*']
+                });
+                server.pre(cors.preflight);
+                server.use(cors.actual);
 
                 var client = require('./clients/')(log, new httpClient(options, errors), sharedCache, scrapers);
                 var handler = require('./handlers/')(client, responses);
