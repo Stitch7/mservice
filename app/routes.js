@@ -10,7 +10,12 @@ module.exports = function(server, handler, controller) {
      * Index
      */
     server.get('/', controller.doc.index);
+
+    /**
+     * Health
+     */
     server.get('/health', controller.health.index);
+    server.head('/health', controller.health.index);
 
     /**
      * Boards
