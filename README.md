@@ -35,7 +35,10 @@ M!service ist ein in JavaScript geschriebener Serverdienst, der eine RESTful JSO
 	- [User](#user-content-user)
 	- [Latest User](#user-content-latest-user)
 	- [Responses](#user-content-responses-service)
-    - [Who's online](#user-content-whos-online)
+	- [Who's online](#user-content-whos-online)
+	- [Favorites](#user-content-favorites)
+	- [Add to Favorites](#user-content-add-to-favorites)
+	- [Delete from Favorites](#user-content-delete-from-favorites)
 - [Lizenz](#user-content-lizenz)
 
 
@@ -1325,6 +1328,86 @@ Liste aller Antworten, die ein Benutzer auf seine Beiträge erhalten hat. Die Li
             "username": "K!M"
         }
     }
+
+## <a name="user-content-favorites"></a>Favorites
+
+Liste der Favoriten.
+
+### HTTP Method: `GET`
+
+    mservice/favorites
+    
+**`NEEDS AUTHENTICATION`**
+
+### Example Success Response
+
+    HTTP/1.1 200 OK
+	[
+	    {
+	        "boardId": "6",
+	        "closed": false,
+	        "date": "2018-09-20T10:13:00+02:00",
+	        "id": 171650,
+	        "isFavorite": true,
+	        "isRead": true,
+	        "lastMessageDate": "2018-11-16T16:45:00+01:00",
+	        "lastMessageId": 4410032,
+	        "lastMessageIsRead": true,
+	        "messageId": 4378443,
+	        "messagesCount": 765,
+	        "messagesRead": 2,
+	        "mod": false,
+	        "sticky": false,
+	        "subject": "Apple Thread #56 - Die Max Edition",
+	        "username": "Steppenwolf"
+	    },
+	    {
+	        "boardId": "6",
+	        "closed": false,
+	        "date": "2016-12-11T08:07:00+01:00",
+	        "id": 163732,
+	        "isFavorite": true,
+	        "isRead": true,
+	        "lastMessageDate": "2018-11-15T07:42:00+01:00",
+	        "lastMessageId": 4409112,
+	        "lastMessageIsRead": true,
+	        "messageId": 4034674,
+	        "messagesCount": 576,
+	        "messagesRead": 2,
+	        "mod": false,
+	        "sticky": false,
+	        "subject": "Die M!client App für iOS - Eine Bitte",
+	        "username": "Steppenwolf"
+	    }
+	]
+	
+## <a name="user-content-add-to-favorites"></a>Add to Favorites
+
+Fügt Thread den Favoriten hinzu.
+
+### HTTP Method: `post`
+
+    mservice/favorites/:threadId
+    
+**`NEEDS AUTHENTICATION`**
+
+### Example Success Response
+
+    HTTP/1.1 200 OK
+    
+## <a name="user-content-delete-from-favorites"></a>Delete from Favorites
+
+Entfernt Thread aus den Favoriten.
+
+### HTTP Method: `delete`
+
+    mservice/favorites/:threadId
+    
+**`NEEDS AUTHENTICATION`**
+
+### Example Success Response
+
+    HTTP/1.1 200 OK
 
 # <a name="user-content-lizenz"></a>Lizenz
 
