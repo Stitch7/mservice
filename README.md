@@ -1,10 +1,13 @@
 m!service
 ========
 
+![Uptime Robot ratio (30 days)](https://img.shields.io/uptimerobot/ratio/m781467502-9620f9c1411881083504037e.svg)
 [![Build Status](https://travis-ci.org/Stitch7/mservice.svg)](https://travis-ci.org/Stitch7/mservice)
 [![Code Coverage](https://codecov.io/gh/stitch7/mservice/branch/master/graph/badge.svg)](https://codecov.io/gh/stitch7/mservice)
 [![Dependency Status](https://david-dm.org/stitch7/mservice.svg)](https://david-dm.org/stitch7/mservice)
 [![devDependency Status](https://david-dm.org/stitch7/mservice/dev-status.svg)](https://david-dm.org/stitch7/mservice#info=devDependencies)
+![node](https://img.shields.io/badge/node-0.10.11-blue.svg)
+[![license](http://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 m!service ist ein in JavaScript geschriebener Serverdienst, der eine RESTful JSON API für das Man!ac Forum bereitstellt.
 
@@ -938,14 +941,12 @@ Suche nach Postings.
     
 ### Data Params
 
-| Parameter       | Beschreibung                                                                     |
-| --------------- | ---------------------------------------------------------------------------------|
-| phrase          | Suchbegriff                                                                      |
-| searchInBody    | Suche in Nachrichtentext: 1 oder 0                                               |
-| searchInSubject | Suche in Betreff: 1 oder 0                                                       |
-| username        | Postings von Benutzer                                                            |
-| board           | BoardID (-1 für alle)                                                            |
-| days            | Suche auf Zeitraum einschränken: 30, 90, 180, 365 oder 0 für komplett            |
+| Parameter       | Beschreibung                                                                       |
+| --------------- | -----------------------------------------------------------------------------------|
+| phrase          | Suchbegriff                                                                        |
+| searchInBody    | Suche in Nachrichtentext: 0 oder 1 (default: 0)                                    |
+| username        | Postings von Benutzer                                                              |
+| board           | BoardID (-1 für alle, default: -1)                                                 |
 
 ### Example Success Response
 

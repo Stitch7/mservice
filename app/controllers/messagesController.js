@@ -321,10 +321,8 @@ module.exports = function(log, client, db, responses) {
         search: function(req, res, next) {
             var phrase = req.params.phrase || '';
             var searchInBody = req.params.searchInBody || '0';
-            var searchInSubject = req.params.searchInSubject || '0';
             var username = req.params.username || '';
             var board = req.params.board || '-1';
-            var days = req.params.days || '0';
 
             if (phrase === '' && username === '') {
                 responses.json(res, null, 'httpBadRequest');
@@ -336,7 +334,7 @@ module.exports = function(log, client, db, responses) {
                 searchInBody = '1';
             }
 
-            client.search(res, phrase, searchInBody, searchInSubject, username, board, days, function(searchResults, error) {
+            client.search(res, phrase, searchInBody, username, board, function(searchResults, error) {
                 responses.json(res, searchResults, error, next);
             });
         }

@@ -8,10 +8,10 @@
 var utils = require('./../utils.js');
 
 module.exports = function(log, httpClient, sharedCache, scrapers) {
-    return function(res, phrase, searchInBody, searchInSubject, username, board, days, fn) {
+    return function(res, phrase, searchInBody, username, board, fn) {
         var url = utils.domainFromUri(httpClient.baseUrl) + '/forum/search/search.php';
 
-        var cacheKey = 'search/' + phrase + '/' + searchInBody + '/' + searchInSubject + '/' + username + '/' + board + '/' + days;
+        var cacheKey = 'search/' + phrase + '/' + searchInBody + '/' + username + '/' + board;
         var cacheTtl = 900; // 15 minutes
 
         sharedCache.getAndReturnOrFetch(cacheKey, cacheTtl, fn, function(fn) {
@@ -21,8 +21,7 @@ module.exports = function(log, httpClient, sharedCache, scrapers) {
                     autor: username,
                     board: board,
                     cbxBody: searchInBody,
-                    cbxSubject: searchInSubject,
-                    days: days,
+                    cbxSubject: '1',
                     phrase: phrase,
                     suche: 'durchsuchen'
                 }
