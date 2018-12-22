@@ -70,4 +70,12 @@ module.exports = function(server, handler, controller) {
     server.get('/latest-user', controller.users.latest);
     server.post('/read-list', handler.auth, controller.users.importReadList);
     server.get('/users/online', controller.users.online);
+
+    /**
+     * Settings
+     */
+    server.get('/settings/all', handler.admin, controller.settings.index);
+    server.get('/settings', handler.auth, controller.settings.getAllForUser);
+    server.get('/settings/:uuid', handler.auth, controller.settings.getAllForUuid);
+    server.post('/settings/:uuid', handler.auth, controller.settings.update);
 };

@@ -9,7 +9,7 @@ m!service
 ![node](https://img.shields.io/badge/node-0.10.11-blue.svg)
 [![license](http://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-m!service ist ein in JavaScript geschriebener Serverdienst, der eine RESTful JSON API für das Man!ac Forum bereitstellt.
+RESTful JSON API für das Man!ac Forum.
 
 # Inhalt
 
