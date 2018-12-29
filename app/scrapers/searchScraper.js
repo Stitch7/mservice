@@ -38,7 +38,7 @@ module.exports = function(html) {
             utils.toInt(resultEntryRegExpResult[3]),
             resultEntryRegExpResult[4],
             resultEntryRegExpResult[5],
-            utils.datetimeStringToISO8601(resultEntryRegExpResult[6])
+            utils.searchDatetimeStringToISO8601(resultEntryRegExpResult[6])
         ));
     });
 
