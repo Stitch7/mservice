@@ -36,16 +36,13 @@ exports.getAndReturnOrFetch = function (key, ttl, resultCallback, fetchCallback)
             return;
         }
         if (data) {
-            console.log("RETURNING DATA FROM SHARED CACHE FOR KEY: " + key);
             resultCallback(JSON.parse(data));
             return;
         }
 
-        console.log("FETCHING FRESH DATA FOR KEY: " + key);
         fetchCallback(function (fetchedData, fetchError) {
             resultCallback(fetchedData, fetchError);
             if (!fetchError) {
-                console.log("CACHING DATA FOR KEY: " + key);
                 client.set(key, JSON.stringify(fetchedData), 'EX', ttl);
             }
         });
