@@ -64,10 +64,14 @@ module.exports = function (scrapers, messageId, html) {
         var $img = $(this);
         $img.attr('alt', $img.attr('src'));
     });
-    $text.find('button').each(function () {
+
+    var makeSpoilerButton = function () {
         var $button = $(this);
         $button.html('SPOILER');
-    });
+    };
+    $text.find('button').each(makeSpoilerButton);
+    $textHtml.find('button').each(makeSpoilerButton);
+
     var textHtmlWithEmbeddedImages = $text.html().replace(removeLinkBracesRegExp, '$1').trim();
     var $textHtmlWithEmbeddedImages = $contentContainer.clone();
     $textHtmlWithEmbeddedImages.find('#content').append(textHtmlWithEmbeddedImages);
