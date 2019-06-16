@@ -35,7 +35,6 @@ module.exports = function(server, handler, controller) {
     server.get('/board/:boardId/threads', controller.threads.index);
     server.get('/board/:boardId/thread/:threadId/mark-as-read', handler.auth, controller.threads.markAsRead);
     server.get('/board/:boardId/thread-for-message/:messageId', controller.threads.threadForMessage);
-    server.post('/board/:boardId/search-threads', handler.optionalAuth, controller.threads.search);
     server.post('/board/:boardId/message', controller.threads.create); // Does auth manually
 
     /**
@@ -58,13 +57,29 @@ module.exports = function(server, handler, controller) {
     server.get('/board/:boardId/quote/:messageId', controller.messages.quote);
     server.get('/board/:boardId/notification-status/:messageId', handler.auth, controller.messages.notificationStatus);
     server.get('/board/:boardId/notification/:messageId', handler.auth, controller.messages.notification);
+
+    /**
+     * Search
+     */
+    server.post('/board/:boardId/search-threads', handler.optionalAuth, controller.threads.search);
     server.post('/search', controller.messages.search);
+    server.get('/user/search/:username', controller.users.search);
+
+    /**
+     * Private Messages
+     */
+    server.get('/private-messages', handler.auth, controller.privateMessages.index);
+    server.get('/private-message/:messageId', handler.auth, controller.privateMessages.show);
+    server.del('/private-message/:messageId', handler.auth, controller.privateMessages.delete);
+    server.post('/private-message', handler.auth, controller.privateMessages.send);
 
     /**
      * Users
      */
     server.get('/test-login', handler.auth, controller.users.login);
     server.get('/user/:userId', controller.users.profile);
+    server.get('/username/:username', controller.users.profileFromName);
+    server.get('/user/:username/avatar.jpg', controller.users.avatar);
     server.get('/user/:username/responses', controller.messages.responses);
     server.get('/user/:username/mark-unread-responses-as-read', handler.auth, controller.messages.markUnreadResponsesAsRead);
     server.get('/latest-user', controller.users.latest);

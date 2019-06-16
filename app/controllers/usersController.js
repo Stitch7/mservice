@@ -5,6 +5,8 @@
  */
 'use strict';
 
+var request = require("request");
+
 module.exports = function(log, client, db, responses) {
     return {
         /**
@@ -19,6 +21,48 @@ module.exports = function(log, client, db, responses) {
         profile: function (req, res, next) {
             client.userProfile(res, req.params.userId, function (userProfile, error) {
                 responses.json(res, userProfile, error, next);
+            });
+        },
+        /**
+         * Show user profile
+         */
+        profileFromName: function (req, res, next) {
+            client.userId(res, req.params.username, function (userId, userIdError) {
+                if (userIdError) {
+                    responses.json(res, null, userIdError, next);
+                    return;
+                }
+                client.userProfile(res, userId, function (userProfile, userProfileError) {
+                    responses.json(res, userProfile, userProfileError, next);
+                });
+            });
+        },
+        /**
+         * User's avatar picture
+         */
+        avatar: function (req, res, next) {
+            client.userId(res, req.params.username, function (userId, userIdError) {
+                if (userIdError) {
+                    responses.json(res, null, userIdError, next);
+                    return;
+                }
+                client.userProfile(res, userId, function (userProfile, userProfileError) {
+                    if (userProfileError) {
+                        responses.json(res, null, userProfileError, next);
+                        return;
+                    }
+
+                    if (userProfile.picture.length > 0) {
+                        request.get(userProfile.picture).pipe(res);
+                    } else {
+                        responses.json(res, null, null, next);
+                    }
+                });
+            });
+        },
+        search: function (req, res, next) {
+            client.userSearch(res, req.params.username, function (users, error) {
+                responses.json(res, users, error, next);
             });
         },
         /**
