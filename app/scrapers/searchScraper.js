@@ -21,7 +21,6 @@ module.exports = function(html) {
     do {
         line = resultEntries.shift();
     } while (line != resultsExistKeyword);
-    resultEntries.shift(); // Matches:
     resultEntries.pop(); // </body>
     resultEntries.pop(); // </html>
 
