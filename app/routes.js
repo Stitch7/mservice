@@ -90,7 +90,10 @@ module.exports = function(server, handler, controller) {
      * Settings
      */
     server.get('/settings/all', handler.admin, controller.settings.index);
+    server.get('/settings/dashboard', handler.admin, controller.settings.dashboard);
     server.get('/settings', handler.auth, controller.settings.getAllForUser);
     server.get('/settings/:uuid', handler.auth, controller.settings.getAllForUuid);
     server.post('/settings/:uuid', handler.auth, controller.settings.update);
+    server.del('/settings/:uuid', handler.auth, controller.settings.delete);
+    server.del('/settings/:username/:uuid', handler.admin, controller.settings.deleteAdmin);
 };

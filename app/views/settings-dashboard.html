@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>m!client User Settings</title>
+    <meta name="author" content="">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <style>
+        body { padding: 50px; }
+        h1 { font-weight: 200; }
+        table tbody span { font-size: 0.8rem; line-height: 38px; }
+        #intro { margin: 30px 0 20px 0; }
+        #intro-text { line-height: 38px; }
+        #intro-refresh-button { visibility: hidden; }
+        #accordion div.card h5 button { color: #000; }
+        #accordion div.card h5 img.arrow {
+            height: 16px;
+            width: 16px;
+            padding-left: 16px;
+            margin: 10px;
+            cursor: pointer;
+            filter: invert(44%) sepia(4%) saturate(77%) hue-rotate(326deg) brightness(91%) contrast(96%);
+        }
+        #accordion div.card h5 img.arrow.down {
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAAmJLR0QAAKqNIzIAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAAHdElNRQfjBwYWHRbYXEbPAAAAVElEQVQoz73NMQqAMBBFwfGKqbyBpRcRct8giYWIiJt0+tt57PLDJpsUSrKZyJoSJEnRZBZVs5sDrlai5MHv5MXPJGRYVU3p8X2ly1cy4PPRkD/ZAdMGNH9OW5ntAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE5LTA3LTA2VDIwOjI5OjIyKzAyOjAw9xl32QAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxOS0wNy0wNlQyMDoyOToyMiswMjowMIZEz2UAAAAZdEVYdFNvZnR3YXJlAHd3dy5pbmtzY2FwZS5vcmeb7jwaAAAAAElFTkSuQmCC') no-repeat;
+        }
+        #accordion div.card h5 img.arrow.up {
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAAmJLR0QAAKqNIzIAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAAHdElNRQfjBwYWJyVCJfmgAAAAZklEQVQoz73RsQ2DMBBA0edMkY6BUoUqYgnTZQl2SZXdIpBsGiRkHaHE7fu608lc/rJ8xqOiep9z/ZdkRTWbVSUuGjd+evjFKTsjJi2HJHKT3HSSxcunCb4GC+4kk/7w7N4kXfA5K6QcMzXHBCHnAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE5LTA3LTA2VDIwOjM5OjM3KzAyOjAwqAWHIAAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxOS0wNy0wNlQyMDozOTozNyswMjowMNlYP5wAAAAZdEVYdFNvZnR3YXJlAHd3dy5pbmtzY2FwZS5vcmeb7jwaAAAAAElFTkSuQmCC') no-repeat;
+        }
+        #accordion div.card img.delete {
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAQAAABKfvVzAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAAmJLR0QAAKqNIzIAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAAHdElNRQfjBwYQAjdd4iS9AAABDklEQVQ4y+3TzSrEYRgF8N/M/EdENE2MnSI1aEwpKXtj4TLcAVnIwsIVuARLWckkcQMWNhK3oJTUyMdMZsZi/jPmu2ysnGfzdJ5zes/7RSuSzpVUwyrKS7QKom2GPWTMhLUobrdVEDS6MVFk5T01za/kJFBWaLZNu2/E6FV3piACjrClojeiDhVt1iMNevSsP15q26+tsOTSgK8+8sCnNbd1Axk3VvsYrmU9NBNpH2G3IMCkFOLmQ7Zktvs9cGYZO7ax4rQzWztiAsTCaazzuH6Jf8MfGaqqXfs2/LyldUOYk8awXMg23lIdCRXJnjlSykZrbaRBXni3762LfMSBwEY7PeHEa9ffXHBsvC77BhPNTnbknRNWAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE5LTA3LTA2VDE0OjAyOjU1KzAyOjAwJC9NNQAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxOS0wNy0wNlQxNDowMjo1NSswMjowMFVy9YkAAAAZdEVYdFNvZnR3YXJlAHd3dy5pbmtzY2FwZS5vcmeb7jwaAAAAAElFTkSuQmCC') no-repeat;
+            height: 24px;
+            width: 24px;
+            padding-left: 24px;
+            cursor: pointer;
+        }
+    </style>
+
+    <script>
+        var allSettings = '<%DATA%>';
+        // console.log(allSettings);
+    </script>
+</head>
+<body>
+    <h1 id="header"></h1>
+
+    <div id="intro" class="alert alert-primary clearfix" role="alert">
+        <span id="intro-text" class="float-left align-middle"></span>
+        <button id="intro-refresh-button" class="btn btn-primary float-right">Refresh</button>
+    </div>
+
+    <div id="accordion"></div>
+
+    <!-- Google Charts JS -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <!-- jQuery + Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <!-- Moment JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js" integrity="sha256-4iQZ6BVL4qNKlQ27TExEhBN1HFPvAvAMbFavKKosSWQ=" crossorigin="anonymous"></script>
+
+    <script>
+    google.charts.load('current', {'packages':['corechart']});
+
+    $('#header').append($('title').text());
+
+    updateIntroText(allSettings.length);
+
+    drawCard('Users', function () {
+        var $div = $('#chartView-users');
+        if ($div.has('table').length) {
+            return;
+        }
+        var $table = $('<table>').addClass('table');
+        var $tbody = $('<tbody>');
+        allSettings.forEach(function(userSetting, index) {
+            var $tr = $('<tr>');
+            $tbody.append(
+                $tr.append(
+                    $('<td>').append(
+                        $('<button type="button" class="btn btn-link" data-toggle="modal" data-target="#userModal-' + index + '">')
+                            .append(userSetting.username)
+                    )
+                ).append(
+                    $('<td>').append(
+                        $('<span>')
+                            .css({'font-weight': 'bold'})
+                            .append(deviceNamesLookup[userSetting.settings.deviceName] || userSetting.settings.deviceName)
+                    )
+                ).append(
+                    $('<td>').append(
+                        $('<span>').append(userSetting.uuid)
+                    )
+                ).append(
+                    $('<td>').append(
+                        $('<span>').append(moment(userSetting.date).format('DD.MM.YYYY, HH:mm'))
+                    )
+                ).append(
+                    $('<td>').append(
+                        $('<img>').addClass('delete').data(userSetting).click(function () {
+                            var userSetting = $(this).data();
+                            var $modal = $('#confirmDeleteModal-' + userSetting.username + '-' + userSetting.uuid).modal('show');
+                            $('#deleteButton-' + userSetting.username + '-' + userSetting.uuid).click(function () {
+                                $modal.modal('hide');
+                                $.ajax({
+                                    url: userSetting.username + '/' + userSetting.uuid,
+                                    type: 'DELETE',
+                                    success: function(result) {
+                                        $tr.hide(1000, function () {
+                                            updateIntroText($table.find('tr:visible').length, true);
+                                        });
+                                    },
+                                    error: function(result, status, error) {
+                                        console.error(result, status, error);
+                                    }
+                                });
+                            });
+                        })
+                    )
+                )
+            );
+
+            $('body').append(`
+                <div class="modal fade" id="userModal-` + index + `" tabindex="-1" role="dialog" aria-labelledby="userModal-` + index + `-Label" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="userModal-` + index + `-Label">Settings from ` + userSetting.username + `</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <pre>` + JSON.stringify(userSetting.settings, null, 4) + `</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `);
+
+            $('body').append(`
+                <div id="confirmDeleteModal-` + userSetting.username + `-` + userSetting.uuid + `" class="modal fade" tabindex="-1" role="dialog">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Confirm delete</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Do you really want to delete setting:</p>
+                        <p>` + userSetting.username + `/` + userSetting.uuid + `</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger" id="deleteButton-` + userSetting.username + `-` + userSetting.uuid + `">Delete</button>
+                    </div>
+                    </div>
+                </div>
+                </div>
+            `);
+        });
+        $table.append($tbody);
+        $div.removeAttr('style')
+            .append($table);
+    });
+
+    drawCard('Devices', drawDevicesChart);
+    drawCardDevicesCategories();
+    drawCard('Notifications', drawNotificationsChart);
+    drawCard('Theme', drawThemeChart);
+    drawCard('Thread View', drawThreadViewChart);
+    drawCard('Font Size', drawFontSizeChart);
+    drawCard('Jump to latest Post', drawJumpToLatestPostChart);
+    drawCard('Open links in Safari', drawOpenLinksInSafariChart);
+    drawCard('Embed YouTube Videos', drawEmbedYouTubeVideosChart);
+    drawCard('Classic Quote Design', drawClassicQuoteDesignChart);
+    drawCard('Show Images', drawShowImagesChart);
+    drawCard('Interface Sounds', drawInterfaceSoundsChart);
+    drawCard('Signature Enabled', drawSignatureEnabledChart);
+
+    drawCard('Signatures', function () {
+        var $div = $('#chartView-signatures');
+        if ($div.has('table').length) {
+            return;
+        }
+
+        var signatures = [];
+        allSettings.forEach(function(userSetting) {
+            if (!userSetting.settings.signatureEnabled) {
+                return;
+            }
+
+            var signature = userSetting.settings.signature;
+            if (signature !== 'gesendet mit m!client für iOS') {
+                signatures.push({
+                    username: userSetting.username,
+                    signature: signature
+                });
+            }
+        });
+
+        var $tbody = $('<tbody>');
+        signatures.forEach(function(entry) {
+            $tbody.append(
+                $('<tr>').append(
+                    $('<td>').append(
+                        $('<span>')
+                            .css({'font-weight': 'bold'})
+                            .append(entry.username)
+                    )
+                ).append(
+                    $('<td>').append(entry.signature)
+                )
+            );
+        });
+        var $table = $('<table>').addClass('table table-striped').append($tbody);
+        $div.removeAttr('style')
+            .append($table);
+    });
+
+    // ---------------------------------------------------------------------------------------------
+
+    function updateIntroText(numberOfUser, showRefresh) {
+        var visibility = showRefresh ? 'visible' : 'hidden';
+        $('#intro-refresh-button').css('visibility', visibility).unbind('click').click(function () {
+            location.reload();
+        });
+        $('#intro-text').text('Settings from ' + numberOfUser + ' users');
+    }
+
+    function drawDevicesChart() {
+        var raw = {};
+        allSettings.forEach(function(userSetting) {
+            var deviceName = userSetting.settings['deviceName'];
+            if (deviceName in raw) {
+                raw[deviceName] += 1;
+            } else {
+                raw[deviceName] = 1;
+            }
+        });
+
+        var data = Object.entries(raw);
+        data.forEach(function(entry, index) {
+            data[index][0] = deviceNamesLookup[entry[0]] || entry[0];
+        });
+
+        drawPieChart(data, undefined, 'Models');
+    }
+    function drawDevicesCategoriesChart() {
+        var iPhone = 0;
+        var iPad = 0;
+        var unknown = 0;
+        allSettings.forEach(function(userSetting) {
+            var deviceName = userSetting.settings['deviceName'];
+            if (deviceName.startsWith('iPhone')) {
+                iPhone += 1;
+            } else if (deviceName.startsWith('iPad')) {
+                iPad += 1;
+            } else {
+                unknown += 1;
+            }
+        });
+
+        var data = [
+            ['iPhone', iPhone],
+            ['iPad', iPad],
+            ['unknown', unknown],
+        ];
+
+        var colors = ['silver', 'black', 'red'];
+
+        drawPieChart(data, colors, 'Categories', 'chartView-devices-categories');
+    }
+
+    function drawThemeChart() {
+        var light = 0;
+        var dark = 0;
+        var auto = 0;
+        allSettings.forEach(function(userSetting) {
+            if (userSetting.settings['darkModeAutomatically'] === true) {
+                auto++;
+                return;
+            }
+
+            if (userSetting.settings['theme'] === 0) {
+                light++;
+            } else {
+                dark++;
+            }
+        });
+
+        var data = [
+            ['Light Theme', light],
+            ['Dark Theme', dark],
+            ['Switch automatically', auto],
+        ];
+
+        var colors = ['silver', 'black', 'blue'];
+
+        drawPieChart(data, colors);
+    }
+
+    function drawThreadViewChart() {
+        var widmann = 0;
+        var frames = 0;
+        allSettings.forEach(function(userSetting) {
+            if (userSetting.settings['threadView'] === 0) {
+                widmann++;
+            } else {
+                frames++;
+            }
+        });
+
+        var data = [
+            ['Widmann', widmann],
+            ['Frames', frames]
+        ];
+        var colors = ['silver', 'black'];
+
+        drawPieChart(data, colors);
+    }
+
+    function drawFontSizeChart() {
+        var tiny = 0;
+        var small = 0;
+        var normal = 0;
+        var big = 0;
+        var bigger = 0;
+        var huge = 0;
+        allSettings.forEach(function(userSetting) {
+            switch (userSetting.settings['fontSize']) {
+                case 1: tiny++;     break;
+                case 2: small++;    break;
+                case 3: normal++;   break;
+                case 4: big++;      break;
+                case 5: bigger++;   break;
+                case 6: huge++;     break;
+            }
+        });
+
+        var data = [
+            ['tiny', tiny],
+            ['small', small],
+            ['normal', normal],
+            ['big', big],
+            ['bigger', bigger],
+            ['huge', huge],
+        ];
+
+        var colors = ['silver', 'gray', 'blue', 'aqua', 'teal', 'green'];
+        drawPieChart(data, colors);
+    }
+
+    function drawNotificationsChart() {
+        var data = convertBooleanSettingToData('backgroundNotifications');
+        drawPieChart(data, booleanColors);
+    }
+
+    function drawJumpToLatestPostChart() {
+        var data = convertBooleanSettingToData('jumpToLatestPost');
+        drawPieChart(data, booleanColors);
+    }
+
+    function drawOpenLinksInSafariChart() {
+        var data = convertBooleanSettingToData('openLinksInSafari');
+        drawPieChart(data, booleanColors);
+    }
+
+    function drawEmbedYouTubeVideosChart() {
+        var data = convertBooleanSettingToData('embedYoutubeVideos');
+        drawPieChart(data, booleanColors);
+    }
+
+    function drawClassicQuoteDesignChart() {
+        var data = convertBooleanSettingToData('classicQuoteDesign');
+        drawPieChart(data, booleanColors);
+    }
+
+    function drawShowImagesChart() {
+        var always = 0;
+        var wifi = 0;
+        var never = 0;
+        allSettings.forEach(function(userSetting) {
+            switch (userSetting.settings['showImages']) {
+                case 0: always++;  break;
+                case 1: wifi++;    break;
+                case 2: never++;   break;
+            }
+        });
+
+        var data = [
+            ['always', always],
+            ['only in WiFi', wifi],
+            ['never', never]
+        ];
+        var colors = ['lime', 'blue', 'red'];
+
+        drawPieChart(data, colors);
+    }
+
+    function drawInterfaceSoundsChart() {
+        var data = convertBooleanSettingToData('soundEffectsEnabled');
+        drawPieChart(data, booleanColors);
+    }
+
+    function drawSignatureEnabledChart() {
+        var data = convertBooleanSettingToData('signatureEnabled');
+        drawPieChart(data, booleanColors);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    function drawPieChart(data, colors, title, chartViewDivId) {
+        data.unshift(['', '']);
+        var chartName = /draw(.*)Chart/.exec(drawPieChart.caller.name)[1];
+        chartViewDivId = chartViewDivId || 'chartView-' + chartName.charAt(0).toLowerCase() + chartName.slice(1);
+        var $div = $('#' + chartViewDivId);
+        title = title || $div.parent().parent().parent().find('button').text().trim();
+        var chart = new google.visualization.PieChart($div[0]);
+        var dataTable = google.visualization.arrayToDataTable(data);
+        var options = {
+            title: title,
+            colors: colors,
+            is3D: true
+        };
+        chart.draw(dataTable, options);
+    }
+
+    function convertBooleanSettingToData(settingKey) {
+        var on = 0;
+        var off = 0;
+        allSettings.forEach(function(userSetting) {
+            if (userSetting.settings[settingKey]) {
+                on++;
+            } else {
+                off++;
+            }
+        });
+
+        return [
+            ['On', on],
+            ['Off', off]
+        ];
+    }
+
+    function drawCard(title, drawChartFn) {
+        var id = camelize(title);
+        $('#accordion').append(`
+            <div class="card">
+                <div class="card-header" id="heading-##ID##">
+                <h5 class="mb-0 clearfix">
+                    <button class="btn btn-link collapsed float-left" data-toggle="collapse" data-target="#collapse-##ID##" aria-expanded="false" aria-controls="collapse-##ID##">
+                        ##TITLE##
+                    </button>
+                    <img id="arrow-##ID##" class="arrow down float-right"></img>
+                </h5>
+                </div>
+                <div id="collapse-##ID##" class="collapse" aria-labelledby="heading-##ID##" data-parent="#accordion">
+                <div class="card-body">
+                    <div id="chartView-##ID##" style="width: 700px; height: 400px;"></div>
+                </div>
+                </div>
+            </div>`
+                .replace('##TITLE##', title)
+                .replace(/##ID##/g, id)
+        );
+        $('#heading-' + id).css('cursor', 'pointer').click(function () {
+            $('#collapse-' + id).collapse('toggle');
+        });
+        $('#collapse-' + id)
+            .on('shown.bs.collapse', function () {
+                $('#arrow-' + id).removeClass('down').addClass('up');
+                drawChartFn();
+            })
+            .on('hidden.bs.collapse', function () {
+                $('#arrow-' + id).removeClass('up').addClass('down');
+            });
+    }
+
+    function drawCardDevicesCategories() {
+        $('#chartView-devices').after('<div id="chartView-devices-categories" style="width: 700px; height: 400px;"></div>');
+        $('#collapse-devices').on('shown.bs.collapse', function () {
+            drawDevicesCategoriesChart();
+        })
+    }
+
+    function camelize(str) {
+        return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(word, index) {
+            return index == 0 ? word.toLowerCase() : word.toUpperCase();
+        }).replace(/\s+/g, '');
+    }
+
+    var booleanColors = ['lime', 'red'];
+
+    var deviceNamesLookup = {
+        'i386': 'Simulator (i386)',
+        'x86_64': 'Simulator (x86_64)',
+        'iPhone1,1': 'iPhone',
+        'iPhone1,2': 'iPhone 3G',
+        'iPhone2,1': 'iPhone 3GS',
+        'iPhone3,1': 'iPhone 4',
+        'iPhone3,2': 'iPhone 4 GSM Rev A',
+        'iPhone3,3': 'iPhone 4 CDMA',
+        'iPhone4,1': 'iPhone 4S',
+        'iPhone5,1': 'iPhone 5 (GSM)',
+        'iPhone5,2': 'iPhone 5 (GSM+CDMA)',
+        'iPhone5,3': 'iPhone 5C (GSM)',
+        'iPhone5,4': 'iPhone 5C (Global)',
+        'iPhone6,1': 'iPhone 5S (GSM)',
+        'iPhone6,2': 'iPhone 5S (Global)',
+        'iPhone7,1': 'iPhone 6 Plus',
+        'iPhone7,2': 'iPhone 6',
+        'iPhone8,1': 'iPhone 6s',
+        'iPhone8,2': 'iPhone 6s Plus',
+        'iPhone8,3': 'iPhone SE (GSM+CDMA)',
+        'iPhone8,4': 'iPhone SE (GSM)',
+        'iPhone9,1': 'iPhone 7',
+        'iPhone9,2': 'iPhone 7 Plus',
+        'iPhone9,3': 'iPhone 7',
+        'iPhone9,4': 'iPhone 7 Plus',
+        'iPhone10,1': 'iPhone 8',
+        'iPhone10,2': 'iPhone 8 Plus',
+        'iPhone10,3': 'iPhone X Global',
+        'iPhone10,4': 'iPhone 8',
+        'iPhone10,5': 'iPhone 8 Plus',
+        'iPhone10,6': 'iPhone X GSM',
+        'iPhone11,2': 'iPhone XS',
+        'iPhone11,4': 'iPhone XS Max',
+        'iPhone11,6': 'iPhone XS Max Global',
+        'iPhone11,8': 'iPhone XR',
+        'iPod1,1': '1st Gen iPod',
+        'iPod2,1': '2nd Gen iPod',
+        'iPod3,1': '3rd Gen iPod',
+        'iPod4,1': '4th Gen iPod',
+        'iPod5,1': '5th Gen iPod',
+        'iPod7,1': '6th Gen iPod',
+        'iPad1,1': 'iPad',
+        'iPad1,2': 'iPad 3G',
+        'iPad2,1': '2nd Gen iPad',
+        'iPad2,2': '2nd Gen iPad GSM',
+        'iPad2,3': '2nd Gen iPad CDMA',
+        'iPad2,4': '2nd Gen iPad New Revision',
+        'iPad3,1': '3rd Gen iPad',
+        'iPad3,2': '3rd Gen iPad CDMA',
+        'iPad3,3': '3rd Gen iPad GSM',
+        'iPad2,5': 'iPad mini',
+        'iPad2,6': 'iPad mini GSM+LTE',
+        'iPad2,7': 'iPad mini CDMA+LTE',
+        'iPad3,4': '4th Gen iPad',
+        'iPad3,5': '4th Gen iPad GSM+LTE',
+        'iPad3,6': '4th Gen iPad CDMA+LTE',
+        'iPad4,1': 'iPad Air (WiFi)',
+        'iPad4,2': 'iPad Air (GSM+CDMA)',
+        'iPad4,3': '1st Gen iPad Air (China)',
+        'iPad4,4': 'iPad mini Retina (WiFi)',
+        'iPad4,5': 'iPad mini Retina (GSM+CDMA)',
+        'iPad4,6': 'iPad mini Retina (China)',
+        'iPad4,7': 'iPad mini 3 (WiFi)',
+        'iPad4,8': 'iPad mini 3 (GSM+CDMA)',
+        'iPad4,9': 'iPad Mini 3 (China)',
+        'iPad5,1': 'iPad mini 4 (WiFi)',
+        'iPad5,2': '4th Gen iPad mini (WiFi+Cellular)',
+        'iPad5,3': 'iPad Air 2 (WiFi)',
+        'iPad5,4': 'iPad Air 2 (Cellular)',
+        'iPad6,3': 'iPad Pro (9.7 inch, WiFi)',
+        'iPad6,4': 'iPad Pro (9.7 inch, WiFi+LTE)',
+        'iPad6,7': 'iPad Pro (12.9 inch, WiFi)',
+        'iPad6,8': 'iPad Pro (12.9 inch, WiFi+LTE)',
+        'iPad6,11': 'iPad (2017)',
+        'iPad6,12': 'iPad (2017)',
+        'iPad7,1': 'iPad Pro 2nd Gen (WiFi)',
+        'iPad7,2': 'iPad Pro 2nd Gen (WiFi+Cellular)',
+        'iPad7,3': 'iPad Pro 10.5-inch',
+        'iPad7,4': 'iPad Pro 10.5-inch',
+        'iPad7,5': 'iPad 6th Gen (WiFi)',
+        'iPad7,6': 'iPad 6th Gen (WiFi+Cellular)',
+        'iPad8,1': 'iPad Pro 3rd Gen (11 inch, WiFi)',
+        'iPad8,2': 'iPad Pro 3rd Gen (11 inch, 1TB, WiFi)',
+        'iPad8,3': 'iPad Pro 3rd Gen (11 inch, WiFi+Cellular)',
+        'iPad8,4': 'iPad Pro 3rd Gen (11 inch, 1TB, WiFi+Cellular)',
+        'iPad8,5': 'iPad Pro 3rd Gen (12.9 inch, WiFi)',
+        'iPad8,6': 'iPad Pro 3rd Gen (12.9 inch, 1TB, WiFi)',
+        'iPad8,7': 'iPad Pro 3rd Gen (12.9 inch, WiFi+Cellular)',
+        'iPad8,8': 'iPad Pro 3rd Gen (12.9 inch, 1TB, WiFi+Cellular)'
+    }
+
+    </script>
+
+</body>
+</html>
