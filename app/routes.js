@@ -79,6 +79,7 @@ module.exports = function(server, handler, controller) {
     server.get('/test-login', handler.auth, controller.users.login);
     server.get('/user/:userId', controller.users.profile);
     server.get('/username/:username', controller.users.profileFromName);
+    server.get('/user/:username/id', controller.users.idFromName);
     server.get('/user/:username/avatar.jpg', controller.users.avatar);
     server.get('/user/:username/responses', controller.messages.responses);
     server.get('/user/:username/mark-unread-responses-as-read', handler.auth, controller.messages.markUnreadResponsesAsRead);

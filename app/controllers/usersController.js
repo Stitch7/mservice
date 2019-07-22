@@ -6,6 +6,7 @@
 'use strict';
 
 var request = require("request");
+var utils = require('./../utils.js');
 
 module.exports = function(log, client, db, responses) {
     return {
@@ -21,6 +22,20 @@ module.exports = function(log, client, db, responses) {
         profile: function (req, res, next) {
             client.userProfile(res, req.params.userId, function (userProfile, error) {
                 responses.json(res, userProfile, error, next);
+            });
+        },
+        /**
+         * Show user profile
+         */
+        idFromName: function (req, res, next) {
+            client.userId(res, req.params.username, function (userId, userIdError) {
+                if (userIdError) {
+                    responses.json(res, null, userIdError, next);
+                    return;
+                }
+                var data = { 'userId': utils.toInt(userId) };
+                responses.json(res, data, null, next);
+
             });
         },
         /**
@@ -54,6 +69,7 @@ module.exports = function(log, client, db, responses) {
 
                     if (userProfile.picture.length > 0) {
                         request.get(userProfile.picture).pipe(res);
+                        next();
                     } else {
                         responses.json(res, null, null, next);
                     }
