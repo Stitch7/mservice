@@ -12,6 +12,7 @@ var errors = {
         httpMethodNotAllowed: 405,
         httpInternalServerError: 500,
         unknown: 500,
+        emoji: 501,
         connection: 504,
         permission: 403,
         login: 401,
@@ -40,7 +41,8 @@ var errors = {
         unchanged: 'Data was not changed',
         threadClosed: 'Thread is closed',
         threadId: 'threadId not found',
-        userId: 'userId not found'
+        userId: 'userId not found',
+        emoji: 'Emoji are not supported by ancient pxmboard software'
     },
     maniacMessages: {
         'Bitte geben sie ihren Nickname ein': 'login',

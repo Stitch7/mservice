@@ -28,7 +28,9 @@ module.exports = function(log, httpClient, sharedCache, scrapers) {
             var title = scrapers.title(html);
             if (title !== httpClient.errors.maniacBoardTitles.confirm) {
                 error = 'unknown';
-                if (title === httpClient.errors.maniacBoardTitles.error) {
+                if (html.includes('Incorrect string value:')) {
+                    error = 'emoji';
+                } else if (title === httpClient.errors.maniacBoardTitles.error) {
                     var maniacErrorMessage = scrapers.errorMessage(html);
                     if (httpClient.errors.maniacMessages[maniacErrorMessage] !== undefined) {
                         error = httpClient.errors.maniacMessages[maniacErrorMessage];
