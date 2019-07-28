@@ -8,7 +8,7 @@
 module.exports = function(log, httpClient, sharedCache, scrapers) {
     return function(req, res, boardId, fn) {
         var cacheKey = 'threadList/' + boardId;
-        var cacheTtl = 300; // 5 minutes
+        var cacheTtl = 120; // 2 minutes
 
         sharedCache.getAndReturnOrFetch(cacheKey, cacheTtl, fn, function(fn) {
             var url = httpClient.baseUrl + '?mode=threadlist&brdid=' + boardId;
