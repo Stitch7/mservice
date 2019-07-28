@@ -69,6 +69,7 @@ module.exports = function(server, handler, controller) {
      * Private Messages
      */
     server.get('/private-messages', handler.auth, controller.privateMessages.index);
+    server.get('/private-messages/latest/:username', handler.auth, controller.privateMessages.latest);
     server.get('/private-message/:messageId', handler.auth, controller.privateMessages.show);
     server.del('/private-message/:messageId', handler.auth, controller.privateMessages.delete);
     server.post('/private-message', handler.auth, controller.privateMessages.send);

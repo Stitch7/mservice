@@ -7,9 +7,6 @@
 
 var $ = require('cheerio');
 
-var utils = require('./../utils.js');
-var message = require('./../models/message.js');
-
 module.exports = function (html, type) {
     var message = {};
     var $html = $(html);

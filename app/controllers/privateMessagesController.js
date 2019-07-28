@@ -5,20 +5,24 @@
  */
 'use strict';
 
-var markPrivateMessagesAsRead = function(db, log, username, receiver, messageIds) {
+var markPrivateMessagesAsRead = function(db, log, username, messageIds) {
+    if (messageIds.length === 0) {
+        return;
+    }
+
     var readlist = db.get().collection('readlistPm');
-    var query = {username: username, receiver: receiver};
+    var query = {username: username};
 
     readlist.find(query).toArray(function (err, result) {
         if (err) {
             log.error(err);
         } else if (result.length === 0) {
-            var newEntry = {username: username, receiver: receiver, messages: messageIds};
+            var newEntry = {username: username, messages: messageIds};
             readlist.insertOne(newEntry, function (err, result) {
                 if (err) {
                     log.error(err);
                 } else {
-                    log.info('User %s marked %d private message(s) %s for receiver %d as read', username, messageIds.length, messageIds.join(', '), receiver);
+                    log.info('User %s marked %d private message(s) %s as read', username, messageIds.length, messageIds.join(', '));
                 }
             });
         } else {
@@ -37,7 +41,7 @@ var markPrivateMessagesAsRead = function(db, log, username, receiver, messageIds
                 if (err) {
                     log.error(err);
                 } else if (numUpdated) {
-                    log.info('User %s marked %d private message(s) %s for receiver %d as read', username, messageIds.length, messageIds.join(', '), receiver);
+                    log.info('User %s marked %d private message(s) %s as read', username, messageIds.length, messageIds.join(', '));
                 } else {
                     log.warn('No document found with query:', query);
                 }
@@ -49,13 +53,14 @@ var markPrivateMessagesAsRead = function(db, log, username, receiver, messageIds
 module.exports = function(log, client, db, responses) {
     return {
         /**
-         * List Private Messages from User
+         * List User's Private Messages
          */
         index: function (req, res, next) {
             var username = req.authorization.basic.username;
             client.privateMessagesList(res, username, function (privateMessagesList, error) {
                 var readlist = db.get().collection('readlistPm');
                 readlist.find({username: username}).toArray(function (err, result) {
+                    var privateMessageIDsToRead = [];
                     privateMessagesList.forEach(function(conversation) {
                         if (err) {
                             log.error(err);
@@ -66,20 +71,55 @@ module.exports = function(log, client, db, responses) {
                                     message.isRead = readMessageIds.indexOf(message.msgid) >= 0;
                                 });
                             } else {
-                                privateMessagesList.forEach(function(conversation) {
-                                    conversation.messages.forEach(function(message) {
-                                        message.isRead = false;
-                                    });
+                                conversation.messages.forEach(function(message) {
+                                    privateMessageIDsToRead.push(message.msgid);
+                                    message.isRead = true;
                                 });
                             }
                         }
                     });
+                    markPrivateMessagesAsRead(db, log, username, privateMessageIDsToRead);
                     responses.json(res, privateMessagesList, error, next);
                 });
             });
         },
         /**
-         * Show Context of Private Message
+         * Latest Private Messages from Sender
+         */
+        latest: function (req, res, next) {
+            var username = req.authorization.basic.username;
+            var sender = req.params.username;
+            client.privateMessagesLatest(res, username, function (privateMessagesList, error) {
+                if (error) {
+                    responses.json(res, null, error, next);
+                    return;
+                }
+
+                var readlist = db.get().collection('readlistPm');
+                readlist.find({username: username}).toArray(function (err, result) {
+                    var latestPrivateMessages = null;
+                    if (err) {
+                        log.error(err);
+                    } else {
+                        latestPrivateMessages = [];
+                        privateMessagesList.forEach(function(privateMessage) {
+                            var readMessageIds = result[0].messages ? result[0].messages : [];
+                            if (privateMessage.username !== sender) {
+                                return;
+                            }
+
+                            var isRead = readMessageIds.indexOf(privateMessage.msgid) >= 0;
+                            if (!isRead) {
+                                latestPrivateMessages.push(privateMessage);
+                            }
+                        });
+                    }
+                    responses.json(res, latestPrivateMessages, error, next);
+                });
+            });
+        },
+        /**
+         * Show Content of Private Message
          */
         show: function (req, res, next) {
             var username = req.authorization.basic.username;
@@ -89,8 +129,7 @@ module.exports = function(log, client, db, responses) {
 
                 req.on('end', function() {
                     var messageId = req.params.messageId;
-                    var receiver = data.userId;
-                    markPrivateMessagesAsRead(db, log, username, receiver, [messageId]);
+                    markPrivateMessagesAsRead(db, log, username, [messageId]);
                 });
             });
         },
@@ -116,8 +155,15 @@ module.exports = function(log, client, db, responses) {
         send: function (req, res, next) {
             var from = req.authorization.basic.username;
             var to = req.params.to;
+            var subject = req.params.subject;
             var text = req.params.text;
-            client.sendPrivateMessage(res, from, to, text, function (response, error) {
+
+            if (!to || !subject || !text) {
+                responses.json(res, null, 'httpBadRequest');
+                return;
+            }
+
+            client.sendPrivateMessage(res, from, to, subject, text, function (response, error) {
                 responses.json(res, response, error, next);
             });
         }
