@@ -25,7 +25,7 @@
     "marked": "0.5.x",
     "moment": "2.22.x",
     "mongodb": "3.1.x",
-    "redis": "2.8.x",
+    "redis": "3.1.x",
     "request": "2.88.x",
     "restify": "7.2.x",
     "restify-cors-middleware": "1.1.x",
