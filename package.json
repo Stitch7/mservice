@@ -22,7 +22,7 @@
   "preferGlobal": true,
   "dependencies": {
     "cheerio": "0.22.x",
-    "marked": "0.5.x",
+    "marked": "4.0.x",
     "moment": "2.22.x",
     "mongodb": "3.1.x",
     "redis": "2.8.x",
